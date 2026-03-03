@@ -258,9 +258,11 @@
         #asset-list::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 0; border: 1px solid #111827; }
         #asset-upload-panel {
             position: fixed;
-            right: 14px;
-            bottom: 14px;
-            width: min(360px, calc(92vw - 16px));
+            right: 8px;
+            bottom: 8px;
+            width: calc(min(420px, 92vw) - 16px);
+            max-width: calc(92vw - 16px);
+            box-sizing: border-box;
             margin-top: 0;
             background: rgba(15, 23, 42, 0.94);
             border: 1px solid rgba(148, 163, 184, 0.24);
@@ -1021,7 +1023,8 @@
             #asset-upload-panel {
                 right: 8px;
                 bottom: 8px;
-                width: min(360px, calc(92vw - 16px));
+                width: calc(92vw - 16px);
+                max-width: calc(92vw - 16px);
                 padding: 8px;
             }
             .asset-upload-grid {
