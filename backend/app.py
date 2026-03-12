@@ -26,6 +26,7 @@ from blueprints.agents import bp as agents_bp
 from blueprints.state import bp as state_bp
 from blueprints.assets import bp as assets_bp
 from blueprints.config import bp as config_bp
+from blueprints.office import bp as office_bp
 
 # === Shared utilities ===
 from shared import ensure_electron_standalone_snapshot
@@ -208,6 +209,7 @@ def create_app():
     app.register_blueprint(state_bp)
     app.register_blueprint(assets_bp)
     app.register_blueprint(config_bp)
+    app.register_blueprint(office_bp)
 
     # === Initialization ===
     try:

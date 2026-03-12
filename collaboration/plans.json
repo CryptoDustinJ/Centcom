@@ -1,0 +1,316 @@
+{
+  "plans": [
+    {
+      "id": "huddle_20260312_1514",
+      "timestamp": "2026-03-12T15:14:51.034710",
+      "agents": [
+        "Nova",
+        "Rook",
+        "Ralph"
+      ],
+      "status": "approved",
+      "proposals": [
+        {
+          "agent": "Nova",
+          "agentId": "agent_1773274638510_bld6",
+          "type": "creative",
+          "room": "breakroom",
+          "idea": "Add story corner with generated sci-fi snippets",
+          "priority": 2,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Show latest sci-fi story and storybook database stats"
+        },
+        {
+          "agent": "Rook",
+          "agentId": "agent_1773283982044_08u5",
+          "type": "new_room",
+          "room": "serverroom",
+          "idea": "Add a server room with live system metrics dashboard",
+          "priority": 1,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Create a new room displaying gateway/node status, GPU usage, disk space"
+        },
+        {
+          "agent": "Ralph",
+          "agentId": "agent_1773274630238_8duq",
+          "type": "automation",
+          "room": "workspace",
+          "idea": "Add automated syscheck pipeline visualization",
+          "priority": 1,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Display recent syscheck runs, alerts, and system health trends"
+        }
+      ],
+      "selected_plan": {
+        "agent": "Rook",
+        "agentId": "agent_1773283982044_08u5",
+        "type": "new_room",
+        "room": "serverroom",
+        "idea": "Add a server room with live system metrics dashboard",
+        "priority": 1,
+        "requires": [
+          "exec",
+          "git"
+        ],
+        "status": "pending",
+        "details": "Create a new room displaying gateway/node status, GPU usage, disk space"
+      },
+      "execution_log": [],
+      "completed": false
+    },
+    {
+      "id": "huddle_20260312_1514",
+      "timestamp": "2026-03-12T15:14:57.587577",
+      "agents": [
+        "Nova",
+        "Rook",
+        "Ralph"
+      ],
+      "status": "approved",
+      "proposals": [
+        {
+          "agent": "Nova",
+          "agentId": "agent_1773274638510_bld6",
+          "type": "creative",
+          "room": "breakroom",
+          "idea": "Add story corner with generated sci-fi snippets",
+          "priority": 2,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Show latest sci-fi story and storybook database stats"
+        },
+        {
+          "agent": "Rook",
+          "agentId": "agent_1773283982044_08u5",
+          "type": "new_room",
+          "room": "serverroom",
+          "idea": "Add a server room with live system metrics dashboard",
+          "priority": 1,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Create a new room displaying gateway/node status, GPU usage, disk space"
+        },
+        {
+          "agent": "Ralph",
+          "agentId": "agent_1773274630238_8duq",
+          "type": "automation",
+          "room": "workspace",
+          "idea": "Add automated syscheck pipeline visualization",
+          "priority": 1,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Display recent syscheck runs, alerts, and system health trends"
+        }
+      ],
+      "selected_plan": {
+        "agent": "Rook",
+        "agentId": "agent_1773283982044_08u5",
+        "type": "new_room",
+        "room": "serverroom",
+        "idea": "Add a server room with live system metrics dashboard",
+        "priority": 1,
+        "requires": [
+          "exec",
+          "git"
+        ],
+        "status": "pending",
+        "details": "Create a new room displaying gateway/node status, GPU usage, disk space"
+      },
+      "execution_log": [],
+      "completed": false
+    },
+    {
+      "id": "huddle_20260312_1516",
+      "timestamp": "2026-03-12T15:16:14.905978",
+      "agents": [
+        "Nova",
+        "Rook",
+        "Ralph",
+        "CodeMaster"
+      ],
+      "status": "approved",
+      "proposals": [
+        {
+          "agent": "Nova",
+          "agentId": "agent_1773274638510_bld6",
+          "type": "creative",
+          "room": "breakroom",
+          "idea": "Add story corner with generated sci-fi snippets",
+          "priority": 2,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Show latest sci-fi story and storybook database stats"
+        },
+        {
+          "agent": "Rook",
+          "agentId": "agent_1773283982044_08u5",
+          "type": "new_room",
+          "room": "serverroom",
+          "idea": "Add a server room with live system metrics dashboard",
+          "priority": 1,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Create a new room displaying gateway/node status, GPU usage, disk space"
+        },
+        {
+          "agent": "Ralph",
+          "agentId": "agent_1773274630238_8duq",
+          "type": "automation",
+          "room": "workspace",
+          "idea": "Add automated syscheck pipeline visualization",
+          "priority": 1,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Display recent syscheck runs, alerts, and system health trends"
+        },
+        {
+          "agent": "CodeMaster",
+          "agentId": "agent_1773274638699_p6ki",
+          "type": "code_quality",
+          "room": "lab",
+          "idea": "Add code quality metrics dashboard",
+          "priority": 1,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Show test coverage, lint results, and recent PR stats"
+        }
+      ],
+      "selected_plan": {
+        "agent": "Rook",
+        "agentId": "agent_1773283982044_08u5",
+        "type": "new_room",
+        "room": "serverroom",
+        "idea": "Add a server room with live system metrics dashboard",
+        "priority": 1,
+        "requires": [
+          "exec",
+          "git"
+        ],
+        "status": "pending",
+        "details": "Create a new room displaying gateway/node status, GPU usage, disk space"
+      },
+      "execution_log": [],
+      "completed": false
+    },
+    {
+      "id": "huddle_20260312_1516",
+      "timestamp": "2026-03-12T15:16:41.001174",
+      "agents": [
+        "Nova",
+        "Rook",
+        "Ralph",
+        "CodeMaster"
+      ],
+      "status": "approved",
+      "proposals": [
+        {
+          "agent": "Nova",
+          "agentId": "agent_1773274638510_bld6",
+          "type": "creative",
+          "room": "breakroom",
+          "idea": "Add story corner with generated sci-fi snippets",
+          "priority": 2,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Show latest sci-fi story and storybook database stats"
+        },
+        {
+          "agent": "Rook",
+          "agentId": "agent_1773283982044_08u5",
+          "type": "new_room",
+          "room": "serverroom",
+          "idea": "Add a server room with live system metrics dashboard",
+          "priority": 1,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Create a new room displaying gateway/node status, GPU usage, disk space"
+        },
+        {
+          "agent": "Ralph",
+          "agentId": "agent_1773274630238_8duq",
+          "type": "automation",
+          "room": "workspace",
+          "idea": "Add automated syscheck pipeline visualization",
+          "priority": 1,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Display recent syscheck runs, alerts, and system health trends"
+        },
+        {
+          "agent": "CodeMaster",
+          "agentId": "agent_1773274638699_p6ki",
+          "type": "code_quality",
+          "room": "lab",
+          "idea": "Add code quality metrics dashboard",
+          "priority": 1,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Show test coverage, lint results, and recent PR stats"
+        }
+      ],
+      "selected_plan": {
+        "agent": "Rook",
+        "agentId": "agent_1773283982044_08u5",
+        "type": "new_room",
+        "room": "serverroom",
+        "idea": "Add a server room with live system metrics dashboard",
+        "priority": 1,
+        "requires": [
+          "exec",
+          "git"
+        ],
+        "status": "pending",
+        "details": "Create a new room displaying gateway/node status, GPU usage, disk space"
+      },
+      "execution_log": [],
+      "completed": false
+    }
+  ],
+  "last_huddle": "2026-03-12T15:16:41.001174",
+  "version": 1
+}
