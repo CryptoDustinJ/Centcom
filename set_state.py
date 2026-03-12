@@ -34,7 +34,7 @@ def load_state():
             return json.load(f)
     return {
         "state": "idle",
-        "detail": "待命中...",
+        "detail": "Idle...",
         "progress": 0,
         "updated_at": datetime.now().isoformat()
     }
@@ -45,12 +45,12 @@ def save_state(state):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("用法: python set_state.py <state> [detail]")
-        print(f"状态选项: {', '.join(VALID_STATES)}")
-        print("\n例子:")
+        print("Usage: python set_state.py <state> [detail]")
+        print(f"State options: {', '.join(VALID_STATES)}")
+        print("\nExamples:")
         print("  python set_state.py idle")
-        print("  python set_state.py researching \"在查 Godot MCP...\"")
-        print("  python set_state.py writing \"在写热点日报模板...\"")
+        print("  python set_state.py researching \"Researching Godot MCP...\"")
+        print("  python set_state.py writing \"Writing daily report template...\"")
         sys.exit(1)
     
     state_name = sys.argv[1]

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-海辛办公室 - Agent 状态主动推送脚本
+Star Office - Agent Status Push Script
 
-用法：
-1. 填入下面的 JOIN_KEY（你从海辛那里拿到的一次性 join key）
-2. 填入 AGENT_NAME（你想要在办公室里显示的名字）
-3. 运行：python office-agent-push.py
-4. 脚本会自动先 join（首次运行），然后每 30s 向海辛办公室推送一次你的当前状态
+Usage:
+1. Fill in your JOIN_KEY (one-time join key from the office admin)
+2. Fill in your AGENT_NAME (the name you want displayed in the office)
+3. Run: python office-agent-push.py
+4. The script will first join (on first run), then push your status to the office every 15 seconds
 """
 
 import json
@@ -16,9 +16,9 @@ import sys
 from datetime import datetime
 
 # === 你需要填入的信息 ===
-JOIN_KEY = ""   # 必填：你的一次性 join key
-AGENT_NAME = "" # 必填：你在办公室里的名字
-OFFICE_URL = "https://office.hyacinth.im"  # 海辛办公室地址（一般不用改）
+JOIN_KEY = ""   # Required: your one-time join key
+AGENT_NAME = "" # Required: your name as displayed in the office
+OFFICE_URL = "https://office.hyacinth.im"  # Office URL (usually don't change)
 
 # === 推送配置 ===
 PUSH_INTERVAL_SECONDS = 15  # 每隔多少秒推送一次（更实时）
@@ -159,11 +159,11 @@ def fetch_local_status():
                     # detail 兜底纠偏，确保“工作/休息/报警”能正确落区
                     state = map_detail_to_state(detail, fallback_state=state)
 
-                    # 防止状态文件久未更新仍停留在 working 态
+                    # Prevent stale state from staying in working mode
                     age = _state_age_seconds(data)
                     if age is not None and age > STALE_STATE_TTL_SECONDS:
                         state = "idle"
-                        detail = f"本地状态超过{STALE_STATE_TTL_SECONDS}s未更新，自动回待命"
+                        detail = f"Local state stale >{STALE_STATE_TTL_SECONDS}s, auto-idle"
 
                     if VERBOSE:
                         print(f"[status-source:file] path={fp} state={state} detail={detail[:60]}")
@@ -187,21 +187,21 @@ def fetch_local_status():
             age = _state_age_seconds(data)
             if age is not None and age > STALE_STATE_TTL_SECONDS:
                 state = "idle"
-                detail = f"本地/status 超过{STALE_STATE_TTL_SECONDS}s未更新，自动回待命"
+                detail = f"Local /status stale >{STALE_STATE_TTL_SECONDS}s, auto-idle"
 
             if VERBOSE:
                 print(f"[status-source:http] url={LOCAL_STATUS_URL} state={state} detail={detail[:60]}")
             return {"state": state, "detail": detail}
-        # 如果 401，说明需要 token
+        # If 401, token required
         if r.status_code == 401:
-            return {"state": "idle", "detail": "本地/status需要鉴权（401），请设置 OFFICE_LOCAL_STATUS_TOKEN"}
+            return {"state": "idle", "detail": "Local /status requires auth (401), set OFFICE_LOCAL_STATUS_TOKEN"}
     except Exception:
         pass
 
-    # 3) 默认 fallback
+    # 3) Default fallback
     if VERBOSE:
-        print("[status-source:fallback] state=idle detail=待命中")
-    return {"state": "idle", "detail": "待命中"}
+        print("[status-source:fallback] state=idle detail=Idle")
+    return {"state": "idle", "detail": "Idle"}
 
 
 def do_join(local):
@@ -210,7 +210,7 @@ def do_join(local):
         "name": local.get("agentName", AGENT_NAME),
         "joinKey": local.get("joinKey", JOIN_KEY),
         "state": "idle",
-        "detail": "刚刚加入"
+        "detail": "Just joined"
     }
     r = requests.post(f"{OFFICE_URL}{JOIN_ENDPOINT}", json=payload, timeout=10)
     if r.status_code in (200, 201):
@@ -219,9 +219,9 @@ def do_join(local):
             local["joined"] = True
             local["agentId"] = data.get("agentId")
             save_local_state(local)
-            print(f"✅ 已加入海辛办公室，agentId={local['agentId']}")
+            print(f"✅ Joined office successfully, agentId={local['agentId']}")
             return True
-    print(f"❌ 加入失败：{r.text}")
+    print(f"❌ Join failed: {r.text}")
     return False
 
 
@@ -239,23 +239,23 @@ def do_push(local, status_data):
         data = r.json()
         if data.get("ok"):
             area = data.get("area", "breakroom")
-            print(f"✅ 状态已同步，当前区域={area}")
+            print(f"✅ Status synced, current area={area}")
             return True
 
-    # 403/404：拒绝/移除 → 停止推送
+    # 403/404: denied/removed → stop pushing
     if r.status_code in (403, 404):
         msg = ""
         try:
             msg = (r.json() or {}).get("msg", "")
         except Exception:
             msg = r.text
-        print(f"⚠️  访问拒绝或已移出房间（{r.status_code}），停止推送：{msg}")
+        print(f"⚠️  Access denied or removed ({r.status_code}), stopping: {msg}")
         local["joined"] = False
         local["agentId"] = None
         save_local_state(local)
         sys.exit(1)
 
-    print(f"⚠️  推送失败：{r.text}")
+    print(f"⚠️  Push failed: {r.text}")
     return False
 
 
@@ -273,21 +273,21 @@ def main():
             print("State file: auto-discover (set OFFICE_LOCAL_STATE_FILE if state not found)")
     print(f"Local status URL: {LOCAL_STATUS_URL} (set OFFICE_LOCAL_STATUS_URL if backend uses another port)")
 
-    # 先确认配置是否齐全
+    # Check configuration
     if not JOIN_KEY or not AGENT_NAME:
-        print("❌ 请先在脚本开头填入 JOIN_KEY 和 AGENT_NAME")
+        print("❌ Please fill in JOIN_KEY and AGENT_NAME at the top of the script")
         sys.exit(1)
 
-    # 如果之前没 join，先 join
+    # Join if not already joined
     if not local.get("joined") or not local.get("agentId"):
         ok = do_join(local)
         if not ok:
             sys.exit(1)
 
-    # 持续推送
-    print(f"🚀 开始持续推送状态，间隔={PUSH_INTERVAL_SECONDS}秒")
-    print("🧭 状态逻辑：任务中→工作区；待命/完成→休息区；异常→bug区")
-    print("🔐 若本地 /status 返回 Unauthorized(401)，请设置环境变量：OFFICE_LOCAL_STATUS_TOKEN 或 OFFICE_LOCAL_STATUS_URL")
+    # Continuous push
+    print(f"🚀 Starting status push, interval={PUSH_INTERVAL_SECONDS}s")
+    print("🧭 State mapping: writing→workspace; idle/done→breakroom; error→bug area")
+    print("🔐 If local /status returns Unauthorized(401), set env vars: OFFICE_LOCAL_STATUS_TOKEN or OFFICE_LOCAL_STATUS_URL")
     try:
         while True:
             try:

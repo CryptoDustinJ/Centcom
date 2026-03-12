@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -2608,7 +2608,7 @@
 
         function getAssetDisplayName(path) {
             const stem = toAssetStem(path);
-            const lang = (uiLang || 'zh');
+            const lang = (uiLang || 'en');
             const nameMap = {
                 zh: {
                     'star-idle-v5': '主角·待命状态',
@@ -2683,7 +2683,7 @@
                     'guest_anim_6': '訪客アニメ 6'
                 }
             };
-            const langMap = nameMap[lang] || nameMap.zh;
+            const langMap = nameMap[lang] || nameMap.en;
             return langMap[stem] || stem;
         }
 
@@ -2791,8 +2791,8 @@
 
         function getAssetHelpText(path) {
             const stem = toAssetStem(path);
-            const lang = (uiLang || 'zh');
-            const map = ASSET_HELP_TEXT_MAP[lang] || ASSET_HELP_TEXT_MAP.zh;
+            const lang = (uiLang || 'en');
+            const map = ASSET_HELP_TEXT_MAP[lang] || ASSET_HELP_TEXT_MAP.en;
             return map[stem] || t('assetHintDefault');
         }
 
@@ -3690,7 +3690,7 @@ function toggleBrokerPanel() {
                     '旅が次の番地を届けるのを待っています……'
                 ]
             };
-            const steps = loadingTexts[uiLang] || loadingTexts.zh;
+            const steps = loadingTexts[uiLang] || loadingTexts.en;
             const emojis = ['🦞','🦀','🦐','🦑','🐙','🐟','🐠','🐡','🦪','🍣','🍤','🍱','🍲','🍜','🍝','🌊','🐚','🪸'];
 
             roomLoadingIndex = 0;
@@ -4660,7 +4660,7 @@ function toggleBrokerPanel() {
                     error: 'エラー発生！アラートエリアへ。'
                 }
             };
-            const bubbleTextMap = bubbleTextMapByLang[uiLang] || bubbleTextMapByLang.zh;
+            const bubbleTextMap = bubbleTextMapByLang[uiLang] || bubbleTextMapByLang.en;
 
             // 确保两位 demo 角色不会总是同一个状态（增加可观测性）
             const pickJs = (exclude) => {
@@ -4770,9 +4770,9 @@ function toggleBrokerPanel() {
                                         en: [`Welcome ${newAgent.name} to the office!`,`Hi ${newAgent.name}, let’s build something.`,`${newAgent.name} just joined — welcome!`],
                                         ja: [`${newAgent.name} さん、オフィスへようこそ！`,`Hi ${newAgent.name}、一緒に進めよう。`,`${newAgent.name} さんが参加しました、歓迎！`]
                                     };
-                                    const langPack = BUBBLE_TEXTS[lang] || BUBBLE_TEXTS.zh;
+                                    const langPack = BUBBLE_TEXTS[lang] || BUBBLE_TEXTS.en;
                                     const oldTexts = Array.isArray(langPack.writing) ? [...langPack.writing] : [];
-                                    langPack.writing = welcomeTexts[lang] || welcomeTexts.zh;
+                                    langPack.writing = welcomeTexts[lang] || welcomeTexts.en;
                                     showBubble();
                                     // 还原
                                     langPack.writing = oldTexts;
@@ -5700,7 +5700,7 @@ function toggleBrokerPanel() {
         }
 
         function getBubbleTextsByState(stateKey) {
-            const langPack = BUBBLE_TEXTS[uiLang] || BUBBLE_TEXTS.zh;
+            const langPack = BUBBLE_TEXTS[uiLang] || BUBBLE_TEXTS.en;
             return langPack[stateKey] || langPack.idle || [];
         }
 

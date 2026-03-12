@@ -2,12 +2,16 @@
 """Storage helper utilities for Star Office backend.
 
 JSON load/save for agents state, asset positions/defaults, runtime config, and join keys.
+Includes file locking for safe concurrent writes.
 """
 
 from __future__ import annotations
 
 import json
 import os
+from typing import Any, Optional
+
+from lock_utils import safe_write_lock
 
 
 def _load_json(path: str):
@@ -16,10 +20,34 @@ def _load_json(path: str):
         return json.load(f)
 
 
-def _save_json(path: str, data):
-    """Write data as JSON with UTF-8 and indent=2."""
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+def _save_json(path: str, data: Any, lock: Optional[bool] = None):
+    """
+    Write data as JSON with UTF-8 and indent=2.
+
+    Args:
+        path: Target file path
+        data: Data to serialize to JSON
+        lock: If True, acquire exclusive file lock before writing.
+              If None (default), lock is acquired automatically for writes.
+              If False, no lock (use with caution, only for temp files).
+    """
+    should_lock = lock if lock is not None else True
+    lock_obj = None
+
+    try:
+        if should_lock:
+            lock_obj = safe_write_lock(path)
+            # Write to temporary file then atomic replace to avoid corruption if interrupted
+            tmp_path = f"{path}.tmp"
+            with open(tmp_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            os.replace(tmp_path, path)
+        else:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+    finally:
+        if lock_obj is not None:
+            lock_obj.release()
 
 
 def load_agents_state(path: str, default_agents: list) -> list:

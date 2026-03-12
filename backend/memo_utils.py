@@ -30,8 +30,19 @@ def sanitize_content(text: str) -> str:
     return text
 
 
-def extract_memo_from_file(file_path: str) -> str:
-    """Extract display-safe memo text from a memory markdown file; sanitizes and truncates with a short fallback."""
+def extract_memo_from_file(memory_dir: str, date_str: str | None = None) -> str:
+    """Extract display-safe memo text from a memory markdown file; sanitizes and truncates with a short fallback.
+
+    Args:
+        memory_dir: Directory containing memory markdown files
+        date_str: Date string (YYYY-MM-DD) to look for; if None, uses yesterday
+    """
+    import os
+    if date_str is None:
+        date_str = get_yesterday_date_str()
+    file_path = os.path.join(memory_dir, f"{date_str}.md")
+    if not os.path.isfile(file_path):
+        return ""
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()

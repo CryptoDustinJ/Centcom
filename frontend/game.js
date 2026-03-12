@@ -62,15 +62,16 @@ async function loadMemo() {
     const response = await fetch('/yesterday-memo?t=' + Date.now(), { cache: 'no-store' });
     const data = await response.json();
 
-    if (data.success && data.memo) {
+    if (data.memo) {
       memoDate.textContent = data.date || '';
-      memoContent.innerHTML = data.memo.replace(/\n/g, '<br>');
+      const escaped = data.memo.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      memoContent.innerHTML = escaped.replace(/\n/g, '<br>');
     } else {
-      memoContent.innerHTML = '<div id="memo-placeholder">暂无昨日日记</div>';
+      memoContent.innerHTML = '<div id="memo-placeholder">No yesterday notes</div>';
     }
   } catch (e) {
-    console.error('加载 memo 失败:', e);
-    memoContent.innerHTML = '<div id="memo-placeholder">加载失败</div>';
+    console.error('Failed to load memo:', e);
+    memoContent.innerHTML = '<div id="memo-placeholder">Load failed</div>';
   }
 }
 
@@ -82,7 +83,7 @@ function updateLoadingProgress() {
     loadingProgressBar.style.width = percent + '%';
   }
   if (loadingText) {
-    loadingText.textContent = `正在加载 Star 的像素办公室... ${percent}%`;
+    loadingText.textContent = `Loading Star's Pixel Office... ${percent}%`;
   }
 }
 
@@ -100,94 +101,94 @@ function hideLoadingOverlay() {
 }
 
 const STATES = {
-  idle: { name: '待命', area: 'breakroom' },
-  writing: { name: '整理文档', area: 'writing' },
-  researching: { name: '搜索信息', area: 'researching' },
-  executing: { name: '执行任务', area: 'writing' },
-  syncing: { name: '同步备份', area: 'writing' },
-  error: { name: '出错了', area: 'error' }
+  idle: { name: 'Idle', area: 'breakroom' },
+  writing: { name: 'Writing', area: 'writing' },
+  researching: { name: 'Researching', area: 'researching' },
+  executing: { name: 'Executing', area: 'writing' },
+  syncing: { name: 'Syncing', area: 'writing' },
+  error: { name: 'Error', area: 'error' }
 };
 
 const BUBBLE_TEXTS = {
   idle: [
-    '待命中：耳朵竖起来了',
-    '我在这儿，随时可以开工',
-    '先把桌面收拾干净再说',
-    '呼——给大脑放个风',
-    '今天也要优雅地高效',
-    '等待，是为了更准确的一击',
-    '咖啡还热，灵感也还在',
-    '我在后台给你加 Buff',
-    '状态：静心 / 充电',
-    '小猫说：慢一点也没关系'
+    'Idle: ears perked up',
+    'I\'m here, ready to work',
+    'Let me tidy up the desk first',
+    'Ahh~ giving the brain a break',
+    'Elegant efficiency every day',
+    'Waiting for the perfect moment to strike',
+    'Coffee\'s still hot, inspiration too',
+    'I\'m buffing you in the background',
+    'Status: Resting / Recharging',
+    'The cat says: slow down, it\'s okay'
   ],
   writing: [
-    '进入专注模式：勿扰',
-    '先把关键路径跑通',
-    '我来把复杂变简单',
-    '把 bug 关进笼子里',
-    '写到一半，先保存',
-    '把每一步都做成可回滚',
-    '今天的进度，明天的底气',
-    '先收敛，再发散',
-    '让系统变得更可解释',
-    '稳住，我们能赢'
+    'Entering focus mode: do not disturb',
+    'Let\'s nail down the critical path first',
+    'I make complex things simple',
+    'Locking bugs in a cage',
+    'Halfway through writing, saving now',
+    'Make everything rollback-ready',
+    'Today\'s progress is tomorrow\'s confidence',
+    'Converge first, then diverge',
+    'Making the system more explainable',
+    'Stay steady, we can win'
   ],
   researching: [
-    '我在挖证据链',
-    '让我把信息熬成结论',
-    '找到了：关键在这里',
-    '先把变量控制住',
-    '我在查：它为什么会这样',
-    '把直觉写成验证',
-    '先定位，再优化',
-    '别急，先画因果图'
+    'Digging through evidence chains',
+    'Let me simmer info into conclusions',
+    'Found it: the key point here',
+    'Controlling variables first',
+    'Researching: why does this happen?',
+    'Turning intuition into verification',
+    'Locate first, optimize later',
+    'Don\'t rush, let\'s map causality'
   ],
   executing: [
-    '执行中：不要眨眼',
-    '把任务切成小块逐个击破',
-    '开始跑 pipeline',
-    '一键推进：走你',
-    '让结果自己说话',
-    '先做最小可行，再做最美版本'
+    'Executing: don\'t blink',
+    'Slice tasks into pieces, tackle one by one',
+    'Starting the pipeline run',
+    'One-click deploy: here we go',
+    'Let results speak for themselves',
+    'MVP first, beautiful version later'
   ],
   syncing: [
-    '同步中：把今天锁进云里',
-    '备份不是仪式，是安全感',
-    '写入中…别断电',
-    '把变更交给时间戳',
-    '云端对齐：咔哒',
-    '同步完成前先别乱动',
-    '把未来的自己从灾难里救出来',
-    '多一份备份，少一份后悔'
+    'Syncing: locking today into the cloud',
+    'Backup isn\'t ritual, it\'s security',
+    'Writing... don\'t unplug',
+    'Handing changes to timestamps',
+    'Cloud alignment: click',
+    'Don\'t mess around until sync completes',
+    'Saving future me from disaster',
+    'One more backup, one less regret'
   ],
   error: [
-    '警报响了：先别慌',
-    '我闻到 bug 的味道了',
-    '先复现，再谈修复',
-    '把日志给我，我会说人话',
-    '错误不是敌人，是线索',
-    '把影响面圈起来',
-    '先止血，再手术',
-    '我在：马上定位根因',
-    '别怕，这种我见多了',
-    '报警中：让问题自己现形'
+    'Alarm ringing: stay calm first',
+    'I smell a bug',
+    'Reproduce first, then discuss fixes',
+    'Give me the logs, I\'ll translate to human',
+    'Errors aren\'t enemies, they\'re clues',
+    'Mapping the impact zone',
+    'Stop the bleeding first, then surgery',
+    'I\'m on it: root cause LOC soon',
+    'Don\'t worry, I\'ve seen this before',
+    'Alert active: let the problem reveal itself'
   ],
   cat: [
-    '喵~',
-    '咕噜咕噜…',
-    '尾巴摇一摇',
-    '晒太阳最开心',
-    '有人来看我啦',
-    '我是这个办公室的吉祥物',
-    '伸个懒腰',
-    '今天的罐罐准备好了吗',
-    '呼噜呼噜',
-    '这个位置视野最好'
+    'Meow~',
+    'Purrrr...',
+    'Wagging tail',
+    'So happy basking in the sun',
+    'Someone\'s visiting me!',
+    'I\'m the office mascot',
+    'Stretching',
+    'Is today\'s treat can ready?',
+    'Purrrr',
+    'Best view from this spot'
   ]
 };
 
-let game, star, sofa, serverroom, areas = {}, currentState = 'idle', pendingDesiredState = null, statusText, lastFetch = 0, lastBlink = 0, lastBubble = 0, targetX = 660, targetY = 170, bubble = null, typewriterText = '', typewriterTarget = '', typewriterIndex = 0, lastTypewriter = 0, syncAnimSprite = null, catBubble = null;
+let game, star, sofa, serverroom, coffeeMachine, areas = {}, currentState = 'idle', pendingDesiredState = null, statusText, lastFetch = 0, lastBlink = 0, lastBubble = 0, targetX = 660, targetY = 170, bubble = null, typewriterText = '', typewriterTarget = '', typewriterIndex = 0, lastTypewriter = 0, syncAnimSprite = null, catBubble = null;
 let isMoving = false;
 let waypoints = [];
 let lastWanderAt = 0;
@@ -374,7 +375,7 @@ function create() {
   const plaqueY = LAYOUT.plaque.y;
   const plaqueBg = game.add.rectangle(plaqueX, plaqueY, LAYOUT.plaque.width, LAYOUT.plaque.height, 0x5d4037);
   plaqueBg.setStrokeStyle(3, 0x3e2723);
-  const plaqueText = game.add.text(plaqueX, plaqueY, '海辛小龙虾的办公室', {
+  const plaqueText = game.add.text(plaqueX, plaqueY, 'Star\'s Office', {
     fontFamily: 'ArkPixel, monospace',
     fontSize: '18px',
     fill: '#ffd700',
@@ -433,13 +434,34 @@ function create() {
     frameRate: 12.5,
     repeat: -1
   });
-  const coffeeMachine = this.add.sprite(
+  coffeeMachine = this.add.sprite(
     LAYOUT.furniture.coffeeMachine.x,
     LAYOUT.furniture.coffeeMachine.y,
     'coffee_machine'
   ).setOrigin(LAYOUT.furniture.coffeeMachine.origin.x, LAYOUT.furniture.coffeeMachine.origin.y);
   coffeeMachine.setDepth(LAYOUT.furniture.coffeeMachine.depth);
   coffeeMachine.anims.play('coffee_machine', true);
+
+  // Make coffee machine interactive
+  const cmHitArea = new Phaser.Geom.Rectangle(-30, -40, 60, 70);
+  coffeeMachine.setInteractive(cmHitArea, Phaser.Geom.Rectangle.Contains);
+  coffeeMachine.on('pointerdown', () => {
+    const now = Date.now();
+    if (window.lastCoffeeClick && now - window.lastCoffeeClick < 1000) return;
+    window.lastCoffeeClick = now;
+    // Toggle coffee break state (just visual feedback)
+    if (typeof addActivity === 'function') {
+        addActivity('☕ Coffee break toggled!', 'info');
+    }
+    // Show a temporary bubble
+    if (typeof showBubbleAt === 'function') {
+        showBubbleAt(coffeeMachine.x, coffeeMachine.y - 60, 'Coffee breaks ' + (Date.now() % 2 ? 'enabled' : 'disabled'));
+    } else {
+        // Simple fallback: show a Phaser text
+        const txt = game.add.text(coffeeMachine.x, coffeeMachine.y - 60, 'Coffee toggled!', { fontFamily: 'ArkPixel', fontSize: '12px', fill: '#fff' }).setOrigin(0.5);
+        game.time.delayedCall(2000, () => txt.destroy());
+    }
+  });
 
   // === 服务器区（来自 LAYOUT）===
   this.anims.create({
@@ -551,7 +573,7 @@ function create() {
   coordsToggle.addEventListener('click', () => {
     showCoords = !showCoords;
     coordsOverlay.style.display = showCoords ? 'block' : 'none';
-    coordsToggle.textContent = showCoords ? '隐藏坐标' : '显示坐标';
+    coordsToggle.textContent = showCoords ? 'Hide Coords' : 'Show Coords';
     coordsToggle.style.background = showCoords ? '#e94560' : '#333';
   });
 
@@ -588,10 +610,10 @@ function create() {
   if (debugAgents) {
     const testNika = {
       agentId: 'agent_nika',
-      name: '尼卡',
+      name: 'Nika',
       isMain: false,
       state: 'writing',
-      detail: '在画像素画...',
+      detail: 'Drawing pixel art...',
       area: 'writing',
       authStatus: 'approved',
       updated_at: new Date().toISOString()
@@ -605,10 +627,10 @@ function create() {
       window.testNikaState = states[Math.floor(Math.random() * states.length)];
       const testAgent = {
         agentId: 'agent_nika',
-        name: '尼卡',
+        name: 'Nika',
         isMain: false,
         state: window.testNikaState,
-        detail: '在画像素画...',
+        detail: 'Drawing pixel art...',
         area: areas[window.testNikaState],
         authStatus: 'approved',
         updated_at: new Date().toISOString()
@@ -784,7 +806,7 @@ function fetchStatus() {
       }
     })
     .catch(error => {
-      typewriterTarget = '连接失败，正在重试...';
+      typewriterTarget = 'Connection failed, retrying...';
       typewriterText = '';
       typewriterIndex = 0;
     });
@@ -899,7 +921,7 @@ function showBubble() {
 function showCatBubble() {
   if (!window.catSprite) return;
   if (window.catBubble) { window.catBubble.destroy(); window.catBubble = null; }
-  const texts = BUBBLE_TEXTS.cat || ['喵~', '咕噜咕噜…'];
+  const texts = BUBBLE_TEXTS.cat || ['Meow~', 'Purrrr...'];
   const text = texts[Math.floor(Math.random() * texts.length)];
   const anchorX = window.catSprite.x;
   const anchorY = window.catSprite.y - 60;
@@ -937,7 +959,7 @@ function fetchAgents() {
       }
     })
     .catch(error => {
-      console.error('拉取 agents 失败:', error);
+      console.error('Failed to fetch agents:', error);
     });
 }
 
@@ -980,6 +1002,13 @@ function renderAgent(agent) {
       fontSize: '32px'
     }).setOrigin(0.5);
     starIcon.name = 'starIcon';
+    // Make agent clickable
+    starIcon.setInteractive(new Phaser.Geom.Circle(0, 0, 20), Phaser.Geom.Circle.Contains);
+    starIcon.on('pointerdown', () => {
+        if (typeof window.openAgentPanel === 'function') {
+            window.openAgentPanel(agentId);
+        }
+    });
 
     // 名字标签（漂浮）
     const nameTag = game.add.text(0, -36, name, {
@@ -1002,7 +1031,21 @@ function renderAgent(agent) {
     statusDot.setStrokeStyle(2, 0x000000, alpha);
     statusDot.name = 'statusDot';
 
-    container.add([starIcon, statusDot, nameTag]);
+    // Progress bar (above agent)
+    const barW = 36, barH = 4;
+    const barBg = game.add.rectangle(0, -42, barW, barH, 0x000000, 0.6);
+    barBg.setStrokeStyle(1, 0xffffff, 0.5);
+    const barFill = game.add.rectangle(-barW/2, -42, 0, barH, 0x22c55e); // width 0 initially
+    barFill.setOrigin(0, 0.5);
+    barFill.name = 'progressFill';
+
+    container.add([starIcon, statusDot, nameTag, barBg, barFill]);
+    container.progressFill = barFill;
+
+    // Update progress bar when agent updates
+    const progress = Math.min(100, Math.max(0, agent.progress || 0));
+    barFill.width = (barW * progress) / 100;
+
     agents[agentId] = container;
   } else {
     // 更新 agent
@@ -1026,6 +1069,12 @@ function renderAgent(agent) {
       if (authStatus === 'rejected') dotColor = 0xef4444;
       if (authStatus === 'offline') dotColor = 0x94a3b8;
       statusDot.fillColor = dotColor;
+    }
+    // Update progress bar
+    const progress = Math.min(100, Math.max(0, agent.progress || 0));
+    if (container.progressFill) {
+      const barW = 36;
+      container.progressFill.width = (barW * progress) / 100;
     }
   }
 }
