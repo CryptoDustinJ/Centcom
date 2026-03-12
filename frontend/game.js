@@ -109,6 +109,84 @@ const STATES = {
   error: { name: 'Error', area: 'error' }
 };
 
+// === Dynamic Room System ===
+let OFFICE_ROOMS = {};  // roomId -> room definition
+
+async function loadOfficeRooms() {
+  try {
+    const resp = await fetch('/office/rooms');
+    if (resp.ok) {
+      const data = await resp.json();
+      const rooms = data.rooms || [];
+      for (const room of rooms) {
+        OFFICE_ROOMS[room.id] = room;
+        // Generate positions for this room if not already defined
+        if (!AREA_POSITIONS[room.id]) {
+          // Distribute rooms in a grid pattern to the right side
+          const roomIds = Object.keys(OFFICE_ROOMS);
+          const idx = roomIds.indexOf(room.id);
+          const cols = 2;
+          const startX = 700;
+          const startY = 100;
+          const spacingX = 200;
+          const spacingY = 120;
+          const col = idx % cols;
+          const row = Math.floor(idx / cols);
+          const baseX = startX + col * spacingX;
+          const baseY = startY + row * spacingY;
+          // Primary position (for single agent placement)
+          LAYOUT.areas[room.id] = { x: baseX, y: baseY };
+          // Multiple slots for multiple agents in same room
+          AREA_POSITIONS[room.id] = [
+            { x: baseX, y: baseY },
+            { x: baseX + 25, y: baseY + 25 },
+            { x: baseX - 25, y: baseY + 25 },
+            { x: baseX + 25, y: baseY - 25 },
+            { x: baseX - 25, y: baseY - 25 },
+            { x: baseX + 50, y: baseY },
+            { x: baseX - 50, y: baseY },
+          ];
+        }
+      }
+      console.log(`[Office] Loaded ${rooms.length} rooms`);
+    }
+  } catch (e) {
+    console.warn('[Office] Failed to load rooms:', e);
+  }
+}
+
+function drawRoomsOverlay(scene) {
+  const graphics = scene.add.graphics();
+  for (const roomId in OFFICE_ROOMS) {
+    const room = OFFICE_ROOMS[roomId];
+    const color = Phaser.Display.Color.StringToColor(room.color || '#888888');
+    const positions = AREA_POSITIONS[roomId];
+    if (positions && positions.length > 0) {
+      const xs = positions.map(p => p.x);
+      const ys = positions.map(p => p.y);
+      const minX = Math.min(...xs) - 60;
+      const minY = Math.min(...ys) - 40;
+      const maxX = Math.max(...xs) + 60;
+      const maxY = Math.max(...ys) + 40;
+      const w = maxX - minX;
+      const h = maxY - minY;
+      // Room background
+      graphics.fillStyle(Phaser.Display.Color.GetColor(color.r, color.g, color.b), 0.12);
+      graphics.fillRoundedRect(minX, minY, w, h, 10);
+      graphics.lineStyle(2, Phaser.Display.Color.GetColor(color.r, color.g, color.b), 0.4);
+      graphics.strokeRoundedRect(minX, minY, w, h, 10);
+      // Room label
+      scene.add.text(minX + 10, minY + 10, room.name, {
+        fontFamily: '"Press Start 2P", monospace',
+        fontSize: '10px',
+        fill: 'white',
+        stroke: '#000000',
+        strokeThickness: 2
+      }).setScrollFactor(0).setDepth(1000);
+    }
+  }
+}
+
 const BUBBLE_TEXTS = {
   idle: [
     'Idle: ears perked up',
@@ -278,6 +356,10 @@ async function initGame() {
   }
 
   console.log('WebP 支持:', supportsWebP);
+
+  // Load office rooms before starting game
+  await loadOfficeRooms();
+
   new Phaser.Game(config);
 }
 
@@ -364,6 +446,9 @@ function create() {
   star.setDepth(20);
   star.setVisible(false);
   star.anims.stop();
+
+  // Draw dynamic room overlays
+  drawRoomsOverlay(this);
 
   if (game.textures.exists('sofa_busy')) {
     sofa.setTexture('sofa_busy');
