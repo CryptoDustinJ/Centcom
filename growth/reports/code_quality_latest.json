@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-03-12T15:26:07.466386",
+  "generator": "CodeMaster",
+  "total_lines": 397712,
+  "code_lines": 308950,
+  "comment_lines": 22623,
+  "blank_lines": 66139,
+  "file_count": 1257,
+  "git_stats": {
+    "commits_7d": 35,
+    "lines_added_30d": 53162,
+    "lines_deleted_30d": 9290
+  },
+  "functions": 17586,
+  "classes": 3063,
+  "imports": 11164,
+  "todo_count": 217,
+  "print_statements": 462
+}

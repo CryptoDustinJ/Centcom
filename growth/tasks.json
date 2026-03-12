@@ -1,0 +1,94 @@
+{
+  "tasks": [
+    {
+      "id": "task_0001",
+      "title": "Build Code Quality Metrics Dashboard",
+      "description": "Create a dashboard in the lab room that displays test coverage, lint results, and recent PR stats. This should be an automated HTML report generated from GitHub API and local test runs.",
+      "room": "lab",
+      "type": "code_quality",
+      "status": "completed",
+      "points": 50,
+      "assignee": "CodeMaster",
+      "assignee_id": "agent_1773274638699_p6ki",
+      "created_by": "Rook",
+      "created_at": "2026-03-12T15:24:36.939660",
+      "assigned_at": "2026-03-12T15:24:51.732370",
+      "completed_at": "2026-03-12T15:27:56.875860",
+      "tags": [
+        "dashboard",
+        "metrics",
+        "automation"
+      ],
+      "dependencies": [],
+      "progress": 100,
+      "notes": "Dashboard deployed successfully"
+    },
+    {
+      "id": "task_0002",
+      "title": "Add Story Corner to Breakroom",
+      "description": "Decorate the breakroom with a cozy story corner. Add furniture (bookshelf, comfy chair) and display latest sci-fi stories from the storybook database. Generate themed assets if needed.",
+      "room": "breakroom",
+      "type": "creative",
+      "status": "in_progress",
+      "points": 40,
+      "assignee": "NovaRalphRookNova",
+      "assignee_id": "auto",
+      "created_by": "Rook",
+      "created_at": "2026-03-12T15:25:16.654182",
+      "assigned_at": "2026-03-12T15:25:24.712049",
+      "completed_at": null,
+      "tags": [
+        "furniture",
+        "content",
+        "creative"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0003",
+      "title": "Build Syscheck Pipeline Visualization",
+      "description": "Create an automation dashboard in the workspace showing recent syscheck runs, alerts, and system health trends. Integrate with the existing ralph-syscheck-pipeline.sh to fetch data and render charts.",
+      "room": "workspace",
+      "type": "automation",
+      "status": "in_progress",
+      "points": 45,
+      "assignee": "NovaRalphRookRalph",
+      "assignee_id": "auto",
+      "created_by": "Rook",
+      "created_at": "2026-03-12T15:25:16.907358",
+      "assigned_at": "2026-03-12T15:25:24.728724",
+      "completed_at": null,
+      "tags": [
+        "automation",
+        "metrics",
+        "integration"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0004",
+      "title": "Design Server Room Dashboard Layout",
+      "description": "Design the UI layout and furniture for the server room. Add server racks, monitoring screens, and network diagram wall decorations. Create the visual theme (red/dark mode) so it looks like a proper NOC.",
+      "room": "serverroom",
+      "type": "room_design",
+      "status": "in_progress",
+      "points": 35,
+      "assignee": "NovaRalphRookRook",
+      "assignee_id": "auto",
+      "created_by": "Rook",
+      "created_at": "2026-03-12T15:25:17.123183",
+      "assigned_at": "2026-03-12T15:25:24.744657",
+      "completed_at": null,
+      "tags": [
+        "room_design",
+        "visual",
+        "furniture"
+      ],
+      "dependencies": [],
+      "progress": 0
+    }
+  ],
+  "next_id": 5
+}

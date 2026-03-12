@@ -7,15 +7,23 @@ set -euo pipefail
 
 # Configuration
 OFFICE_URL="${OFFICE_URL:-http://127.0.0.1:19000}"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PYTHON_SCRIPT="$SCRIPT_DIR/daily_collaboration.py"
 
-# Colors for output
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+# Colors for output (only if terminal supports)
+if [ -t 1 ]; then
+  GREEN='\033[0;32m'
+  BLUE='\033[0;34m'
+  YELLOW='\033[1;33m'
+  RED='\033[0;31m'
+  NC='\033[0m'
+else
+  GREEN=""
+  BLUE=""
+  YELLOW=""
+  RED=""
+  NC=""
+fi
 
 cmd="${1:-}"
 shift 2>/dev/null || true
@@ -24,6 +32,17 @@ case "$cmd" in
   "huddle")
     # Just start a huddle (proposals only)
     echo -e "${BLUE}🤝 Starting office huddle...${NC}"
+    echo "   Office URL: $OFFICE_URL"
+
+    # Check office health
+    if ! curl -sf "$OFFICE_URL/health" > /dev/null; then
+      echo -e "${RED}❌ Office not responding at $OFFICE_URL${NC}"
+      echo "   Is the backend running? Try:"
+      echo "   cd $SCRIPT_DIR/../backend && python3 app.py"
+      exit 1
+    fi
+
+    # Start huddle (dry-run to avoid auto-execute)
     python3 "$PYTHON_SCRIPT" --propose-only
     ;;
 
@@ -52,21 +71,11 @@ case "$cmd" in
       exit 1
     fi
 
-    # Start huddle
-    echo -e "${YELLOW}Starting huddle...${NC}"
-    HUDDLE_OUTPUT=$(python3 "$PYTHON_SCRIPT" --dry-run 2>&1) || true
-    # Extract a fake huddle ID for demo purposes (in real run, we'd get actual ID)
-    HUDDLE_ID="daily_$(date +%Y%m%d_%H%M)"
-
-    echo -e "${GREEN}✅ Huddle initiated${NC}"
-    echo "   Agents will propose improvements automatically."
-
-    # In real execution, we'd auto-execute. For safety in cron, we'll just start huddle.
-    # The selected plan can be reviewed and executed manually or via another cron.
+    # Start huddle and auto-execute
     echo ""
-    echo -e "${YELLOW}💡 Next step:${NC}"
-    echo "   Review the huddle at: $OFFICE_URL (open in browser)"
-    echo "   Or execute via: $0 execute $HUDDLE_ID"
+    echo "Starting huddle and executing selected plan..."
+    HUDDLE_OUTPUT=$(python3 "$PYTHON_SCRIPT" 2>&1) || true
+    echo "$HUDDLE_OUTPUT"
     ;;
 
   "test")
@@ -75,7 +84,8 @@ case "$cmd" in
     if curl -sf "$OFFICE_URL/health" > /dev/null; then
       echo -e "${GREEN}✅ Office reachable${NC}"
       echo "   URL: $OFFICE_URL"
-      curl -s "$OFFICE_URL/office/status" | python3 -m json.tool 2>/dev/null || true
+      echo "   Status:"
+      curl -s "$OFFICE_URL/office/status" | python3 -m json.tool 2>/dev/null || echo "   (could not fetch status)"
     else
       echo -e "${RED}❌ Office not reachable${NC}"
       exit 1
@@ -96,7 +106,7 @@ case "$cmd" in
     echo "Commands:"
     echo "  huddle              Start a new huddle (proposals only, no execute)"
     echo "  execute <huddle_id> Execute a specific huddle plan"
-    echo "  daily               Full daily routine (huddle + readiness check)"
+    echo "  daily               Full daily routine (huddle + execute automatically)"
     echo "  test                Test office connectivity"
     echo "  list                List all huddle plans and their status"
     echo ""
@@ -109,7 +119,7 @@ case "$cmd" in
     echo "  OFFICE_URL      Office backend URL (default: http://127.0.0.1:19000)"
     echo ""
     echo "Integration:"
-    echo "  Add to Rook's dispatch:"
+    echo "  Add to Rook's dispatch (ralph-dispatch.sh):"
     echo "    office-collab)  \"$HOME/.openclaw/office-collaboration.sh\" daily ;;"
     echo ""
     echo "  Add to crontab (run daily at 7 AM):"
