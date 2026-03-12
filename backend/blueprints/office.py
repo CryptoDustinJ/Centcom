@@ -242,9 +242,41 @@ def execute_plan(huddle_id):
             room_name = plan["room"]
             execution_log.append(f"Creating new room: {room_name}")
 
-            # Add room to asset-positions.json or create room config
-            # For now, just log the intent
-            execution_log.append(f"Room '{room_name}' concept: {plan['idea']}")
+            # Load or create rooms.json
+            room_file = Path(cfg.FRONTEND_DIR) / "rooms.json"
+            existing_rooms = {"rooms": []}
+            if room_file.exists():
+                try:
+                    existing_rooms = json.loads(room_file.read_text())
+                except Exception:
+                    pass
+
+            # Check if room already exists
+            if any(r.get("id") == room_name for r in existing_rooms.get("rooms", [])):
+                execution_log.append(f"Room '{room_name}' already exists, skipping creation")
+            else:
+                # Define the new room with appropriate color and properties
+                room_colors = {
+                    "serverroom": "#e74c3c",  # Red for server
+                    "lab": "#9b59b6",         # Purple for lab
+                    "knowledge": "#3498db",   # Blue for knowledge
+                    "archive": "#7f8c8d",     # Gray for archive
+                    "dashboard": "#2ecc71",   # Green for dashboard
+                }
+                new_room = {
+                    "id": room_name,
+                    "name": plan.get("room_name", room_name.title()),
+                    "color": room_colors.get(room_name, "#95a5a6"),
+                    "states": plan.get("states", ["idle"]),
+                    "background": plan.get("background"),
+                    "furniture": plan.get("furniture", []),
+                    "created_by": plan["agent"],
+                    "created_at": datetime.now().isoformat(),
+                    "description": plan["idea"]
+                }
+                existing_rooms["rooms"].append(new_room)
+                room_file.write_text(json.dumps(existing_rooms, indent=2, ensure_ascii=False))
+                execution_log.append(f"Room '{room_name}' added to rooms.json")
 
         elif plan["type"] == "automation":
             execution_log.append("Adding automation improvement")
