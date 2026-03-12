@@ -195,6 +195,46 @@ def start_huddle():
     plans["last_huddle"] = huddle["timestamp"]
     _save_plans(plans)
 
+    # Auto-create tasks from high-priority proposals (priority <= 2)
+    try:
+        tasks_file = Path(cfg.ROOT_DIR) / "growth" / "tasks.json"
+        if tasks_file.exists():
+            tasks_data = json.loads(tasks_file.read_text())
+        else:
+            tasks_data = {"tasks": [], "next_id": 1}
+
+        for prop in huddle.get("proposals", []):
+            if prop.get("priority", 3) <= 2:
+                # Avoid duplicates (same title + assignee)
+                if any(t.get("title") == prop.get("idea") and t.get("assignee") == prop.get("agent")
+                       for t in tasks_data.get("tasks", [])):
+                    continue
+                new_task = {
+                    "id": f"task_{tasks_data.get('next_id', 1):04d}",
+                    "title": prop.get("idea", "Untitled task"),
+                    "description": prop.get("details", ""),
+                    "room": prop.get("room", "general"),
+                    "type": prop.get("type", "improvement"),
+                    "status": "open",
+                    "points": prop.get("points", 25),
+                    "assignee": prop.get("agent"),
+                    "assignee_id": prop.get("agentId"),
+                    "created_by": "huddle_auto",
+                    "created_at": datetime.now().isoformat(),
+                    "assigned_at": datetime.now().isoformat(),
+                    "completed_at": None,
+                    "tags": ["auto", "huddle"],
+                    "dependencies": [],
+                    "progress": 0,
+                }
+                tasks_data["tasks"].append(new_task)
+                tasks_data["next_id"] = tasks_data.get("next_id", 1) + 1
+
+        tasks_file.write_text(json.dumps(tasks_data, indent=2, ensure_ascii=False))
+        log.info("Auto-created tasks from huddle", extra={"_count": len(tasks_data["tasks"])})
+    except Exception as e:
+        log.warning("Auto-task creation failed", extra={"_error": str(e)})
+
     log.info("Office huddle started", extra={"_huddle_id": huddle_id, "_agents": len(collaborators)})
 
     return jsonify({

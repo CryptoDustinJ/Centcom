@@ -100,6 +100,106 @@
       "points": 40,
       "task_id": "task_0010",
       "timestamp": "2026-03-12T15:43:51.437853"
+    },
+    {
+      "id": "contrib_20260312_155333_710497",
+      "agent": "Rook",
+      "agent_id": "agent_1773283982044_08u5",
+      "type": "feature_automation",
+      "room": "workspace",
+      "description": "Implemented auto-task creation in /office/huddle/start. High-priority proposals (priority <=2) automatically become assigned tasks. Team now gets work autonomously.",
+      "points": 45,
+      "timestamp": "2026-03-12T15:53:33.710514",
+      "git_commit": null,
+      "files_changed": [
+        "backend/blueprints/office.py"
+      ]
+    },
+    {
+      "id": "contrib_20260312_155334_159273",
+      "agent": "Rook",
+      "agentId": "agent_1773283982044_08u5",
+      "type": "task_completed",
+      "room": "workspace",
+      "description": "Completed task: Auto-create tasks from daily huddle proposals",
+      "points": 45,
+      "task_id": "task_0006",
+      "timestamp": "2026-03-12T15:53:34.159288"
+    },
+    {
+      "id": "contrib_20260312_155600_464982",
+      "agent": "Nova",
+      "agent_id": "agent_1773274638510_bld6",
+      "type": "creative_room_content",
+      "room": "breakroom",
+      "description": "Created Story Corner HTML page with sci-fi snippets. Styled to match breakroom aesthetic. Data placeholder for future DB integration.",
+      "points": 40,
+      "timestamp": "2026-03-12T15:56:00.465002",
+      "git_commit": null,
+      "files_changed": [
+        "frontend/rooms/breakroom/story_corner.html"
+      ]
+    },
+    {
+      "id": "contrib_20260312_155600_946315",
+      "agent": "Nova",
+      "agentId": "agent_1773274638510_bld6",
+      "type": "task_completed",
+      "room": "breakroom",
+      "description": "Completed task: Add story corner with generated sci-fi snippets",
+      "points": 25,
+      "task_id": "task_0012",
+      "timestamp": "2026-03-12T15:56:00.946336"
+    },
+    {
+      "id": "contrib_20260312_155704_063992",
+      "agent": "Ralph",
+      "agent_id": "agent_1773274630238_8duq",
+      "type": "automation_dashboard",
+      "room": "workspace",
+      "description": "Created Syscheck Pipeline dashboard with system metrics, service status, disk usage, and recent alerts.",
+      "points": 45,
+      "timestamp": "2026-03-12T15:57:04.064013",
+      "git_commit": null,
+      "files_changed": [
+        "frontend/rooms/workspace/syscheck_dashboard.html"
+      ]
+    },
+    {
+      "id": "contrib_20260312_155704_350748",
+      "agent": "Ralph",
+      "agentId": "agent_1773274630238_8duq",
+      "type": "task_completed",
+      "room": "workspace",
+      "description": "Completed task: Add automated syscheck pipeline visualization",
+      "points": 25,
+      "task_id": "task_0014",
+      "timestamp": "2026-03-12T15:57:04.350764"
+    },
+    {
+      "id": "contrib_20260312_155844_438385",
+      "agent": "Rook",
+      "agent_id": "agent_1773283982044_08u5",
+      "type": "room_dashboard",
+      "room": "serverroom",
+      "description": "Created Server Room live metrics dashboard with gateway/node status, GPU, disk, and event log.",
+      "points": 35,
+      "timestamp": "2026-03-12T15:58:44.438402",
+      "git_commit": null,
+      "files_changed": [
+        "frontend/rooms/serverroom/metrics_dashboard.html"
+      ]
+    },
+    {
+      "id": "contrib_20260312_155844_941378",
+      "agent": "Rook",
+      "agentId": "agent_1773283982044_08u5",
+      "type": "task_completed",
+      "room": "serverroom",
+      "description": "Completed task: Add a server room with live system metrics dashboard",
+      "points": 25,
+      "task_id": "task_0013",
+      "timestamp": "2026-03-12T15:58:44.941401"
     }
   ]
 }

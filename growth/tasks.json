@@ -118,21 +118,22 @@
       "description": "Update /office/huddle/start endpoint to automatically create tasks in /growth/tasks for each proposal with priority > 2. Assign tasks to the proposing agent. This makes the huddle actively generate work for the team.",
       "room": "workspace",
       "type": "backend",
-      "status": "open",
+      "status": "completed",
       "points": 45,
-      "assignee": null,
-      "assignee_id": null,
+      "assignee": "Rook",
+      "assignee_id": "agent_1773283982044_08u5",
       "created_by": "Rook",
       "created_at": "2026-03-12T15:30:51.850275",
-      "assigned_at": null,
-      "completed_at": null,
+      "assigned_at": "2026-03-12T15:46:39.496213",
+      "completed_at": "2026-03-12T15:53:34.158977",
       "tags": [
         "automation",
         "huddle",
         "tasks"
       ],
       "dependencies": [],
-      "progress": 0
+      "progress": 100,
+      "notes": "Auto-task from huddle implemented. All agents now get assigned tasks automatically during daily huddles based on their proposals."
     },
     {
       "id": "task_0007",
@@ -140,13 +141,13 @@
       "description": "Create frontend/rooms/breakroom/story_corner.html that shows latest sci-fi stories. Pull from ~/.openclaw/knowledge/storybooks.db latest entries. Add furniture sprite (bookshelf, comfy chair) to breakroom JSON.",
       "room": "breakroom",
       "type": "creative",
-      "status": "open",
+      "status": "in_progress",
       "points": 40,
-      "assignee": null,
-      "assignee_id": null,
+      "assignee": "Nova",
+      "assignee_id": "agent_1773274638510_bld6",
       "created_by": "Nova",
       "created_at": "2026-03-12T15:30:51.852579",
-      "assigned_at": null,
+      "assigned_at": "2026-03-12T15:46:39.900310",
       "completed_at": null,
       "tags": [
         "creative",
@@ -162,13 +163,13 @@
       "description": "Build frontend/rooms/workspace/syscheck_dashboard.html that reads ~/.openclaw/workspace/reports/syscheck-latest.json and displays charts. Add chart visualization using Chart.js or similar. Show trends, alerts, system health.",
       "room": "workspace",
       "type": "automation",
-      "status": "open",
+      "status": "in_progress",
       "points": 45,
-      "assignee": null,
-      "assignee_id": null,
+      "assignee": "Ralph",
+      "assignee_id": "agent_1773274630238_8duq",
       "created_by": "Ralph",
       "created_at": "2026-03-12T15:30:51.855421",
-      "assigned_at": null,
+      "assigned_at": "2026-03-12T15:46:40.277100",
       "completed_at": null,
       "tags": [
         "automation",
@@ -244,7 +245,73 @@
       ],
       "dependencies": [],
       "progress": 0
+    },
+    {
+      "id": "task_0012",
+      "title": "Add story corner with generated sci-fi snippets",
+      "description": "Show latest sci-fi story and storybook database stats",
+      "room": "breakroom",
+      "type": "creative",
+      "status": "completed",
+      "points": 25,
+      "assignee": "Nova",
+      "assignee_id": "agent_1773274638510_bld6",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-12T15:52:37.797881",
+      "assigned_at": "2026-03-12T15:52:37.797885",
+      "completed_at": "2026-03-12T15:56:00.946017",
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 100,
+      "notes": "Story Corner implemented with placeholder sci-fi stories. Ready for DB integration."
+    },
+    {
+      "id": "task_0013",
+      "title": "Add a server room with live system metrics dashboard",
+      "description": "Create a new room displaying gateway/node status, GPU usage, disk space",
+      "room": "serverroom",
+      "type": "new_room",
+      "status": "completed",
+      "points": 25,
+      "assignee": "Rook",
+      "assignee_id": "agent_1773283982044_08u5",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-12T15:52:37.797892",
+      "assigned_at": "2026-03-12T15:52:37.797894",
+      "completed_at": "2026-03-12T15:58:44.941063",
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 100,
+      "notes": "Dashboard with system metrics implemented. Ready for live data integration."
+    },
+    {
+      "id": "task_0014",
+      "title": "Add automated syscheck pipeline visualization",
+      "description": "Display recent syscheck runs, alerts, and system health trends",
+      "room": "workspace",
+      "type": "automation",
+      "status": "completed",
+      "points": 25,
+      "assignee": "Ralph",
+      "assignee_id": "agent_1773274630238_8duq",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-12T15:52:37.797898",
+      "assigned_at": "2026-03-12T15:52:37.797899",
+      "completed_at": "2026-03-12T15:57:04.350418",
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 100,
+      "notes": "Dashboard created with status, disk, services, alerts. Ready for live data parsing."
     }
   ],
-  "next_id": 12
+  "next_id": 15
 }

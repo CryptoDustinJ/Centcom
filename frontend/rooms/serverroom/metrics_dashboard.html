@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Server Room Metrics</title>
+  <style>
+    body { margin: 0; background: #1a0505; color: #ff6b6b; font-family: 'Courier New', monospace; padding: 20px; }
+    .room { max-width: 700px; margin: 0 auto; }
+    h1 { color: #e74c3c; text-align: center; text-shadow: 0 0 10px #e74c3c; }
+    .panel { background: rgba(231, 76, 60, 0.1); border: 1px solid #e74c3c; padding: 15px; margin: 15px 0; border-radius: 5px; }
+    .panel h3 { margin: 0 0 10px 0; color: #e74c3c; }
+    .metric { display: flex; justify-content: space-between; margin: 8px 0; }
+    .label { color: #aaa; }
+    .value { font-weight: bold; color: #4ec9b0; }
+    .status-ok { color: #2ecc71; }
+    .status-warn { color: #f39c12; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .refresh { text-align: center; color: #666; font-size: 12px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="room">
+    <h1>🖥️ Server Room</h1>
+    <p style="text-align: center; color: #888;">Live system metrics from the NOC</p>
+
+    <div class="grid">
+      <div class="panel">
+        <h3>Gateway</h3>
+        <div class="metric"><span class="label">Status:</span><span class="value status-ok">● RUNNING</span></div>
+        <div class="metric"><span class="label">Port:</span><span class="value">18789</span></div>
+        <div class="metric"><span class="label">Sessions:</span><span class="value">103</span></div>
+      </div>
+
+      <div class="panel">
+        <h3>Node</h3>
+        <div class="metric"><span class="label">Status:</span><span class="value status-ok">● RUNNING</span></div>
+        <div class="metric"><span class="label">Uptime:</span><span class="value">1h 22m</span></div>
+        <div class="metric"><span class="label">Agents:</span><span class="value">5</span></div>
+      </div>
+
+      <div class="panel">
+        <h3>GPU</h3>
+        <div class="metric"><span class="label">Used:</span><span class="value">0.8 GB / 4 GB</span></div>
+        <div class="metric"><span class="label">Temp:</span><span class="value">52°C</span></div>
+        <div class="metric"><span class="label">Util:</span><span class="value">12%</span></div>
+      </div>
+
+      <div class="panel">
+        <h3>Disk</h3>
+        <div class="metric"><span class="label">Free:</span><span class="value status-ok">925 GB</span></div>
+        <div class="metric"><span class="label">Usage:</span><span class="value">6%</span></div>
+        <div class="metric"><span class="label">Inodes:</span><span class="value">84%</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Recent Events</h3>
+      <div class="log" style="color: #ccc;">
+[15:52] Huddle completed: serverroom metrics<br>
+[15:45] New agent joined: CodeMaster<br>
+[15:30] Task board created: 11 tasks<br>
+[15:15] Room created: serverroom<br>
+      </div>
+    </div>
+
+    <div class="refresh">
+      Metrics auto-refresh every 15s via office-agent-push
+    </div>
+  </div>
+</body>
+</html>

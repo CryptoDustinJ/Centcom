@@ -579,8 +579,78 @@
       },
       "execution_log": [],
       "completed": false
+    },
+    {
+      "id": "huddle_20260312_1552",
+      "timestamp": "2026-03-12T15:52:37.797398",
+      "agents": [
+        "Nova",
+        "Rook",
+        "Ralph"
+      ],
+      "status": "approved",
+      "proposals": [
+        {
+          "agent": "Nova",
+          "agentId": "agent_1773274638510_bld6",
+          "type": "creative",
+          "room": "breakroom",
+          "idea": "Add story corner with generated sci-fi snippets",
+          "priority": 2,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Show latest sci-fi story and storybook database stats"
+        },
+        {
+          "agent": "Rook",
+          "agentId": "agent_1773283982044_08u5",
+          "type": "new_room",
+          "room": "serverroom",
+          "idea": "Add a server room with live system metrics dashboard",
+          "priority": 1,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Create a new room displaying gateway/node status, GPU usage, disk space"
+        },
+        {
+          "agent": "Ralph",
+          "agentId": "agent_1773274630238_8duq",
+          "type": "automation",
+          "room": "workspace",
+          "idea": "Add automated syscheck pipeline visualization",
+          "priority": 1,
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending",
+          "details": "Display recent syscheck runs, alerts, and system health trends"
+        }
+      ],
+      "selected_plan": {
+        "agent": "Rook",
+        "agentId": "agent_1773283982044_08u5",
+        "type": "new_room",
+        "room": "serverroom",
+        "idea": "Add a server room with live system metrics dashboard",
+        "priority": 1,
+        "requires": [
+          "exec",
+          "git"
+        ],
+        "status": "pending",
+        "details": "Create a new room displaying gateway/node status, GPU usage, disk space"
+      },
+      "execution_log": [],
+      "completed": false
     }
   ],
-  "last_huddle": "2026-03-12T15:18:24.649315",
+  "last_huddle": "2026-03-12T15:52:37.797398",
   "version": 1
 }
