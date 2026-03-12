@@ -1,19 +1,27 @@
 {
-  "generated_at": "2026-03-12T15:26:07.466386",
+  "generated_at": "2026-03-12T15:41:31.695282",
   "generator": "CodeMaster",
-  "total_lines": 397712,
-  "code_lines": 308950,
-  "comment_lines": 22623,
-  "blank_lines": 66139,
-  "file_count": 1257,
+  "total_lines": 398079,
+  "code_lines": 309264,
+  "comment_lines": 22641,
+  "blank_lines": 66174,
+  "file_count": 1259,
   "git_stats": {
-    "commits_7d": 35,
-    "lines_added_30d": 53162,
-    "lines_deleted_30d": 9290
+    "commits_7d": 38,
+    "lines_added_30d": 54966,
+    "lines_deleted_30d": 9323
   },
-  "functions": 17586,
+  "github_stats": {
+    "open_prs": 0,
+    "open_issues": 0,
+    "review_coverage_pct": 0,
+    "recent_prs": [],
+    "recent_issues": [],
+    "rate_limited": false
+  },
+  "functions": 17588,
   "classes": 3063,
-  "imports": 11164,
+  "imports": 11170,
   "todo_count": 217,
-  "print_statements": 462
+  "print_statements": 490
 }
