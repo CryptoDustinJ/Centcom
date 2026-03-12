@@ -88,7 +88,161 @@
       ],
       "dependencies": [],
       "progress": 0
+    },
+    {
+      "id": "task_0005",
+      "title": "Render rooms from rooms.json on office canvas",
+      "description": "Modify frontend/game.js to load /rooms endpoint and draw each room as a colored zone on the canvas. Add room labels and walls. Make agent sprites move between rooms based on their current area state.",
+      "room": "workspace",
+      "type": "frontend",
+      "status": "open",
+      "points": 50,
+      "assignee": null,
+      "assignee_id": null,
+      "created_by": "Rook",
+      "created_at": "2026-03-12T15:30:51.847598",
+      "assigned_at": null,
+      "completed_at": null,
+      "tags": [
+        "frontend",
+        "rendering",
+        "rooms"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0006",
+      "title": "Auto-create tasks from daily huddle proposals",
+      "description": "Update /office/huddle/start endpoint to automatically create tasks in /growth/tasks for each proposal with priority > 2. Assign tasks to the proposing agent. This makes the huddle actively generate work for the team.",
+      "room": "workspace",
+      "type": "backend",
+      "status": "open",
+      "points": 45,
+      "assignee": null,
+      "assignee_id": null,
+      "created_by": "Rook",
+      "created_at": "2026-03-12T15:30:51.850275",
+      "assigned_at": null,
+      "completed_at": null,
+      "tags": [
+        "automation",
+        "huddle",
+        "tasks"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0007",
+      "title": "Build Story Corner display component",
+      "description": "Create frontend/rooms/breakroom/story_corner.html that shows latest sci-fi stories. Pull from ~/.openclaw/knowledge/storybooks.db latest entries. Add furniture sprite (bookshelf, comfy chair) to breakroom JSON.",
+      "room": "breakroom",
+      "type": "creative",
+      "status": "open",
+      "points": 40,
+      "assignee": null,
+      "assignee_id": null,
+      "created_by": "Nova",
+      "created_at": "2026-03-12T15:30:51.852579",
+      "assigned_at": null,
+      "completed_at": null,
+      "tags": [
+        "creative",
+        "frontend",
+        "content"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0008",
+      "title": "Syscheck Pipeline Dashboard",
+      "description": "Build frontend/rooms/workspace/syscheck_dashboard.html that reads ~/.openclaw/workspace/reports/syscheck-latest.json and displays charts. Add chart visualization using Chart.js or similar. Show trends, alerts, system health.",
+      "room": "workspace",
+      "type": "automation",
+      "status": "open",
+      "points": 45,
+      "assignee": null,
+      "assignee_id": null,
+      "created_by": "Ralph",
+      "created_at": "2026-03-12T15:30:51.855421",
+      "assigned_at": null,
+      "completed_at": null,
+      "tags": [
+        "automation",
+        "dashboard",
+        "metrics"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0009",
+      "title": "Server Room Live Metrics Panel",
+      "description": "Create frontend/rooms/serverroom/metrics.html with live system stats: openclaw status (gateway/node), GPU usage (nvidia-smi), disk space, memory. Use polling or WebSocket if available.",
+      "room": "serverroom",
+      "type": "new_room",
+      "status": "open",
+      "points": 50,
+      "assignee": null,
+      "assignee_id": null,
+      "created_by": "Rook",
+      "created_at": "2026-03-12T15:30:51.857638",
+      "assigned_at": null,
+      "completed_at": null,
+      "tags": [
+        "server",
+        "metrics",
+        "real-time"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0010",
+      "title": "GitHub API integration for PR/issue stats",
+      "description": "Add to code_quality_report.py: fetch from GitHub API (octokit or requests) to get open PRs, recent issues, review coverage. Display in lab dashboard. Cache results to avoid rate limits.",
+      "room": "lab",
+      "type": "code_quality",
+      "status": "open",
+      "points": 40,
+      "assignee": null,
+      "assignee_id": null,
+      "created_by": "CodeMaster",
+      "created_at": "2026-03-12T15:30:51.859598",
+      "assigned_at": null,
+      "completed_at": null,
+      "tags": [
+        "github",
+        "api",
+        "metrics"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0011",
+      "title": "Furniture upgrade system in UI",
+      "description": "Implement room upgrade UI so agents can add furniture via API. Create frontend modal for asset drawer to place furniture sprites. Connect to /growth/room/upgrade endpoint.",
+      "room": "workspace",
+      "type": "frontend",
+      "status": "open",
+      "points": 35,
+      "assignee": null,
+      "assignee_id": null,
+      "created_by": "CodeMaster",
+      "created_at": "2026-03-12T15:30:51.862065",
+      "assigned_at": null,
+      "completed_at": null,
+      "tags": [
+        "frontend",
+        "ui",
+        "assets"
+      ],
+      "dependencies": [],
+      "progress": 0
     }
   ],
-  "next_id": 5
+  "next_id": 12
 }
