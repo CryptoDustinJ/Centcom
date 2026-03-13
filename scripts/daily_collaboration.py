@@ -140,17 +140,13 @@ def main():
         print(f"   python3 {sys.argv[0]} --execute --huddle-id {huddle_id}")
         return
 
-    # Small delay to simulate agents discussing (optional)
+    # Small delay to simulate agents discussing
     if not args.dry_run:
-        print("\n⏳ Waiting 5 seconds for agent discussion... (simulated)")
-        time.sleep(5)
+        print("\n⏳ Waiting 3 seconds for agent discussion...")
+        time.sleep(3)
 
-    # Execute the selected plan automatically
-    if args.execute:
-        execute_plan(huddle_id, dry_run=args.dry_run)
-    else:
-        print("\n💡 Plan ready for execution.")
-        print("   Run with: python3 daily_collaboration.py --execute --huddle-id", huddle_id)
+    # Execute the selected plan automatically (daily mode always executes)
+    execute_plan(huddle_id, dry_run=args.dry_run)
 
     print("\n" + "=" * 60)
     print("Collaboration session complete!")

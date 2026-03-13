@@ -395,7 +395,9 @@
         "profile",
         "ui"
       ],
-      "dependencies": ["task_0017"],
+      "dependencies": [
+        "task_0017"
+      ],
       "progress": 0
     },
     {
@@ -439,7 +441,9 @@
         "gamification",
         "backend"
       ],
-      "dependencies": ["task_0019"],
+      "dependencies": [
+        "task_0019"
+      ],
       "progress": 0
     },
     {
@@ -483,7 +487,9 @@
         "metrics",
         "frontend"
       ],
-      "dependencies": ["task_0021"],
+      "dependencies": [
+        "task_0021"
+      ],
       "progress": 0
     },
     {
@@ -551,7 +557,49 @@
       ],
       "dependencies": [],
       "progress": 0
+    },
+    {
+      "id": "task_0026",
+      "title": "Build observatory room for API monitoring",
+      "description": "Track external API health, response times, and rate limits.",
+      "room": "observatory",
+      "type": "new_room",
+      "status": "open",
+      "points": 25,
+      "assignee": "Rook",
+      "assignee_id": "agent_1773283982044_08u5",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-12T17:27:48.929957",
+      "assigned_at": "2026-03-12T17:27:48.929961",
+      "completed_at": null,
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0027",
+      "title": "Add cron job status board",
+      "description": "Show running/failed cron jobs and their last execution times.",
+      "room": "workspace",
+      "type": "automation",
+      "status": "open",
+      "points": 25,
+      "assignee": "Ralph",
+      "assignee_id": "agent_1773274630238_8duq",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-12T17:27:48.929969",
+      "assigned_at": "2026-03-12T17:27:48.929970",
+      "completed_at": null,
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 0
     }
   ],
-  "next_id": 26
+  "next_id": 28
 }

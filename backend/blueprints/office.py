@@ -190,6 +190,204 @@ def _get_office_context():
     return context
 
 
+# Agent role definitions for context-aware proposals
+_AGENT_ROLES = {
+    "Rook": {
+        "role": "architect", "expertise": ["rooms", "layout", "integration"],
+        "proposal_pool": [
+            {"type": "new_room", "room": "lab", "idea": "Add lab room for code quality analysis", "priority": 2,
+             "details": "Based on team size/growth, a lab would improve the office."},
+            {"type": "new_room", "room": "archive", "idea": "Create archive room for decision history", "priority": 2,
+             "details": "Store and display architectural decisions and reasoning logs."},
+            {"type": "new_room", "room": "observatory", "idea": "Build observatory room for API monitoring", "priority": 2,
+             "details": "Track external API health, response times, and rate limits."},
+            {"type": "monitoring", "room": "serverroom", "idea": "Expand server room with GPU monitoring", "priority": 1,
+             "details": "Add GPU temp, VRAM usage, and Ollama model status."},
+        ]
+    },
+    "Ralph": {
+        "role": "devops", "expertise": ["monitoring", "maintenance", "syscheck"],
+        "proposal_pool": [
+            {"type": "monitoring", "room": "serverroom", "idea": "Create system health dashboard", "priority": 1,
+             "details": "Monitor CPU, memory, disk across all services."},
+            {"type": "automation", "room": "serverroom", "idea": "Add syscheck pipeline visualization", "priority": 1,
+             "details": "Display recent syscheck runs, alerts, and system health trends."},
+            {"type": "automation", "room": "workspace", "idea": "Add cron job status board", "priority": 2,
+             "details": "Show running/failed cron jobs and their last execution times."},
+        ]
+    },
+    "Nova": {
+        "role": "artist", "expertise": ["creative_content", "visuals", "theming"],
+        "proposal_pool": [
+            {"type": "theming", "room": "workspace", "idea": "Apply consistent visual theme across rooms", "priority": 3,
+             "details": "Use color schemes and furniture to create cohesive look."},
+            {"type": "creative", "room": "breakroom", "idea": "Add story corner with sci-fi snippets", "priority": 2,
+             "details": "Show latest generated stories and storybook database stats."},
+            {"type": "creative", "room": "breakroom", "idea": "Create art gallery wall for generated images", "priority": 3,
+             "details": "Display AI-generated artwork and wallpapers."},
+        ]
+    },
+    "Claude": {
+        "role": "analyst", "expertise": ["reasoning", "architecture", "code_review"],
+        "proposal_pool": [
+            {"type": "reasoning", "room": "archive", "idea": "Create reasoning logs wall", "priority": 2,
+             "details": "Display recent deep analysis threads and architectural decisions."},
+            {"type": "code_quality", "room": "lab", "idea": "Add code review dashboard", "priority": 2,
+             "details": "Track code quality metrics, tech debt, and review comments."},
+        ]
+    },
+    "CodeMaster": {
+        "role": "engineer", "expertise": ["code_quality", "testing", "optimization"],
+        "proposal_pool": [
+            {"type": "code_quality", "room": "lab", "idea": "Add code quality metrics dashboard", "priority": 1,
+             "details": "Show test coverage, lint results, and recent PR stats."},
+            {"type": "automation", "room": "lab", "idea": "Create CI/CD pipeline monitor", "priority": 2,
+             "details": "Track build status, deployment history, and test results."},
+        ]
+    },
+}
+
+
+def _generate_proposal_for_agent(agent, context):
+    """Generate a context-aware proposal for an agent based on their role and office state."""
+    import random
+    name = agent.get("name", "Unknown")
+    role_def = _AGENT_ROLES.get(name, {
+        "role": "generalist", "expertise": ["general"],
+        "proposal_pool": [
+            {"type": "new_room", "room": "lounge", "idea": "Suggest a general improvement", "priority": 3,
+             "details": "Propose enhancements based on current needs."}
+        ]
+    })
+
+    # Pick a proposal from the pool, preferring ones for rooms that don't exist yet
+    existing_room_ids = set(r.get("id") for r in context.get("rooms", {}).get("list", []))
+    pool = role_def["proposal_pool"]
+
+    # Prefer proposals for rooms that don't exist yet
+    new_room_proposals = [p for p in pool if p.get("room") not in existing_room_ids]
+    if new_room_proposals:
+        chosen = random.choice(new_room_proposals)
+    else:
+        chosen = random.choice(pool)
+
+    # Build reasoning string with context
+    ctx_summary = (
+        f"agents={context['agents']['total']}, tasks={context['tasks']['total']}, "
+        f"rooms={context['rooms']['total']}, disk={context['system']['disk_free_gb']} GB"
+    )
+    reasoning = (
+        f"As a {role_def['role']} with expertise in {', '.join(role_def['expertise'])}, "
+        f"I analyzed: {ctx_summary}. Suggested {chosen['type']}.\n\n"
+        f"[Context snapshot]: {ctx_summary}, top_agent={context['growth']['top_agent']}"
+    )
+
+    return {
+        "agent": name,
+        "type": chosen["type"],
+        "room": chosen["room"],
+        "idea": chosen["idea"],
+        "priority": chosen["priority"],
+        "details": chosen["details"],
+        "reasoning": reasoning,
+        "agentId": agent.get("agentId"),
+        "requires": ["exec", "git"],
+        "status": "pending",
+    }
+
+
+def _generate_room_dashboard(room_name, plan, room_config):
+    """Generate a room-specific dashboard HTML page."""
+    furniture_html = ""
+    for item in room_config.get("furniture", []):
+        furniture_html += f'<div class="furniture-item" style="left:{item["x"]*100}%;top:{item["y"]*100}%">'
+        furniture_html += f'<span class="furniture-icon">{_furniture_icon(item["type"])}</span>'
+        furniture_html += f'<span class="furniture-label">{item["label"]}</span>'
+        furniture_html += '</div>\n'
+
+    color = room_config.get("color", "#666")
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>{room_name.title()} - Star Office</title>
+<style>
+  body {{ font-family: 'ArkPixel', monospace; background: #1a1a2e; color: #eee; margin: 0; padding: 20px; }}
+  .room-header {{ background: {color}22; border: 2px solid {color}; border-radius: 12px; padding: 16px 24px; margin-bottom: 20px; }}
+  .room-header h1 {{ margin: 0; color: {color}; font-size: 24px; }}
+  .room-header .meta {{ color: #999; font-size: 12px; margin-top: 4px; }}
+  .furniture-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }}
+  .furniture-card {{ background: #16213e; border: 1px solid {color}44; border-radius: 8px; padding: 16px; }}
+  .furniture-card h3 {{ margin: 0 0 8px 0; color: {color}; }}
+  .furniture-card .icon {{ font-size: 32px; margin-bottom: 8px; }}
+  .data-panel {{ background: #0f3460; border-radius: 6px; padding: 12px; margin-top: 8px; font-size: 13px; }}
+  .data-panel .loading {{ color: #666; }}
+  .status-badge {{ display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; }}
+  .status-ok {{ background: #27ae6033; color: #2ecc71; }}
+  .status-warn {{ background: #f39c1233; color: #f1c40f; }}
+  .back-link {{ color: {color}; text-decoration: none; font-size: 14px; }}
+  .back-link:hover {{ text-decoration: underline; }}
+</style>
+</head>
+<body>
+  <a href="/" class="back-link">← Back to Office</a>
+  <div class="room-header">
+    <h1>{_furniture_icon(plan.get("type", ""))} {plan.get("idea", room_name.title())}</h1>
+    <div class="meta">Created by {plan.get("agent", "Unknown")} | Room: {room_name}</div>
+  </div>
+  <div class="furniture-grid" id="furniture-grid">
+    {"".join(_generate_furniture_card(item, color) for item in room_config.get("furniture", []))}
+  </div>
+  <script>
+    // Auto-refresh data panels
+    async function refreshData() {{
+      try {{
+        const resp = await fetch('/office/vitals');
+        if (resp.ok) {{
+          const data = await resp.json();
+          const v = data.vitals || {{}};
+          document.querySelectorAll('.data-value-cpu').forEach(el => el.textContent = (v.cpu_percent || 0) + '%');
+          document.querySelectorAll('.data-value-ram').forEach(el => el.textContent = (v.ram_percent || 0) + '%');
+          document.querySelectorAll('.data-value-disk').forEach(el => el.textContent = (v.disk_free_gb || 0) + ' GB free');
+        }}
+      }} catch(e) {{ console.warn('Refresh failed:', e); }}
+    }}
+    refreshData();
+    setInterval(refreshData, 10000);
+  </script>
+</body>
+</html>"""
+
+
+def _furniture_icon(item_type):
+    """Map furniture/plan type to emoji icon."""
+    icons = {
+        "server_rack": "🖥️", "monitor": "📊", "terminal": "💻", "pipeline": "⚙️",
+        "chart": "📈", "alert_board": "🚨", "dashboard": "📊", "gauge": "🎯",
+        "log_stream": "📜", "bookshelf": "📚", "easel": "🎨", "speaker": "🔊",
+        "palette": "🎨", "preview": "👁️", "whiteboard": "📝", "archive": "🗄️",
+        "linter": "🔍", "coverage": "✅", "pr_board": "📋",
+        "new_room": "🏠", "automation": "⚙️", "monitoring": "📊", "creative": "🎨",
+        "theming": "🎨", "reasoning": "🧠", "code_quality": "🔍",
+    }
+    return icons.get(item_type, "📦")
+
+
+def _generate_furniture_card(item, color):
+    """Generate a single furniture card HTML."""
+    icon = _furniture_icon(item.get("type", ""))
+    label = item.get("label", "Unknown")
+    return f"""<div class="furniture-card">
+      <div class="icon">{icon}</div>
+      <h3>{label}</h3>
+      <div class="data-panel">
+        <span class="data-value-cpu">--</span> CPU |
+        <span class="data-value-ram">--</span> RAM |
+        <span class="data-value-disk">--</span> Disk
+      </div>
+    </div>"""
+
+
 @bp.route("/office/huddle/start", methods=["POST"])
 def start_huddle():
     """
@@ -228,64 +426,10 @@ def start_huddle():
         "completed": False
     }
 
-    # For now, generate placeholder proposals based on agent personalities
-    # In a full implementation, we'd query each agent via sessions_send
+    # Generate context-aware proposals from each agent based on their role
+    context = _get_office_context()
     for agent in collaborators:
-        # Read agent's workspace to understand their capabilities
-        agent_workspace = Path(f"/home/dustin/.openclaw/workspace-{agent['name'].lower()}")
-        proposal = {
-            "agent": agent["name"],
-            "agentId": agent["agentId"],
-            "type": "room_improvement",
-            "room": "workspace",  # Default - could be determined by agent state
-            "idea": f"{agent['name']} suggests improving the office environment",
-            "priority": 2,
-            "requires": ["exec", "git"],
-            "status": "pending"
-        }
-
-        # Simple personality-based proposals (can be expanded)
-        if agent["name"] == "Rook":
-            proposal.update({
-                "type": "new_room",
-                "room": "serverroom",
-                "idea": "Add a server room with live system metrics dashboard",
-                "priority": 1,
-                "details": "Create a new room displaying gateway/node status, GPU usage, disk space"
-            })
-        elif agent["name"] == "Ralph":
-            proposal.update({
-                "type": "automation",
-                "room": "workspace",
-                "idea": "Add automated syscheck pipeline visualization",
-                "priority": 1,
-                "details": "Display recent syscheck runs, alerts, and system health trends"
-            })
-        elif agent["name"] == "Nova":
-            proposal.update({
-                "type": "creative",
-                "room": "breakroom",
-                "idea": "Add story corner with generated sci-fi snippets",
-                "priority": 2,
-                "details": "Show latest sci-fi story and storybook database stats"
-            })
-        elif agent["name"] == "Claude":
-            proposal.update({
-                "type": "reasoning",
-                "room": "archive",
-                "idea": "Create reasoning logs wall for complex decisions",
-                "priority": 2,
-                "details": "Display recent deep analysis threads and architectural decisions"
-            })
-        elif agent["name"] == "CodeMaster":
-            proposal.update({
-                "type": "code_quality",
-                "room": "lab",
-                "idea": "Add code quality metrics dashboard",
-                "priority": 1,
-                "details": "Show test coverage, lint results, and recent PR stats"
-            })
-
+        proposal = _generate_proposal_for_agent(agent, context)
         huddle["proposals"].append(proposal)
 
     # Simple voting: sum of priorities, pick highest
@@ -412,61 +556,140 @@ def execute_plan(huddle_id):
             pass
 
     try:
-        # Execute based on plan type
-        if plan["type"] == "new_room":
-            # Create a new room definition in the frontend assets
-            room_name = plan["room"]
-            execution_log.append(f"Creating new room: {room_name}")
+        room_name = plan.get("room", "workspace")
 
-            # Load or create rooms.json
-            room_file = Path(cfg.FRONTEND_DIR) / "rooms.json"
-            existing_rooms = {"rooms": []}
-            if room_file.exists():
-                try:
-                    existing_rooms = json.loads(room_file.read_text())
-                except Exception:
-                    pass
+        # Execute based on plan type - ALL types create/update rooms with content
+        execution_log.append(f"Executing plan type '{plan['type']}' for room '{room_name}'")
 
-            # Check if room already exists
-            if any(r.get("id") == room_name for r in existing_rooms.get("rooms", [])):
-                execution_log.append(f"Room '{room_name}' already exists, skipping creation")
-            else:
-                # Define the new room with appropriate color and properties
-                room_colors = {
-                    "serverroom": "#e74c3c",  # Red for server
-                    "lab": "#9b59b6",         # Purple for lab
-                    "knowledge": "#3498db",   # Blue for knowledge
-                    "archive": "#7f8c8d",     # Gray for archive
-                    "dashboard": "#2ecc71",   # Green for dashboard
-                }
-                new_room = {
-                    "id": room_name,
-                    "name": plan.get("room_name", room_name.title()),
-                    "color": room_colors.get(room_name, "#95a5a6"),
-                    "states": plan.get("states", ["idle"]),
-                    "background": plan.get("background"),
-                    "furniture": plan.get("furniture", []),
-                    "created_by": plan["agent"],
-                    "created_at": datetime.now().isoformat(),
-                    "description": plan["idea"]
-                }
-                existing_rooms["rooms"].append(new_room)
-                room_file.write_text(json.dumps(existing_rooms, indent=2, ensure_ascii=False))
-                execution_log.append(f"Room '{room_name}' added to rooms.json")
+        # Load or create rooms.json
+        room_file = Path(cfg.FRONTEND_DIR) / "rooms.json"
+        existing_rooms = {"rooms": []}
+        if room_file.exists():
+            try:
+                existing_rooms = json.loads(room_file.read_text())
+            except Exception:
+                pass
 
-        elif plan["type"] == "automation":
-            execution_log.append("Adding automation improvement")
-            # Could create new scripts, update monitoring, etc.
+        # Room color and furniture definitions by type
+        ROOM_CONFIGS = {
+            "new_room": {
+                "color": "#e74c3c",
+                "furniture": [
+                    {"type": "server_rack", "x": 0.2, "y": 0.3, "label": "Gateway"},
+                    {"type": "monitor", "x": 0.5, "y": 0.3, "label": "Metrics"},
+                    {"type": "terminal", "x": 0.8, "y": 0.3, "label": "Console"},
+                ]
+            },
+            "automation": {
+                "color": "#27ae60",
+                "furniture": [
+                    {"type": "pipeline", "x": 0.2, "y": 0.3, "label": "Syscheck Pipeline"},
+                    {"type": "chart", "x": 0.5, "y": 0.3, "label": "Health Trends"},
+                    {"type": "alert_board", "x": 0.8, "y": 0.3, "label": "Alert Board"},
+                ]
+            },
+            "monitoring": {
+                "color": "#2980b9",
+                "furniture": [
+                    {"type": "dashboard", "x": 0.3, "y": 0.3, "label": "CPU/RAM Monitor"},
+                    {"type": "gauge", "x": 0.6, "y": 0.3, "label": "Disk Usage"},
+                    {"type": "log_stream", "x": 0.8, "y": 0.5, "label": "Live Logs"},
+                ]
+            },
+            "creative": {
+                "color": "#8e44ad",
+                "furniture": [
+                    {"type": "bookshelf", "x": 0.2, "y": 0.3, "label": "Story Corner"},
+                    {"type": "easel", "x": 0.5, "y": 0.3, "label": "Art Display"},
+                    {"type": "speaker", "x": 0.8, "y": 0.3, "label": "TTS Speaker"},
+                ]
+            },
+            "theming": {
+                "color": "#e67e22",
+                "furniture": [
+                    {"type": "palette", "x": 0.3, "y": 0.3, "label": "Theme Palette"},
+                    {"type": "preview", "x": 0.6, "y": 0.3, "label": "Theme Preview"},
+                ]
+            },
+            "reasoning": {
+                "color": "#7f8c8d",
+                "furniture": [
+                    {"type": "whiteboard", "x": 0.3, "y": 0.3, "label": "Decision Board"},
+                    {"type": "archive", "x": 0.7, "y": 0.3, "label": "Reasoning Logs"},
+                ]
+            },
+            "code_quality": {
+                "color": "#9b59b6",
+                "furniture": [
+                    {"type": "linter", "x": 0.2, "y": 0.3, "label": "Lint Results"},
+                    {"type": "coverage", "x": 0.5, "y": 0.3, "label": "Test Coverage"},
+                    {"type": "pr_board", "x": 0.8, "y": 0.3, "label": "PR Stats"},
+                ]
+            },
+        }
 
-        elif plan["type"] == "creative":
-            execution_log.append("Adding creative content")
-            # Could generate assets, update memos, etc.
+        plan_type = plan.get("type", "new_room")
+        room_config = ROOM_CONFIGS.get(plan_type, ROOM_CONFIGS["new_room"])
 
-        elif plan["type"] == "reasoning":
-            execution_log.append("Adding reasoning content")
+        # Ensure room exists in rooms.json
+        existing_room = next((r for r in existing_rooms.get("rooms", []) if r.get("id") == room_name), None)
+        if existing_room:
+            # Update existing room with new furniture from this plan
+            old_furniture = existing_room.get("furniture", [])
+            for item in room_config["furniture"]:
+                if not any(f.get("label") == item["label"] for f in old_furniture):
+                    old_furniture.append(item)
+            existing_room["furniture"] = old_furniture
+            existing_room["last_updated_by"] = plan["agent"]
+            existing_room["last_updated_at"] = datetime.now().isoformat()
+            execution_log.append(f"Room '{room_name}' updated with new furniture")
+        else:
+            # Create new room
+            room_colors = {
+                "serverroom": "#e74c3c", "lab": "#9b59b6", "knowledge": "#3498db",
+                "archive": "#7f8c8d", "dashboard": "#2ecc71", "breakroom": "#27ae60",
+            }
+            new_room = {
+                "id": room_name,
+                "name": plan.get("room_name", room_name.replace("_", " ").replace("-", " ").title()),
+                "color": room_colors.get(room_name, room_config.get("color", "#95a5a6")),
+                "states": ["idle", "active"],
+                "furniture": room_config["furniture"],
+                "created_by": plan["agent"],
+                "created_at": datetime.now().isoformat(),
+                "description": plan["idea"],
+                "plan_type": plan_type,
+            }
+            existing_rooms["rooms"].append(new_room)
+            execution_log.append(f"Room '{room_name}' created with {len(room_config['furniture'])} furniture items")
 
-        elif plan["type"] == "code_quality":
-            execution_log.append("Adding code quality metrics")
+        room_file.write_text(json.dumps(existing_rooms, indent=2, ensure_ascii=False))
+
+        # Create room-specific dashboard HTML if it doesn't exist
+        rooms_dir = Path(cfg.FRONTEND_DIR) / "rooms" / room_name
+        rooms_dir.mkdir(parents=True, exist_ok=True)
+        dashboard_file = rooms_dir / "dashboard.html"
+        if not dashboard_file.exists():
+            dashboard_html = _generate_room_dashboard(room_name, plan, room_config)
+            dashboard_file.write_text(dashboard_html)
+            execution_log.append(f"Dashboard created: rooms/{room_name}/dashboard.html")
+
+        # Update agents-state to reflect the agent is working on this
+        try:
+            with open(cfg.AGENTS_STATE_FILE) as f:
+                agents_data = json.load(f)
+            for agent in agents_data:
+                if agent.get("name") == plan.get("agent"):
+                    agent["state"] = "writing"
+                    agent["detail"] = f"Building: {plan['idea'][:60]}"
+                    agent["area"] = "writing"
+                    agent["updated_at"] = datetime.now().isoformat()
+                    break
+            with open(cfg.AGENTS_STATE_FILE, 'w') as f:
+                json.dump(agents_data, f, indent=2)
+            execution_log.append(f"Agent '{plan['agent']}' state updated to 'writing'")
+        except Exception as e:
+            execution_log.append(f"Could not update agent state: {e}")
 
         # Commit changes if any git modifications exist
         git_status = _get_git_status()

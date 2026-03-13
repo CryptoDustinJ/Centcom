@@ -9,6 +9,13 @@ set -euo pipefail
 OFFICE_URL="${OFFICE_URL:-http://127.0.0.1:19000}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PYTHON_SCRIPT="$SCRIPT_DIR/daily_collaboration.py"
+VENV_PYTHON="$SCRIPT_DIR/../.venv/bin/python3"
+# Use venv python if available (has requests), else system python3
+if [ -x "$VENV_PYTHON" ]; then
+  PYTHON="$VENV_PYTHON"
+else
+  PYTHON="python3"
+fi
 
 # Colors for output (only if terminal supports)
 if [ -t 1 ]; then
@@ -43,7 +50,7 @@ case "$cmd" in
     fi
 
     # Start huddle (dry-run to avoid auto-execute)
-    python3 "$PYTHON_SCRIPT" --propose-only
+    "$PYTHON" "$PYTHON_SCRIPT" --propose-only
     ;;
 
   "execute")
@@ -55,7 +62,7 @@ case "$cmd" in
       exit 1
     fi
     echo -e "${BLUE}🔨 Executing huddle plan $HUDDLE_ID...${NC}"
-    python3 "$PYTHON_SCRIPT" --execute --huddle-id "$HUDDLE_ID"
+    "$PYTHON" "$PYTHON_SCRIPT" --execute --huddle-id "$HUDDLE_ID"
     ;;
 
   "daily")
@@ -74,7 +81,7 @@ case "$cmd" in
     # Start huddle and auto-execute
     echo ""
     echo "Starting huddle and executing selected plan..."
-    HUDDLE_OUTPUT=$(python3 "$PYTHON_SCRIPT" 2>&1) || true
+    HUDDLE_OUTPUT=$("$PYTHON" "$PYTHON_SCRIPT" 2>&1) || true
     echo "$HUDDLE_OUTPUT"
     ;;
 

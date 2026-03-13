@@ -22,6 +22,7 @@ from shared import (
 )
 from pathlib import Path
 import json
+import subprocess
 from validation import validate_agent_name, validate_state_detail, validate_invite_code, validate_agent_id, ValidationError as ValidationErrorExc
 from rate_limit import rate_limit
 from logger import log_agent_action
@@ -596,16 +597,18 @@ def _read_recent_agent_messages(limit: int = 25) -> list:
 
 
 # Command Center Mappings
-SCRIPTS_DIR = "/home/dustin/openclaw-office/backend/scripts"
+SCRIPTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "scripts")
 SCRIPT_MAP = {
     "weather": os.path.join(SCRIPTS_DIR, "get_weather.sh"),
     "email-list": os.path.join(SCRIPTS_DIR, "get_emails.sh"),
     "wallpaper": "/home/dustin/.openclaw/workspace/skills/daily-wallpaper/run_wallpaper.sh",
     "morning-briefing": "/home/dustin/.openclaw/scripts/morning-briefing.sh",
+    "syscheck": "/home/dustin/.openclaw/scripts/syscheck.sh",
+    "huddle": "INTERNAL:huddle",
+    "huddle-execute": "INTERNAL:huddle-execute",
 }
 
 OPENCLAW_CMD_MAP = {
-    "syscheck": "📊 session_status",
     "fullcheck": "📊 report",
     "self-heal": "🔧 system_doctor",
     "restart-both": "🔄 system_reboot",
@@ -614,10 +617,12 @@ OPENCLAW_CMD_MAP = {
     "storybook-list": "📚 list_stories",
     "watch-check": "👁️ watch_status",
 }
+
+
 @bp.route("/dispatch", methods=["POST"])
 @rate_limit(20, 60)
 def dispatch():
-    """Execute dashboard commands (restart-services, status, etc.)"""
+    """Command Center: Execute dashboard commands (restart-services, status, huddle, etc.)"""
     data = request.get_json() or {}
     command = data.get("command", "").strip()
     args = data.get("args", "")
@@ -629,32 +634,55 @@ def dispatch():
         # 1. Handle specialized backend commands
         if command == "restart-services":
             result = subprocess.run(
-                ["/usr/bin/sudo", "/usr/bin/systemctl", "restart", "openclaw-gateway", "openclaw-node"],
+                ["systemctl", "--user", "restart", "openclaw-gateway.service", "openclaw-node.service"],
                 capture_output=True, text=True, timeout=30
             )
             return jsonify({"ok": result.returncode == 0, "msg": "Services restarted", "output": result.stdout})
 
         elif command == "status":
-            result = subprocess.run(["openclaw", "status"], capture_output=True, text=True, timeout=10)
+            env = os.environ.copy()
+            env["PATH"] = "/home/linuxbrew/.linuxbrew/bin:" + env.get("PATH", "")
+            result = subprocess.run(["openclaw", "status"], capture_output=True, text=True, timeout=10, env=env)
             return jsonify({"ok": result.returncode == 0, "output": result.stdout})
 
-        # 2. Handle Script-based commands
+        # 2. Internal commands (huddle triggers)
+        if command == "huddle":
+            import requests as _req
+            resp = _req.post("http://127.0.0.1:19000/office/huddle/start", timeout=30)
+            if resp.status_code == 200:
+                return jsonify(resp.json())
+            return jsonify({"ok": False, "msg": f"Huddle failed: {resp.status_code}"}), 500
+
+        if command == "huddle-execute":
+            huddle_id = args
+            if not huddle_id:
+                return jsonify({"ok": False, "msg": "huddle-execute requires huddle_id in args"}), 400
+            import requests as _req
+            resp = _req.post(f"http://127.0.0.1:19000/office/plans/{huddle_id}/execute", timeout=60)
+            if resp.status_code == 200:
+                return jsonify(resp.json())
+            return jsonify({"ok": False, "msg": f"Execute failed: {resp.status_code}"}), 500
+
+        # 3. Handle Script-based commands
         if command in SCRIPT_MAP:
             script_path = SCRIPT_MAP[command]
             if not os.path.exists(script_path):
                 return jsonify({"ok": False, "msg": f"Script not found: {script_path}"}), 500
-            
-            result = subprocess.run([script_path], capture_output=True, text=True, timeout=60)
+
+            result = subprocess.run(
+                ["bash", script_path], capture_output=True, text=True, timeout=60,
+                env={**os.environ, "PATH": "/home/linuxbrew/.linuxbrew/bin:" + os.environ.get("PATH", "")}
+            )
             return jsonify({"ok": result.returncode == 0, "output": result.stdout, "error": result.stderr})
 
-        # 3. Handle OpenClaw-based commands
+        # 4. Handle OpenClaw-based commands
         if command in OPENCLAW_CMD_MAP or command == "search":
             message = OPENCLAW_CMD_MAP.get(command, "")
             if command == "search":
                 if not args:
                     return jsonify({"ok": False, "msg": "Search requires args"}), 400
                 message = f"🔍 search {args}"
-            
+
             success, output = _dispatch_to_openclaw("rook", message)
             return jsonify({"ok": success, "output": output})
 
@@ -662,6 +690,27 @@ def dispatch():
 
     except Exception as e:
         return jsonify({"ok": False, "msg": str(e)}), 500
+
+
+@bp.route("/dispatch/commands", methods=["GET"])
+def list_dispatch_commands():
+    """List all available command center commands for the UI."""
+    commands = [
+        {"id": "status", "label": "System Status", "icon": "📊", "category": "system"},
+        {"id": "syscheck", "label": "Quick Syscheck", "icon": "🔍", "category": "system"},
+        {"id": "restart-services", "label": "Restart Services", "icon": "🔄", "category": "system", "confirm": True},
+        {"id": "weather", "label": "Weather", "icon": "🌤️", "category": "info"},
+        {"id": "email-list", "label": "Check Email", "icon": "📧", "category": "info"},
+        {"id": "morning-briefing", "label": "Morning Briefing", "icon": "📋", "category": "info"},
+        {"id": "huddle", "label": "Start Huddle", "icon": "🤝", "category": "collaboration"},
+        {"id": "fullcheck", "label": "Full Report", "icon": "📊", "category": "openclaw"},
+        {"id": "self-heal", "label": "Self Heal", "icon": "🔧", "category": "openclaw"},
+        {"id": "kb-latest", "label": "KB Latest", "icon": "📚", "category": "openclaw"},
+        {"id": "story", "label": "Story Time", "icon": "📝", "category": "openclaw"},
+        {"id": "watch-check", "label": "Watch Status", "icon": "👁️", "category": "openclaw"},
+        {"id": "wallpaper", "label": "New Wallpaper", "icon": "🎨", "category": "fun"},
+    ]
+    return jsonify({"ok": True, "commands": commands})
 _OPENCLAW_AGENT_MAP = {
     "rook": {"discord_account": "rook", "target": "dustin"},
     "ralph": {"discord_account": "ralph", "target": "dustin"},
