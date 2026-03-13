@@ -204,6 +204,45 @@
       "created_at": "2026-03-12T22:11:49.102954",
       "description": "Create archive room for decision history",
       "plan_type": "new_room"
+    },
+    {
+      "id": "library",
+      "name": "Library",
+      "color": "#e74c3c",
+      "states": [
+        "idle",
+        "active"
+      ],
+      "furniture": [
+        {
+          "type": "bookshelf",
+          "x": 0.15,
+          "y": 0.3,
+          "label": "Docs"
+        },
+        {
+          "type": "bookshelf",
+          "x": 0.4,
+          "y": 0.3,
+          "label": "Guides"
+        },
+        {
+          "type": "telescope",
+          "x": 0.65,
+          "y": 0.3,
+          "label": "Research"
+        },
+        {
+          "type": "desk",
+          "x": 0.85,
+          "y": 0.3,
+          "label": "Study Desk"
+        }
+      ],
+      "created_by": "Claude",
+      "created_at": "2026-03-12T22:12:22.159369",
+      "description": "Build knowledge library room",
+      "plan_type": "new_room"
     }
   ]
 }

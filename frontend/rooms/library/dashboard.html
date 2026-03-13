@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Library - Star Office</title>
+<style>
+  body { font-family: 'ArkPixel', monospace; background: #1a1a2e; color: #eee; margin: 0; padding: 20px; }
+  .room-header { background: #e74c3c22; border: 2px solid #e74c3c; border-radius: 12px; padding: 16px 24px; margin-bottom: 20px; }
+  .room-header h1 { margin: 0; color: #e74c3c; font-size: 24px; }
+  .room-header .meta { color: #999; font-size: 12px; margin-top: 4px; }
+  .furniture-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .furniture-card { background: #16213e; border: 1px solid #e74c3c44; border-radius: 8px; padding: 16px; }
+  .furniture-card h3 { margin: 0 0 8px 0; color: #e74c3c; }
+  .furniture-card .icon { font-size: 32px; margin-bottom: 8px; }
+  .data-panel { background: #0f3460; border-radius: 6px; padding: 12px; margin-top: 8px; font-size: 13px; }
+  .data-panel .loading { color: #666; }
+  .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+  .status-ok { background: #27ae6033; color: #2ecc71; }
+  .status-warn { background: #f39c1233; color: #f1c40f; }
+  .back-link { color: #e74c3c; text-decoration: none; font-size: 14px; }
+  .back-link:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+  <a href="/" class="back-link">← Back to Office</a>
+  <div class="room-header">
+    <h1>🏠 Build knowledge library room</h1>
+    <div class="meta">Created by Claude | Room: library</div>
+  </div>
+  <div class="furniture-grid" id="furniture-grid">
+    <div class="furniture-card">
+      <div class="icon">📚</div>
+      <h3>Docs</h3>
+      <div class="data-panel">
+          <span class="data-value-cpu">--</span> CPU |
+          <span class="data-value-ram">--</span> RAM |
+          <span class="data-value-disk">--</span> Disk
+        </div>
+    </div><div class="furniture-card">
+      <div class="icon">📚</div>
+      <h3>Guides</h3>
+      <div class="data-panel">
+          <span class="data-value-cpu">--</span> CPU |
+          <span class="data-value-ram">--</span> RAM |
+          <span class="data-value-disk">--</span> Disk
+        </div>
+    </div><div class="furniture-card">
+      <div class="icon">📦</div>
+      <h3>Research</h3>
+      <div class="data-panel">
+          <span class="data-value-cpu">--</span> CPU |
+          <span class="data-value-ram">--</span> RAM |
+          <span class="data-value-disk">--</span> Disk
+        </div>
+    </div><div class="furniture-card">
+      <div class="icon">📦</div>
+      <h3>Study Desk</h3>
+      <div class="data-panel">
+          <span class="data-value-cpu">--</span> CPU |
+          <span class="data-value-ram">--</span> RAM |
+          <span class="data-value-disk">--</span> Disk
+        </div>
+    </div>
+  </div>
+  <script>
+    // Auto-refresh data panels
+    async function refreshData() {
+      try {
+        const resp = await fetch('/office/vitals');
+        if (resp.ok) {
+          const data = await resp.json();
+          const v = data.vitals || {};
+          document.querySelectorAll('.data-value-cpu').forEach(el => el.textContent = (v.cpu_percent || 0) + '%');
+          document.querySelectorAll('.data-value-ram').forEach(el => el.textContent = (v.ram_percent || 0) + '%');
+          document.querySelectorAll('.data-value-disk').forEach(el => el.textContent = (v.disk_free_gb || 0) + ' GB free');
+        }
+      } catch(e) { console.warn('Vitals refresh failed:', e); }
+
+      // Cron board refresh
+      try {
+        const cronResp = await fetch('/office/cron-status');
+        if (cronResp.ok) {
+          const cronData = await cronResp.json();
+          const cronJobs = cronData.cron_jobs || [];
+          const runningCount = cronJobs.filter(j => j.running).length;
+          const failedCount = cronJobs.filter(j => j.status === 'failed' || (j.last_run && j.status !== 'recent')).length;
+          document.querySelectorAll('.cron-running').forEach(el => el.textContent = runningCount);
+          document.querySelectorAll('.cron-failed').forEach(el => el.textContent = failedCount);
+          document.querySelectorAll('.cron-last').forEach(el => {
+            if (cronJobs.length > 0) {
+              const last = cronJobs[0].last_run ? new Date(cronJobs[0].last_run).toLocaleTimeString() : 'Never';
+              el.textContent = `last: ${last}`;
+            } else {
+              el.textContent = 'No jobs';
+            }
+          });
+        }
+      } catch(e) { console.warn('Cron refresh failed:', e); }
+    }
+    refreshData();
+    setInterval(refreshData, 10000);
+  </script>
+</body>
+</html>

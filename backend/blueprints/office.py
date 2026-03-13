@@ -385,7 +385,7 @@ def _generate_proposal_for_agent(agent, context):
         f"[Context snapshot]: {ctx_summary}, top_agent={context['growth']['top_agent']}"
     )
 
-    return {
+    proposal = {
         "agent": name,
         "type": chosen["type"],
         "room": chosen["room"],
@@ -397,6 +397,10 @@ def _generate_proposal_for_agent(agent, context):
         "requires": ["exec", "git"],
         "status": "pending",
     }
+    # Include custom furniture from the proposal if defined
+    if "furniture" in chosen:
+        proposal["furniture"] = chosen["furniture"]
+    return proposal
 
 
 def _generate_room_dashboard(room_name, plan, room_config):
