@@ -1,0 +1,224 @@
+{
+  "huddle_id": "huddle_20260313_0100",
+  "timestamp": "2026-03-13T01:00:00.951963",
+  "agents": [
+    "Rook",
+    "Nova"
+  ],
+  "context_snapshot": {
+    "timestamp": "2026-03-13T01:00:01.008756",
+    "agents": {
+      "total": 3,
+      "by_state": {
+        "writing": 1,
+        "idle": 2
+      },
+      "active": 3
+    },
+    "tasks": {
+      "total": 35,
+      "open": 23,
+      "in_progress": 4,
+      "completed": 8,
+      "overdue": 0
+    },
+    "git": {
+      "branch": "master",
+      "dirty": true,
+      "recent_commits": 10
+    },
+    "rooms": {
+      "total": 9,
+      "list": [
+        {
+          "id": "serverroom",
+          "name": "Serverroom"
+        },
+        {
+          "id": "lobby",
+          "name": "Metrics Lobby"
+        },
+        {
+          "id": "observatory",
+          "name": "Observatory"
+        },
+        {
+          "id": "breakroom",
+          "name": "Breakroom"
+        },
+        {
+          "id": "workspace",
+          "name": "Workspace"
+        },
+        {
+          "id": "lab",
+          "name": "Lab"
+        },
+        {
+          "id": "archive",
+          "name": "Archive"
+        },
+        {
+          "id": "library",
+          "name": "Library"
+        },
+        {
+          "id": "ops_center",
+          "name": "Ops Center"
+        }
+      ]
+    },
+    "growth": {
+      "total_contributions": 705,
+      "top_agent": "CodeMaster",
+      "leaderboard": [
+        {
+          "name": "CodeMaster",
+          "score": 380
+        },
+        {
+          "name": "Rook",
+          "score": 150
+        },
+        {
+          "name": "Ralph",
+          "score": 70
+        },
+        {
+          "name": "Nova",
+          "score": 65
+        },
+        {
+          "name": "Star",
+          "score": 40
+        }
+      ]
+    },
+    "system": {
+      "disk_free_gb": 901.34,
+      "uptime_days": 0
+    }
+  },
+  "proposals": [
+    {
+      "agent": "Rook",
+      "type": "new_room",
+      "room": "comms",
+      "idea": "Build communications center for cross-agent messaging",
+      "priority": 2,
+      "details": "Central hub for agent-to-agent messaging and status updates.",
+      "reasoning": "As a architect with expertise in rooms, layout, integration, I analyzed: agents=3, tasks=35, rooms=9, disk=901.34 GB. Suggested new_room.\n\n[Context snapshot]: agents=3, tasks=35, rooms=9, disk=901.34 GB, top_agent=CodeMaster",
+      "agentId": "8c0ca478e96b",
+      "requires": [
+        "exec",
+        "git"
+      ],
+      "status": "pending",
+      "furniture": [
+        {
+          "type": "satellite",
+          "x": 0.3,
+          "y": 0.2,
+          "label": "Signal Relay"
+        },
+        {
+          "type": "radio",
+          "x": 0.6,
+          "y": 0.3,
+          "label": "Dispatch Radio"
+        },
+        {
+          "type": "tv",
+          "x": 0.5,
+          "y": 0.6,
+          "label": "Status Wall"
+        }
+      ]
+    },
+    {
+      "agent": "Nova",
+      "type": "new_room",
+      "room": "gallery",
+      "idea": "Build dedicated art gallery room",
+      "priority": 2,
+      "details": "A whole room for displaying generated art, wallpapers, and creative output.",
+      "reasoning": "As a artist with expertise in creative_content, visuals, theming, I analyzed: agents=3, tasks=35, rooms=9, disk=901.34 GB. Suggested new_room.\n\n[Context snapshot]: agents=3, tasks=35, rooms=9, disk=901.34 GB, top_agent=CodeMaster",
+      "agentId": "a7baa8243532",
+      "requires": [
+        "exec",
+        "git"
+      ],
+      "status": "pending",
+      "furniture": [
+        {
+          "type": "easel",
+          "x": 0.15,
+          "y": 0.3,
+          "label": "Canvas 1"
+        },
+        {
+          "type": "easel",
+          "x": 0.4,
+          "y": 0.3,
+          "label": "Canvas 2"
+        },
+        {
+          "type": "easel",
+          "x": 0.65,
+          "y": 0.3,
+          "label": "Canvas 3"
+        },
+        {
+          "type": "trophy",
+          "x": 0.85,
+          "y": 0.3,
+          "label": "Best Of"
+        },
+        {
+          "type": "lamp",
+          "x": 0.5,
+          "y": 0.6,
+          "label": "Spotlight"
+        }
+      ]
+    }
+  ],
+  "selected_plan": {
+    "agent": "Rook",
+    "type": "new_room",
+    "room": "comms",
+    "idea": "Build communications center for cross-agent messaging",
+    "priority": 2,
+    "details": "Central hub for agent-to-agent messaging and status updates.",
+    "reasoning": "As a architect with expertise in rooms, layout, integration, I analyzed: agents=3, tasks=35, rooms=9, disk=901.34 GB. Suggested new_room.\n\n[Context snapshot]: agents=3, tasks=35, rooms=9, disk=901.34 GB, top_agent=CodeMaster",
+    "agentId": "8c0ca478e96b",
+    "requires": [
+      "exec",
+      "git"
+    ],
+    "status": "pending",
+    "furniture": [
+      {
+        "type": "satellite",
+        "x": 0.3,
+        "y": 0.2,
+        "label": "Signal Relay"
+      },
+      {
+        "type": "radio",
+        "x": 0.6,
+        "y": 0.3,
+        "label": "Dispatch Radio"
+      },
+      {
+        "type": "tv",
+        "x": 0.5,
+        "y": 0.6,
+        "label": "Status Wall"
+      }
+    ]
+  },
+  "status": "approved",
+  "execution_log": [],
+  "completed": false
+}

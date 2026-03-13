@@ -776,7 +776,28 @@
       ],
       "dependencies": [],
       "progress": 0
+    },
+    {
+      "id": "task_0036",
+      "title": "Build communications center for cross-agent messaging",
+      "description": "Central hub for agent-to-agent messaging and status updates.",
+      "room": "comms",
+      "type": "new_room",
+      "status": "open",
+      "points": 25,
+      "assignee": "Rook",
+      "assignee_id": "8c0ca478e96b",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-13T01:00:01.019946",
+      "assigned_at": "2026-03-13T01:00:01.019950",
+      "completed_at": null,
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 0
     }
   ],
-  "next_id": 36
+  "next_id": 37
 }

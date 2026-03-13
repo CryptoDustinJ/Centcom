@@ -5351,9 +5351,445 @@ function toggleBrokerPanel() {
 
             fetchStatus();
             fetchGuestAgents();
+
+            // === Room Navigation System ===
+            initRoomNavigation(this);
         }
 
+        // =====================================================
+        // ROOM NAVIGATION SYSTEM
+        // Animated rooms Star walks into, with interactive furniture
+        // =====================================================
+
+        const FURNITURE_ICONS = {
+            server_rack:'🖥️', monitor:'📊', terminal:'💻', pipeline:'⚙️',
+            chart:'📈', alert_board:'🚨', dashboard:'📊', gauge:'🎯',
+            log_stream:'📜', bookshelf:'📚', easel:'🎨', speaker:'🔊',
+            palette:'🎨', preview:'👁️', whiteboard:'📝', archive:'🗄️',
+            linter:'🔍', coverage:'✅', pr_board:'📋', cron_board:'⏰',
+            coffee:'☕', plant:'🌿', trophy:'🏆', clock:'🕐',
+            lamp:'💡', printer:'🖨️', phone:'📞', calendar:'📅',
+            tv:'📺', radio:'📻', globe:'🌐', toolbox:'🧰',
+            shield:'🛡️', telescope:'🔭', microscope:'🔬', beaker:'🧪',
+            satellite:'📡', battery:'🔋', plug:'🔌', wrench:'🔧',
+            hammer:'🔨', gear:'⚙️', magnet:'🧲', bulb:'💡',
+            podium:'🎤', water_cooler:'🚰', couch:'🛋️', desk:'🪑',
+            filing_cabinet:'🗃️', safe:'🔐', map:'🗺️', compass:'🧭',
+        };
+
+        // Furniture actions: what happens when you click each type
+        const FURNITURE_ACTIONS = {
+            server_rack: function() { window.dispatchCmd && dispatchCmd('syscheck'); },
+            dashboard: function() { window.dispatchCmd && dispatchCmd('fullcheck'); },
+            terminal: function() { window.toggleConsole && toggleConsole(); },
+            cron_board: function() { window.dispatchCmd && dispatchCmd('syscheck'); },
+            alert_board: function() { window.dispatchCmd && dispatchCmd('syscheck'); },
+            log_stream: function() { window.toggleConsole && toggleConsole(); },
+            pipeline: function() { window.dispatchCmd && dispatchCmd('syscheck'); },
+            bookshelf: function() { window.dispatchCmd && dispatchCmd('storybook-list'); },
+            easel: function() { window.dispatchCmd && dispatchCmd('wallpaper'); },
+            speaker: function() { window.dispatchCmd && dispatchCmd('story'); },
+            trophy: function() { window.toggleTaskBoard && toggleTaskBoard(); },
+            calendar: function() { window.dispatchCmd && dispatchCmd('morning-briefing'); },
+            globe: function() { window.dispatchCmd && dispatchCmd('weather'); },
+            coffee: function() { /* just for decoration */ },
+            linter: function() { window.dispatchCmd && dispatchCmd('fullcheck'); },
+            coverage: function() { window.dispatchCmd && dispatchCmd('fullcheck'); },
+            pr_board: function() { window.toggleTaskBoard && toggleTaskBoard(); },
+            telescope: function() { window.dispatchCmd && dispatchCmd('kb-latest'); },
+            archive: function() { window.toggleTaskBoard && toggleTaskBoard(); },
+            whiteboard: function() { window.toggleTaskBoard && toggleTaskBoard(); },
+            chart: function() { window.dispatchCmd && dispatchCmd('syscheck'); },
+            gauge: function() { window.dispatchCmd && dispatchCmd('syscheck'); },
+            tv: function() { window.dispatchCmd && dispatchCmd('morning-briefing'); },
+            radio: function() { window.dispatchCmd && dispatchCmd('story'); },
+            safe: function() { window.dispatchCmd && dispatchCmd('syscheck'); },
+            compass: function() { window.dispatchCmd && dispatchCmd('weather'); },
+            beaker: function() { window.dispatchCmd && dispatchCmd('fullcheck'); },
+        };
+
+        let officeRoomsData = [];
+        let currentRoomView = null;
+        let roomViewObjects = [];
+        let roomDoorSprites = [];
+        let roomStarSprite = null;
+        let roomStarTarget = null;
+        let roomAgentSprites = {};
+
+        function hexToInt(hex) {
+            return parseInt((hex || '#888888').replace('#',''), 16);
+        }
+
+        // Place door markers in the main office for each room
+        async function initRoomNavigation(scene) {
+            try {
+                var resp = await fetch('/office/rooms?t=' + Date.now());
+                if (!resp.ok) return;
+                var data = await resp.json();
+                officeRoomsData = (data.rooms || []).filter(function(r) {
+                    return r.furniture && r.furniture.length > 0;
+                });
+                if (officeRoomsData.length === 0) return;
+
+                // Door positions along the back wall of the office
+                var doorPositions = [
+                    {x: 415, y: 92}, {x: 490, y: 92}, {x: 565, y: 92},
+                    {x: 720, y: 92}, {x: 795, y: 92}, {x: 870, y: 92},
+                    {x: 945, y: 92}, {x: 1020, y: 92}, {x: 1095, y: 92},
+                    {x: 1170, y: 92},
+                ];
+
+                officeRoomsData.forEach(function(room, idx) {
+                    if (idx >= doorPositions.length) return;
+                    var dp = doorPositions[idx];
+                    var colorHex = (room.color || '#888').replace('#','');
+
+                    // Door frame (drawn rectangle)
+                    var doorFrame = scene.add.graphics();
+                    doorFrame.setDepth(3);
+                    doorFrame.fillStyle(0x3e2723, 1);
+                    doorFrame.fillRect(dp.x - 18, dp.y - 30, 36, 42);
+                    doorFrame.fillStyle(hexToInt(room.color), 0.7);
+                    doorFrame.fillRect(dp.x - 14, dp.y - 26, 28, 34);
+                    // Door knob
+                    doorFrame.fillStyle(0xffd700, 1);
+                    doorFrame.fillCircle(dp.x + 8, dp.y - 8, 3);
+                    roomDoorSprites.push(doorFrame);
+
+                    // Clickable hit zone
+                    var hitZone = scene.add.zone(dp.x, dp.y - 10, 40, 48).setDepth(3001);
+                    hitZone.setInteractive({ useHandCursor: true });
+                    hitZone.on('pointerdown', function() {
+                        enterRoom(scene, room);
+                    });
+                    // Hover glow
+                    var glowRect = scene.add.graphics();
+                    glowRect.setDepth(2);
+                    glowRect.setVisible(false);
+                    glowRect.fillStyle(hexToInt(room.color), 0.25);
+                    glowRect.fillRect(dp.x - 22, dp.y - 34, 44, 50);
+                    hitZone.on('pointerover', function() { glowRect.setVisible(true); });
+                    hitZone.on('pointerout', function() { glowRect.setVisible(false); });
+                    roomDoorSprites.push(hitZone, glowRect);
+
+                    // Room name below door
+                    var nameLabel = scene.add.text(dp.x, dp.y + 16, room.name, {
+                        fontFamily: 'ArkPixel, monospace',
+                        fontSize: '7px',
+                        fill: '#' + colorHex,
+                        stroke: '#000',
+                        strokeThickness: 2
+                    }).setOrigin(0.5).setDepth(4);
+                    roomDoorSprites.push(nameLabel);
+                });
+                console.log('[Rooms] Placed ' + officeRoomsData.length + ' doors');
+            } catch(e) {
+                console.error('[Rooms] Init failed:', e);
+            }
+        }
+
+        function enterRoom(scene, room) {
+            if (currentRoomView) return;
+            currentRoomView = room.id;
+
+            // Hide main office
+            scene.children.list.forEach(function(child) {
+                if (child._rv) return;
+                child._wasVis = child.visible;
+                child.setVisible(false);
+            });
+
+            var colorInt = hexToInt(room.color);
+            var colorHex = (room.color || '#888').replace('#','');
+
+            // === DRAW ROOM ===
+            var gfx = scene.add.graphics(); gfx._rv = true; gfx.setDepth(5000);
+            roomViewObjects.push(gfx);
+
+            // Back wall
+            gfx.fillStyle(0x1a1a2e, 1); gfx.fillRect(0, 0, 1280, 720);
+            // Wall with room color tint
+            gfx.fillStyle(colorInt, 0.08); gfx.fillRect(0, 0, 1280, 420);
+            // Floor
+            gfx.fillStyle(0x2d2d44, 1); gfx.fillRect(0, 420, 1280, 300);
+            // Floor tiles (pixel art pattern)
+            gfx.lineStyle(1, 0x3d3d54, 0.3);
+            for (var tx = 0; tx < 1280; tx += 64) { gfx.lineBetween(tx, 420, tx, 720); }
+            for (var ty = 420; ty < 720; ty += 40) { gfx.lineBetween(0, ty, 1280, ty); }
+            // Baseboard
+            gfx.fillStyle(0x4a3728, 1); gfx.fillRect(0, 415, 1280, 8);
+            // Wall trim
+            gfx.lineStyle(2, colorInt, 0.5); gfx.lineBetween(0, 80, 1280, 80);
+            // Ceiling
+            gfx.fillStyle(0x111122, 1); gfx.fillRect(0, 0, 1280, 30);
+
+            // Room title on wall
+            var title = scene.add.text(640, 52, room.name, {
+                fontFamily: 'ArkPixel, monospace', fontSize: '20px',
+                fill: '#' + colorHex, stroke: '#000', strokeThickness: 3
+            }).setOrigin(0.5).setDepth(5001); title._rv = true;
+            roomViewObjects.push(title);
+
+            // Created-by plaque
+            var plaque = scene.add.text(640, 72, 'by ' + (room.created_by || '?'), {
+                fontFamily: 'ArkPixel, monospace', fontSize: '9px', fill: '#666'
+            }).setOrigin(0.5).setDepth(5001); plaque._rv = true;
+            roomViewObjects.push(plaque);
+
+            // === EXIT DOOR (left wall) ===
+            var exitGfx = scene.add.graphics(); exitGfx._rv = true; exitGfx.setDepth(5001);
+            exitGfx.fillStyle(0x3e2723, 1); exitGfx.fillRect(20, 310, 60, 105);
+            exitGfx.fillStyle(0x5d4037, 1); exitGfx.fillRect(26, 316, 48, 93);
+            exitGfx.fillStyle(0xffd700, 1); exitGfx.fillCircle(64, 365, 4);
+            roomViewObjects.push(exitGfx);
+            var exitLabel = scene.add.text(50, 300, '← Office', {
+                fontFamily: 'ArkPixel, monospace', fontSize: '9px',
+                fill: '#aaa', stroke: '#000', strokeThickness: 2
+            }).setOrigin(0.5).setDepth(5002); exitLabel._rv = true;
+            roomViewObjects.push(exitLabel);
+            var exitZone = scene.add.zone(50, 360, 70, 120).setDepth(5010);
+            exitZone._rv = true; exitZone.setInteractive({ useHandCursor: true });
+            exitZone.on('pointerdown', function() { exitRoom(scene); });
+            exitZone.on('pointerover', function() { exitLabel.setStyle({ fill: '#ffd700' }); });
+            exitZone.on('pointerout', function() { exitLabel.setStyle({ fill: '#aaa' }); });
+            roomViewObjects.push(exitZone);
+
+            // === PLACE FURNITURE AS INTERACTIVE OBJECTS ===
+            var furniture = room.furniture || [];
+            var numItems = furniture.length;
+            // Distribute furniture across the room floor
+            var margin = 120;
+            var usableW = 1280 - margin * 2 - 80; // leave space for exit door
+            var spacing = usableW / Math.max(numItems, 1);
+
+            furniture.forEach(function(item, fi) {
+                var fx = margin + 80 + fi * spacing + spacing / 2;
+                var fy = 280; // on the back wall area
+                var icon = FURNITURE_ICONS[item.type] || '📦';
+
+                // Shadow on floor
+                var shadow = scene.add.ellipse(fx, fy + 65, 60, 16, 0x000000, 0.3);
+                shadow._rv = true; shadow.setDepth(5001);
+                roomViewObjects.push(shadow);
+
+                // Furniture "shelf/table" base
+                var base = scene.add.graphics(); base._rv = true; base.setDepth(5002);
+                base.fillStyle(0x16213e, 1);
+                base.fillRoundedRect(fx - 40, fy - 30, 80, 90, 6);
+                base.lineStyle(2, colorInt, 0.5);
+                base.strokeRoundedRect(fx - 40, fy - 30, 80, 90, 6);
+                roomViewObjects.push(base);
+
+                // Big emoji icon
+                var iconText = scene.add.text(fx, fy, icon, {
+                    fontSize: '32px'
+                }).setOrigin(0.5).setDepth(5003); iconText._rv = true;
+                roomViewObjects.push(iconText);
+
+                // Label
+                if (item.label) {
+                    var lab = scene.add.text(fx, fy + 38, item.label, {
+                        fontFamily: 'ArkPixel, monospace', fontSize: '10px',
+                        fill: '#ccc', stroke: '#000', strokeThickness: 2
+                    }).setOrigin(0.5).setDepth(5003); lab._rv = true;
+                    roomViewObjects.push(lab);
+                }
+
+                // Make furniture clickable
+                var clickZone = scene.add.zone(fx, fy + 10, 85, 100).setDepth(5010);
+                clickZone._rv = true;
+                clickZone.setInteractive({ useHandCursor: true });
+                clickZone.on('pointerdown', function() {
+                    // Walk Star to this furniture then activate
+                    roomStarTarget = { x: fx, y: 470, onArrive: function() {
+                        // Trigger the action for this furniture type
+                        var action = FURNITURE_ACTIONS[item.type];
+                        if (action) {
+                            action();
+                            // Visual feedback: bounce the icon
+                            scene.tweens.add({
+                                targets: iconText,
+                                scaleX: 1.4, scaleY: 1.4,
+                                duration: 150, yoyo: true
+                            });
+                        }
+                        // Show tooltip
+                        var tip = scene.add.text(fx, fy - 45, item.label || item.type, {
+                            fontFamily: 'ArkPixel, monospace', fontSize: '11px',
+                            fill: '#fff', backgroundColor: '#' + colorHex,
+                            padding: { x: 6, y: 3 }
+                        }).setOrigin(0.5).setDepth(5020); tip._rv = true;
+                        roomViewObjects.push(tip);
+                        scene.time.delayedCall(2000, function() { tip.destroy(); });
+                    }};
+                });
+                // Hover glow
+                clickZone.on('pointerover', function() {
+                    base.clear();
+                    base.fillStyle(0x1e2d4e, 1);
+                    base.fillRoundedRect(fx - 40, fy - 30, 80, 90, 6);
+                    base.lineStyle(2, colorInt, 1);
+                    base.strokeRoundedRect(fx - 40, fy - 30, 80, 90, 6);
+                    iconText.setScale(1.15);
+                });
+                clickZone.on('pointerout', function() {
+                    base.clear();
+                    base.fillStyle(0x16213e, 1);
+                    base.fillRoundedRect(fx - 40, fy - 30, 80, 90, 6);
+                    base.lineStyle(2, colorInt, 0.5);
+                    base.strokeRoundedRect(fx - 40, fy - 30, 80, 90, 6);
+                    iconText.setScale(1.0);
+                });
+                roomViewObjects.push(clickZone);
+            });
+
+            // === STAR CHARACTER IN THE ROOM ===
+            // Reuse the star_idle texture for the avatar
+            roomStarSprite = scene.add.sprite(640, 480, 'star_idle');
+            roomStarSprite._rv = true;
+            roomStarSprite.setDepth(5005);
+            roomStarSprite.setScale(1.5);
+            roomStarSprite.setOrigin(0.5, 1);
+            if (scene.anims.exists('star_idle')) {
+                roomStarSprite.anims.play('star_idle', true);
+            }
+            roomViewObjects.push(roomStarSprite);
+
+            // Star name tag
+            var starTag = scene.add.text(640, 445, 'You', {
+                fontFamily: 'ArkPixel, monospace', fontSize: '10px',
+                fill: '#ffd700', stroke: '#000', strokeThickness: 2
+            }).setOrigin(0.5).setDepth(5006); starTag._rv = true;
+            roomViewObjects.push(starTag);
+            // Store ref so we can move the tag with star
+            roomStarSprite._nameTag = starTag;
+
+            // Click floor to walk
+            var floorZone = scene.add.zone(640, 540, 1200, 200).setDepth(5004);
+            floorZone._rv = true;
+            floorZone.setInteractive();
+            floorZone.on('pointerdown', function(pointer) {
+                var tx = Math.max(100, Math.min(1180, pointer.x));
+                roomStarTarget = { x: tx, y: 480, onArrive: null };
+            });
+            roomViewObjects.push(floorZone);
+
+            // Load agents in this room
+            loadRoomAgents(scene, room);
+        }
+
+        // Load agents that should be in this room based on their state
+        async function loadRoomAgents(scene, room) {
+            try {
+                var resp = await fetch('/agents?t=' + Date.now());
+                if (!resp.ok) return;
+                var agents = await resp.json();
+                if (!Array.isArray(agents)) return;
+
+                // Map room types to agent task keywords
+                var roomKeywords = {
+                    serverroom: ['syscheck', 'monitor', 'server', 'health'],
+                    workspace: ['writing', 'executing', 'working', 'code', 'build'],
+                    breakroom: ['idle', 'rest', 'break'],
+                    lab: ['test', 'lint', 'quality', 'review'],
+                    observatory: ['api', 'monitor', 'watch'],
+                    library: ['research', 'doc', 'knowledge', 'search'],
+                    ops_center: ['deploy', 'ops', 'gateway', 'node'],
+                    archive: ['decision', 'plan', 'history'],
+                };
+                var keywords = roomKeywords[room.id] || [];
+
+                var agentX = 300;
+                agents.forEach(function(agent) {
+                    if (agent.isMain) return;
+                    // Check if agent should be in this room
+                    var detail = (agent.detail || '').toLowerCase();
+                    var state = (agent.state || '').toLowerCase();
+                    var inRoom = keywords.some(function(kw) {
+                        return detail.indexOf(kw) >= 0 || state.indexOf(kw) >= 0;
+                    });
+                    // Also check if room matches their area
+                    if (agent.area === room.id) inRoom = true;
+                    if (!inRoom && room.id === 'breakroom' && state === 'idle') inRoom = true;
+
+                    if (inRoom) {
+                        var agentSprite = scene.add.text(agentX, 470, '⭐', {
+                            fontSize: '24px'
+                        }).setOrigin(0.5, 1).setDepth(5005);
+                        agentSprite._rv = true;
+                        roomViewObjects.push(agentSprite);
+
+                        var agentName = scene.add.text(agentX, 445, agent.name || 'Agent', {
+                            fontFamily: 'ArkPixel, monospace', fontSize: '9px',
+                            fill: '#4fc3f7', stroke: '#000', strokeThickness: 2
+                        }).setOrigin(0.5).setDepth(5006);
+                        agentName._rv = true;
+                        roomViewObjects.push(agentName);
+
+                        // Show what they're doing
+                        if (agent.detail) {
+                            var taskBubble = scene.add.text(agentX, 425, agent.detail, {
+                                fontFamily: 'ArkPixel, monospace', fontSize: '7px',
+                                fill: '#999', backgroundColor: '#1a1a2e88',
+                                padding: { x: 4, y: 2 }
+                            }).setOrigin(0.5).setDepth(5006);
+                            taskBubble._rv = true;
+                            roomViewObjects.push(taskBubble);
+                        }
+
+                        agentX += 120;
+                    }
+                });
+            } catch(e) {}
+        }
+
+        function exitRoom(scene) {
+            if (!currentRoomView) return;
+            currentRoomView = null;
+            roomStarSprite = null;
+            roomStarTarget = null;
+
+            roomViewObjects.forEach(function(obj) { try { obj.destroy(); } catch(e) {} });
+            roomViewObjects = [];
+
+            scene.children.list.forEach(function(child) {
+                if ('_wasVis' in child) {
+                    child.setVisible(child._wasVis);
+                    delete child._wasVis;
+                }
+            });
+        }
+
+        // Called from update() to animate Star walking in rooms
+        function updateRoomStar() {
+            if (!currentRoomView || !roomStarSprite || !roomStarTarget) return;
+            var dx = roomStarTarget.x - roomStarSprite.x;
+            var speed = 4;
+            if (Math.abs(dx) < speed) {
+                roomStarSprite.x = roomStarTarget.x;
+                if (roomStarSprite._nameTag) roomStarSprite._nameTag.x = roomStarSprite.x;
+                if (roomStarTarget.onArrive) roomStarTarget.onArrive();
+                roomStarTarget = null;
+            } else {
+                roomStarSprite.x += (dx > 0 ? speed : -speed);
+                if (roomStarSprite._nameTag) roomStarSprite._nameTag.x = roomStarSprite.x;
+                // Flip sprite based on direction
+                roomStarSprite.setFlipX(dx < 0);
+            }
+        }
+
+        // Reload room doors every 5 min
+        setInterval(function() {
+            if (currentRoomView) return;
+            roomDoorSprites.forEach(function(o) { try { o.destroy(); } catch(e) {} });
+            roomDoorSprites = [];
+            if (game && game.scene && game.scene.scenes[0]) {
+                initRoomNavigation(game.scene.scenes[0]);
+            }
+        }, 300000);
+
         function update(time) {
+            updateRoomStar();
             if (time - lastFetch > FETCH_INTERVAL) { fetchStatus(); lastFetch = time; }
             if (time - lastGuestAgentsFetch > GUEST_AGENTS_FETCH_INTERVAL) { fetchGuestAgents(); lastGuestAgentsFetch = time; }
 
