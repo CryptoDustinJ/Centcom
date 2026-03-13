@@ -1,0 +1,103 @@
+{
+  "badges": [
+    {
+      "id": "first_room_creator",
+      "name": "Pioneer",
+      "description": "Created the first new room in the office",
+      "icon": "🏠",
+      "condition": {
+        "type": "room_created",
+        "count": 1
+      },
+      "points": 50
+    },
+    {
+      "id": "dashboard_hero",
+      "name": "Dashboard Hero",
+      "description": "Created 5+ dashboards across any rooms",
+      "icon": "📊",
+      "condition": {
+        "type": "dashboard_created",
+        "count": 5
+      },
+      "points": 100
+    },
+    {
+      "id": "collaborator",
+      "name": "Team Player",
+      "description": "Completed 3+ multi-agent tasks",
+      "icon": "🤝",
+      "condition": {
+        "type": "multi_agent_tasks",
+        "count": 3
+      },
+      "points": 75
+    },
+    {
+      "id": "first_contribution",
+      "name": "First Contribution",
+      "description": "Made the first contribution to the office",
+      "icon": "⭐",
+      "condition": {
+        "type": "first_contribution"
+      },
+      "points": 25
+    },
+    {
+      "id": "automation_expert",
+      "name": "Automation Guru",
+      "description": "Created 5+ automation dashboards",
+      "icon": "⚙️",
+      "condition": {
+        "type": "dashboard_created_by_type",
+        "type_filter": "automation",
+        "count": 5
+      },
+      "points": 100
+    },
+    {
+      "id": "creative_genius",
+      "name": "Creative Genius",
+      "description": "Created 3+ creative content contributions",
+      "icon": "🎨",
+      "condition": {
+        "type": "contribution_by_type",
+        "type_filter": ["creative", "room_dashboard", "theming"],
+        "count": 3
+      },
+      "points": 75
+    },
+    {
+      "id": "huddle_starter",
+      "name": "Huddle Organizer",
+      "description": "Started 10+ office huddles",
+      "icon": "📣",
+      "condition": {
+        "type": "huddles_started",
+        "count": 10
+      },
+      "points": 50
+    },
+    {
+      "id": "high_impact",
+      "name": "High Impact",
+      "description": "Contribution viewed by 100+ agents (simulated)",
+      "icon": "🔥",
+      "condition": {
+        "type": "usage_views",
+        "count": 100
+      },
+      "points": 100
+    },
+    {
+      "id": "perfectionist",
+      "name": "Perfectionist",
+      "description": "Completed 10+ tasks without rework",
+      "icon": "✅",
+      "condition": {
+        "type": "tasks_completed_no_rework"
+      },
+      "points": 75
+    }
+  ]
+}

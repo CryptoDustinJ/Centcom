@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Agents blueprint: multi-agent management, joins, pushes, approvals."""
 
-from flask import Blueprint, jsonify, request, session, current_app
+from flask import Blueprint, jsonify, request, session, current_app, Response
 import random
 import threading
 import time
@@ -20,6 +20,8 @@ from shared import (
     VALID_AGENT_STATES as _VALID_AGENT_STATES,
     get_office_name_from_identity,
 )
+from pathlib import Path
+import json
 from validation import validate_agent_name, validate_state_detail, validate_invite_code, validate_agent_id, ValidationError as ValidationErrorExc
 from rate_limit import rate_limit
 from logger import log_agent_action
@@ -592,56 +594,78 @@ def _read_recent_agent_messages(limit: int = 25) -> list:
     return result
 
 
+
+# Command Center Mappings
+SCRIPTS_DIR = "/home/dustin/openclaw-office/backend/scripts"
+SCRIPT_MAP = {
+    "weather": os.path.join(SCRIPTS_DIR, "get_weather.sh"),
+    "email-list": os.path.join(SCRIPTS_DIR, "get_emails.sh"),
+    "wallpaper": "/home/dustin/.openclaw/workspace/skills/daily-wallpaper/run_wallpaper.sh",
+    "morning-briefing": "/home/dustin/.openclaw/scripts/morning-briefing.sh",
+}
+
+OPENCLAW_CMD_MAP = {
+    "syscheck": "📊 session_status",
+    "fullcheck": "📊 report",
+    "self-heal": "🔧 system_doctor",
+    "restart-both": "🔄 system_reboot",
+    "kb-latest": "📚 kb_latest",
+    "story": "📝 story_time",
+    "storybook-list": "📚 list_stories",
+    "watch-check": "👁️ watch_status",
+}
 @bp.route("/dispatch", methods=["POST"])
 @rate_limit(20, 60)
 def dispatch():
     """Execute dashboard commands (restart-services, status, etc.)"""
-    import subprocess
-
     data = request.get_json() or {}
     command = data.get("command", "").strip()
-    if not command:
-        return jsonify({"ok": False, "msg": "command required"}), 400
+    args = data.get("args", "")
 
-    env = os.environ.copy()
-    env["PATH"] = "/home/linuxbrew/.linuxbrew/bin:/usr/local/bin:/usr/bin:/bin"
+    if not command:
+        return jsonify({"ok": False, "msg": "No command provided"}), 400
 
     try:
+        # 1. Handle specialized backend commands
         if command == "restart-services":
             result = subprocess.run(
-                ["bash", "/home/dustin/rook.sh"],
-                capture_output=True, text=True, timeout=30, env=env,
+                ["/usr/bin/sudo", "/usr/bin/systemctl", "restart", "openclaw-gateway", "openclaw-node"],
+                capture_output=True, text=True, timeout=30
             )
-            ok = result.returncode == 0
-            return jsonify({"ok": ok, "msg": result.stdout[:300] if ok else result.stderr[:300]})
+            return jsonify({"ok": result.returncode == 0, "msg": "Services restarted", "output": result.stdout})
 
         elif command == "status":
-            result = subprocess.run(
-                ["openclaw", "status"],
-                capture_output=True, text=True, timeout=15, env=env,
-            )
-            return jsonify({"ok": True, "msg": result.stdout[:500]})
+            result = subprocess.run(["openclaw", "status"], capture_output=True, text=True, timeout=10)
+            return jsonify({"ok": result.returncode == 0, "output": result.stdout})
 
-        else:
-            return jsonify({"ok": False, "msg": f"Unknown command: {command}"}), 400
+        # 2. Handle Script-based commands
+        if command in SCRIPT_MAP:
+            script_path = SCRIPT_MAP[command]
+            if not os.path.exists(script_path):
+                return jsonify({"ok": False, "msg": f"Script not found: {script_path}"}), 500
+            
+            result = subprocess.run([script_path], capture_output=True, text=True, timeout=60)
+            return jsonify({"ok": result.returncode == 0, "output": result.stdout, "error": result.stderr})
 
-    except subprocess.TimeoutExpired:
-        return jsonify({"ok": False, "msg": f"{command} timed out"}), 504
+        # 3. Handle OpenClaw-based commands
+        if command in OPENCLAW_CMD_MAP or command == "search":
+            message = OPENCLAW_CMD_MAP.get(command, "")
+            if command == "search":
+                if not args:
+                    return jsonify({"ok": False, "msg": "Search requires args"}), 400
+                message = f"🔍 search {args}"
+            
+            success, output = _dispatch_to_openclaw("rook", message)
+            return jsonify({"ok": success, "output": output})
+
+        return jsonify({"ok": False, "msg": f"Unknown command: {command}"}), 400
+
     except Exception as e:
-        current_app.logger.error(f"Dispatch error: {e}", exc_info=True)
         return jsonify({"ok": False, "msg": str(e)}), 500
-
-
-# === OpenClaw Dispatch Helpers ===
-
-# Map agent names/IDs to OpenClaw agent IDs and Discord accounts
-_MAIN_CHANNEL = "483749214568972290"
-
 _OPENCLAW_AGENT_MAP = {
-    "rook": {"oc_agent": "main", "discord_account": "default", "target": _MAIN_CHANNEL},
-    "ralph": {"oc_agent": "ralph", "discord_account": "default", "target": "1476410277862834359"},  # DM via Rook→Ralph bot
-    "nova": {"oc_agent": "nova", "discord_account": "default", "target": _MAIN_CHANNEL},
-    "codemaster": {"oc_agent": "codemaster", "discord_account": "default", "target": _MAIN_CHANNEL},
+    "rook": {"discord_account": "rook", "target": "dustin"},
+    "ralph": {"discord_account": "ralph", "target": "dustin"},
+    "nova": {"discord_account": "nova", "target": "dustin"},
 }
 
 
@@ -909,4 +933,164 @@ def get_agent_console(agent_id):
         return jsonify({"ok": True, "lines": log_lines})
     except Exception as e:
         current_app.logger.error(f"Get console error: {e}", exc_info=True)
+        return jsonify({"ok": False, "msg": str(e)}), 500
+
+
+@bp.route("/agents/<agent_id>/profile", methods=["GET"])
+@rate_limit(60, 60)
+def get_agent_profile(agent_id):
+    """Get comprehensive agent profile with stats, badges, contributions, and skills."""
+    try:
+        # Resolve agent
+        agents = load_agents_state()
+        agent = next((a for a in agents if a.get("agentId") == agent_id), None)
+        if not agent:
+            # Try by name (e.g., "CodeMaster", "Rook")
+            agent = next((a for a in agents if a.get("name", "").lower() == agent_id.lower()), None)
+            if not agent:
+                return jsonify({"ok": False, "msg": "Agent not found"}), 404
+
+        agent_name = agent.get("name", "Unknown")
+        growth_agent_name = _map_agent_name_to_growth(agent_name)
+
+        # Load growth data
+        growth_dir = Path(config.ROOT_DIR) / "growth"
+        contributions_file = growth_dir / "contributions.json"
+        agent_scores_file = growth_dir / "agent_scores.json"
+
+        profile = {
+            "ok": True,
+            "agent": {
+                "id": agent.get("agentId"),
+                "name": agent_name,
+                "state": agent.get("state"),
+                "area": agent.get("area"),
+                "detail": agent.get("detail"),
+                "avatar": agent.get("avatar"),
+                "isMain": agent.get("isMain", False),
+                "created_at": agent.get("created_at"),
+                "lastPushAt": agent.get("lastPushAt"),
+                "source": agent.get("source"),
+            },
+            "stats": {
+                "total_contributions": 0,
+                "total_points": 0,
+                "leaderboard_rank": None,
+                "skill_matrix": {},
+                "rooms_created": 0,
+                "dashboards_created": 0,
+                "tasks_completed": 0,
+            },
+            "recent_contributions": [],
+            "badges": [],
+        }
+
+        # Load badges for this agent
+        try:
+            from blueprints.growth_badges import get_agent_badges
+            badges = get_agent_badges(growth_agent_name)
+            profile["badges"] = badges
+            profile["stats"]["badge_points"] = sum(b.get("points", 0) for b in badges)
+        except Exception as e:
+            current_app.logger.warning(f"Could not load badges: {e}")
+
+        # Load contributions for stats
+        if contributions_file.exists():
+            try:
+                with open(contributions_file) as f:
+                    contrib_data = json.load(f)
+                all_contribs = contrib_data.get("contributions", [])
+                agent_contribs = [c for c in all_contribs if c.get("agent") == growth_agent_name]
+
+                profile["stats"]["total_contributions"] = len(agent_contribs)
+                profile["stats"]["total_points"] = sum(c.get("points", 0) for c in agent_contribs)
+
+                # Skill matrix: count by type
+                skill_counts = {}
+                for c in agent_contribs:
+                    ctype = c.get("type", "other")
+                    skill_counts[ctype] = skill_counts.get(ctype, 0) + 1
+                profile["stats"]["skill_matrix"] = skill_counts
+
+                # Specific counters
+                profile["stats"]["rooms_created"] = sum(1 for c in agent_contribs if c.get("type") == "room_created")
+                profile["stats"]["dashboards_created"] = sum(1 for c in agent_contribs if c.get("type") in ["dashboard_created", "room_dashboard"])
+                profile["stats"]["tasks_completed"] = sum(1 for c in agent_contribs if c.get("type") == "task_completed")
+
+                # Recent contributions (last 10)
+                recent = sorted(agent_contribs, key=lambda c: c.get("timestamp", ""), reverse=True)[:10]
+                profile["recent_contributions"] = [
+                    {
+                        "id": c.get("id"),
+                        "type": c.get("type"),
+                        "room": c.get("room"),
+                        "description": c.get("description"),
+                        "points": c.get("points"),
+                        "timestamp": c.get("timestamp"),
+                    }
+                    for c in recent
+                ]
+            except Exception as e:
+                current_app.logger.warning(f"Could not load contributions: {e}")
+
+        # Load agent scores and compute leaderboard rank
+        if agent_scores_file.exists():
+            try:
+                with open(agent_scores_file) as f:
+                    scores_data = json.load(f)
+                scores = scores_data.get("scores", {})
+                if scores:
+                    sorted_agents = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+                    for idx, (name, score) in enumerate(sorted_agents, 1):
+                        if name == growth_agent_name:
+                            profile["stats"]["leaderboard_rank"] = idx
+                            profile["stats"]["leaderboard_score"] = score
+                            break
+            except Exception as e:
+                current_app.logger.warning(f"Could not load scores: {e}")
+
+        # Estimate experience level based on contributions
+        total_contribs = profile["stats"]["total_contributions"]
+        if total_contribs >= 20:
+            profile["stats"]["experience"] = "veteran"
+        elif total_contribs >= 10:
+            profile["stats"]["experience"] = "experienced"
+        elif total_contribs >= 5:
+            profile["stats"]["experience"] = "regular"
+        else:
+            profile["stats"]["experience"] = "newcomer"
+
+        return jsonify(profile)
+
+    except Exception as e:
+        current_app.logger.error(f"Get agent profile error: {e}", exc_info=True)
+        return jsonify({"ok": False, "msg": str(e)}), 500
+
+
+def _map_agent_name_to_growth(agent_name: str) -> str:
+    """Map agents-state name to growth contribution name."""
+    mapping = {
+        "Star": "Rook",  # Main agent displayed as "Star" but growth uses "Rook"
+        "Rook": "Rook",
+        "Nova": "Nova",
+        "Ralph": "Ralph",
+    }
+    return mapping.get(agent_name, agent_name)
+
+
+@bp.route("/agent/<agent_id>", methods=["GET"])
+def view_agent_profile(agent_id):
+    """Render agent profile HTML page."""
+    try:
+        # Serve the static HTML file
+        template_path = Path(config.FRONTEND_DIR) / "agent-profile.html"
+        if not template_path.exists():
+            return jsonify({"ok": False, "msg": "Profile template not found"}), 404
+
+        html = template_path.read_text()
+        # The HTML uses JavaScript to fetch data from /agents/{agent_id}/profile
+        # and dynamically populate itself
+        return Response(html, mimetype='text/html')
+    except Exception as e:
+        current_app.logger.error(f"View agent profile error: {e}", exc_info=True)
         return jsonify({"ok": False, "msg": str(e)}), 500

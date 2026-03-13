@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Profile</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; }
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .profile-header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 15px;
+            border: 3px solid rgba(255,255,255,0.2);
+        }
+        .agent-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+        .agent-state {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background: rgba(102, 126, 234, 0.3);
+            color: #a5b4fc;
+        }
+        .agent-detail {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #aaa;
+            line-height: 1.4;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            color: #aaa;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .badges-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .badge {
+            background: rgba(255,215,0,0.15);
+            border: 1px solid rgba(255,215,0,0.3);
+            padding: 8px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+        .badge-icon { font-size: 1.2rem; }
+        .badge-name { color: #ffd700; }
+        .badge-reason {
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 2px;
+        }
+        .contributions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .contribution-item {
+            background: rgba(255,255,255,0.03);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+        .contrib-type {
+            font-size: 0.75rem;
+            color: #667eea;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .contrib-desc {
+            font-size: 0.9rem;
+            color: #ddd;
+        }
+        .contrib-meta {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 5px;
+        }
+        .skill-matrix {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
+        }
+        .skill-item {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .skill-name {
+            font-size: 0.8rem;
+            color: #a5b4fc;
+            margin-bottom: 4px;
+        }
+        .skill-count {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        .empty-state {
+            color: #888;
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+        .rank-badge {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+            color: #000;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-right: 8px;
+        }
+        .leaderboard-position {
+            background: rgba(255,215,0,0.1);
+            border: 1px solid rgba(255,215,0,0.3);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .leaderboard-rank {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .leaderboard-label {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+        h2 { color: #fff; margin-bottom: 15px; font-size: 1.2rem; }
+        .loading { text-align: center; padding: 40px; color: #888; }
+        .error { text-align: center; padding: 40px; color: #ff6b6b; }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover { background: #5a67d8; }
+        a { color: #667eea; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="loading" id="loading">Loading agent profile...</div>
+        <div class="error" id="error" style="display:none;"></div>
+
+        <div id="profile-content" style="display:none; width: 100%;">
+            <div class="left-col">
+                <div class="card profile-header">
+                    <div class="avatar" id="avatar">?</div>
+                    <div class="agent-name" id="agent-name">Loading...</div>
+                    <div class="agent-state" id="agent-state">...</div>
+                    <div class="agent-detail" id="agent-detail">...</div>
+                    <div id="main-badge" style="margin-top: 10px; color: #ffd700; display: none;">
+                        ⭐ Main Agent
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>📊 Statistics</h2>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-value" id="stat-contributions">0</div>
+                            <div class="stat-label">Contributions</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="stat-points">0</div>
+                            <div class="stat-label">Total Points</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="stat-dashboards">0</div>
+                            <div class="stat-label">Dashboards</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value" id="stat-rooms">0</div>
+                            <div class="stat-label">Rooms Created</div>
+                        </div>
+                    </div>
+
+                    <div id="leaderboard-section" style="display: none;">
+                        <div class="leaderboard-position">
+                            <div class="leaderboard-rank" id="leaderboard-rank">#-</div>
+                            <div class="leaderboard-label">Leaderboard Position</div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 20px; margin-bottom: 10px; color: #ccc;">Skill Matrix</h3>
+                    <div class="skill-matrix" id="skill-matrix">
+                        <div class="empty-state" style="grid-column: 1/-1;">No skills yet</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-col">
+                <div class="card" style="margin-bottom: 20px;">
+                    <div class="section-title">🏆 Badges Earned (<span id="badge-count">0</span>)</div>
+                    <div class="badges-list" id="badges-list">
+                        <div class="empty-state">No badges earned yet. Start contributing!</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="section-title">📋 Recent Contributions</div>
+                    <div class="contributions-list" id="contributions-list">
+                        <div class="empty-state">No contributions yet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/">← Back to Office</a>
+        </div>
+    </div>
+
+    <script>
+        // Parse agentId from URL path
+        const pathParts = window.location.pathname.split('/');
+        const agentId = pathParts[pathParts.length - 1] || 'star';
+
+        async function loadProfile() {
+            try {
+                const response = await fetch(`/agents/${agentId}/profile`);
+                if (!response.ok) {
+                    throw new Error(`Failed to load profile: ${response.status}`);
+                }
+                const data = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('profile-content').style.display = 'grid';
+
+                // Agent info
+                const agent = data.agent;
+                document.getElementById('avatar').textContent = agent.name[0] || '?';
+                document.getElementById('agent-name').textContent = agent.name;
+                document.getElementById('agent-state').textContent = agent.state;
+                document.getElementById('agent-detail').textContent = agent.detail || 'No detail provided';
+                if (agent.isMain) {
+                    document.getElementById('main-badge').style.display = 'block';
+                }
+
+                // Stats
+                document.getElementById('stat-contributions').textContent = data.stats.total_contributions;
+                document.getElementById('stat-points').textContent = data.stats.total_points;
+                document.getElementById('stat-dashboards').textContent = data.stats.dashboards_created;
+                document.getElementById('stat-rooms').textContent = data.stats.rooms_created;
+
+                // Leaderboard
+                if (data.stats.leaderboard_rank) {
+                    document.getElementById('leaderboard-rank').textContent = '#' + data.stats.leaderboard_rank;
+                    document.getElementById('leaderboard-section').style.display = 'block';
+                }
+
+                // Skill matrix
+                const skillMatrixEl = document.getElementById('skill-matrix');
+                const skills = data.stats.skill_matrix;
+                if (Object.keys(skills).length > 0) {
+                    skillMatrixEl.innerHTML = Object.entries(skills).map(([skill, count]) => `
+                        <div class="skill-item">
+                            <div class="skill-name">${skill.replace('_', ' ')}</div>
+                            <div class="skill-count">${count}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    skillMatrixEl.innerHTML = '<div class="empty-state" style="grid-column: 1/-1;">No skills yet</div>';
+                }
+
+                // Badges
+                document.getElementById('badge-count').textContent = data.badges.length;
+                const badgesEl = document.getElementById('badges-list');
+                if (data.badges.length > 0) {
+                    badgesEl.innerHTML = data.badges.map(badge => `
+                        <div class="badge">
+                            <span class="badge-icon">${badge.icon}</span>
+                            <div>
+                                <div class="badge-name">${badge.name}</div>
+                                <div class="badge-reason">${badge.reason || 'Awarded'} • ${(badge.awarded_at || '').substring(0,10)}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    badgesEl.innerHTML = '<div class="empty-state">No badges earned yet. Start contributing!</div>';
+                }
+
+                // Contributions
+                const contribEl = document.getElementById('contributions-list');
+                if (data.recent_contributions.length > 0) {
+                    contribEl.innerHTML = data.recent_contributions.map(c => `
+                        <div class="contribution-item">
+                            <div class="contrib-type">${c.type.replace('_', ' ')}</div>
+                            <div class="contrib-desc">${c.description}</div>
+                            <div class="contrib-meta">${c.room} • ${c.points} pts • ${(c.timestamp || '').substring(0,10)}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    contribEl.innerHTML = '<div class="empty-state">No contributions yet</div>';
+                }
+
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').textContent = 'Failed to load agent profile.';
+            }
+        }
+
+        // Load on page load
+        loadProfile();
+    </script>
+</body>
+</html>

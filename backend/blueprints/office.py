@@ -85,6 +85,111 @@ def _git_commit(message: str):
         return False
 
 
+
+def _get_office_context():
+    """
+    Aggregate comprehensive office state for intelligent planning.
+    This data is used by agents during huddles to make context-aware proposals.
+    """
+    context = {
+        "timestamp": datetime.now().isoformat(),
+        "agents": {"total": 0, "by_state": {}, "active": 0},
+        "tasks": {"total": 0, "open": 0, "in_progress": 0, "completed": 0, "overdue": 0},
+        "git": {"branch": None, "dirty": False, "recent_commits": 0},
+        "rooms": {"total": 0, "list": []},
+        "growth": {"total_contributions": 0, "top_agent": None, "leaderboard": []},
+        "system": {"disk_free_gb": 0, "uptime_days": 0}
+    }
+
+    # Agent stats
+    try:
+        with open(cfg.AGENTS_STATE_FILE) as f:
+            agents = json.load(f)
+        context["agents"]["total"] = len(agents)
+        for agent in agents:
+            state = agent.get("state", "unknown")
+            context["agents"]["by_state"][state] = context["agents"]["by_state"].get(state, 0) + 1
+            if state not in ["left", "offline"]:
+                context["agents"]["active"] += 1
+    except Exception as e:
+        log.warning("Failed to load agents for context", extra={"_error": str(e)})
+
+    # Task stats
+    try:
+        tasks_file = Path(cfg.ROOT_DIR) / "growth" / "tasks.json"
+        if tasks_file.exists():
+            tasks_data = json.loads(tasks_file.read_text())
+            tasks = tasks_data.get("tasks", [])
+            context["tasks"]["total"] = len(tasks)
+            for task in tasks:
+                status = task.get("status", "open")
+                if status == "open":
+                    context["tasks"]["open"] += 1
+                elif status == "in_progress":
+                    context["tasks"]["in_progress"] += 1
+                elif status == "completed":
+                    context["tasks"]["completed"] += 1
+
+            # Check overdue (created >7 days ago and not completed)
+            now = datetime.now()
+            for task in tasks:
+                if task.get("status") not in ["completed", "cancelled"]:
+                    created = datetime.fromisoformat(task.get("created_at", now.isoformat()))
+                    if (now - created).days > 7:
+                        context["tasks"]["overdue"] += 1
+    except Exception as e:
+        log.warning("Failed to load tasks for context", extra={"_error": str(e)})
+
+    # Git stats
+    git_info = _get_git_status()
+    context["git"]["branch"] = git_info["branch"]
+    context["git"]["dirty"] = git_info["dirty"]
+    try:
+        repo = Path(cfg.ROOT_DIR)
+        recent = subprocess.check_output(
+            ["git", "log", "--oneline", "-10"],
+            cwd=repo, text=True, stderr=subprocess.DEVNULL
+        ).strip().split('\n')
+        context["git"]["recent_commits"] = len([c for c in recent if c])
+    except Exception:
+        pass
+
+    # Rooms
+    try:
+        rooms_file = Path(cfg.FRONTEND_DIR) / "rooms.json"
+        if rooms_file.exists():
+            rooms_data = json.loads(rooms_file.read_text())
+            rooms = rooms_data.get("rooms", [])
+            context["rooms"]["total"] = len(rooms)
+            context["rooms"]["list"] = [{"id": r.get("id"), "name": r.get("name")} for r in rooms]
+    except Exception as e:
+        log.warning("Failed to load rooms for context", extra={"_error": str(e)})
+
+    # Growth leaderboard
+    try:
+        scores_file = Path(cfg.ROOT_DIR) / "growth" / "agent_scores.json"
+        if scores_file.exists():
+            scores_data = json.loads(scores_file.read_text())
+            scores = scores_data.get("scores", {})
+            if scores:
+                sorted_agents = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+                context["growth"]["top_agent"] = sorted_agents[0][0] if sorted_agents else None
+                context["growth"]["leaderboard"] = [{"name": name, "score": score} for name, score in sorted_agents[:5]]
+                context["growth"]["total_contributions"] = sum(scores.values())
+    except Exception as e:
+        log.warning("Failed to load growth data for context", extra={"_error": str(e)})
+
+    # System metrics (simplified)
+    try:
+        import shutil
+        disk = shutil.disk_usage(cfg.ROOT_DIR)
+        context["system"]["disk_free_gb"] = round(disk.free / (1024**3), 2)
+    except Exception:
+        pass
+
+    return context
+
+
 @bp.route("/office/huddle/start", methods=["POST"])
 def start_huddle():
     """
@@ -195,6 +300,27 @@ def start_huddle():
     plans["last_huddle"] = huddle["timestamp"]
     _save_plans(plans)
 
+    # Save decision audit record (CM-9)
+    try:
+        decisions_dir = COLLAB_DIR / "decisions"
+        decisions_dir.mkdir(exist_ok=True)
+        decision_file = decisions_dir / f"{huddle_id}.json"
+        decision_data = {
+            "huddle_id": huddle_id,
+            "timestamp": huddle["timestamp"],
+            "agents": huddle["agents"],
+            "context_snapshot": _get_office_context(),
+            "proposals": huddle["proposals"],
+            "selected_plan": huddle["selected_plan"],
+            "status": huddle["status"],
+            "execution_log": [],
+            "completed": False
+        }
+        decision_file.write_text(json.dumps(decision_data, indent=2, ensure_ascii=False))
+        log.info("Decision audit record saved", extra={"_file": str(decision_file)})
+    except Exception as e:
+        log.warning("Failed to save decision audit record", extra={"_error": str(e)})
+
     # Auto-create tasks from high-priority proposals (priority <= 2)
     try:
         tasks_file = Path(cfg.ROOT_DIR) / "growth" / "tasks.json"
@@ -275,6 +401,16 @@ def execute_plan(huddle_id):
     plan = huddle["selected_plan"]
     execution_log = []
 
+    # Load decision audit record if it exists
+    decisions_dir = COLLAB_DIR / "decisions"
+    decision_file = decisions_dir / f"{huddle_id}.json"
+    decision_data = None
+    if decision_file.exists():
+        try:
+            decision_data = json.loads(decision_file.read_text())
+        except Exception:
+            pass
+
     try:
         # Execute based on plan type
         if plan["type"] == "new_room":
@@ -351,6 +487,17 @@ def execute_plan(huddle_id):
 
         log.info("Office plan executed", extra={"_huddle_id": huddle_id, "_plan_type": plan["type"]})
 
+        # Update decision audit record on success
+        if decision_data:
+            try:
+                decision_data["execution_log"] = execution_log
+                decision_data["completed"] = True
+                decision_data["completed_at"] = datetime.now().isoformat()
+                decision_file.write_text(json.dumps(decision_data, indent=2, ensure_ascii=False))
+                log.info("Decision audit record updated with execution", extra={"_file": str(decision_file)})
+            except Exception as e:
+                log.warning("Failed to update decision audit file", extra={"_error": str(e)})
+
         return jsonify({
             "ok": True,
             "huddle_id": huddle_id,
@@ -363,7 +510,66 @@ def execute_plan(huddle_id):
         huddle["status"] = "failed"
         huddle["error"] = str(e)
         _save_plans(plans)
+
+        # Update decision audit with failure
+        if decision_data:
+            try:
+                decision_data["status"] = "failed"
+                decision_data["error"] = str(e)
+                decision_data["completed"] = True
+                decision_data["completed_at"] = datetime.now().isoformat()
+                decision_file.write_text(json.dumps(decision_data, indent=2, ensure_ascii=False))
+            except Exception:
+                pass
+
         return jsonify({"ok": False, "msg": f"Execution failed: {e}"}), 500
+
+
+@bp.route("/office/decisions", methods=["GET"])
+def list_decisions():
+    """
+    List decision audit records - full huddle reasoning and outcomes.
+    Returns recent huddles with complete agent proposals and execution logs.
+    """
+    plans = _load_plans()
+    decisions = []
+
+    for huddle in plans.get("plans", []):
+        decision = {
+            "id": huddle["id"],
+            "timestamp": huddle["timestamp"],
+            "agents": huddle["agents"],
+            "status": huddle.get("status", "planning"),
+            "selected_plan": huddle.get("selected_plan"),
+            "proposals_count": len(huddle.get("proposals", [])),
+            "completed": huddle.get("completed", False),
+            "proposals": [
+                {
+                    "agent": p.get("agent"),
+                    "agentId": p.get("agentId"),
+                    "type": p.get("type"),
+                    "room": p.get("room"),
+                    "idea": p.get("idea"),
+                    "priority": p.get("priority"),
+                    "details": p.get("details", ""),
+                    "reasoning": p.get("reasoning", ""),
+                    "requires": p.get("requires", [])
+                }
+                for p in huddle.get("proposals", [])
+            ],
+            "execution_log": huddle.get("execution_log", []) if huddle.get("completed") else []
+        }
+        decisions.append(decision)
+
+    decisions.sort(key=lambda d: d["timestamp"], reverse=True)
+
+    return jsonify({
+        "ok": True,
+        "decisions": decisions,
+        "total": len(decisions),
+        "last_huddle": plans.get("last_huddle")
+    })
+
 
 
 @bp.route("/office/rooms", methods=["GET"])
@@ -460,3 +666,414 @@ def office_status():
         "active_collaborators": len(active_collaborators),
         "collaborator_names": [a["name"] for a in active_collaborators]
     })
+
+@bp.route("/office/vitals", methods=["GET"])
+def office_vitals():
+    """
+    Return system resource vitals (CPU, RAM, Disk, Network).
+    Displayed on floor tiles in the office for at-a-glance monitoring.
+    """
+    vitals = {
+        "cpu_percent": 0,
+        "ram_percent": 0,
+        "disk_free_gb": 0,
+        "network_sent_mb": 0,
+        "network_recv_mb": 0,
+        "timestamp": datetime.now().isoformat()
+    }
+    # CPU and RAM - try psutil if available
+    try:
+        import psutil
+        vitals["cpu_percent"] = psutil.cpu_percent(interval=0.1)
+        vitals["ram_percent"] = psutil.virtual_memory().percent
+    except ImportError:
+        # estimate from /proc if Linux
+        try:
+            with open('/proc/stat', 'r') as f:
+                cpu_line = f.readline()
+                parts = cpu_line.split()
+                idle = int(parts[4])
+                total = sum(map(int, parts[1:5]))
+                vitals["cpu_percent"] = max(0, 100 - (idle / total * 100)) if total > 0 else 0
+        except Exception:
+            vitals["cpu_percent"] = 0
+        try:
+            with open('/proc/meminfo', 'r') as f:
+                for line in f:
+                    if line.startswith('MemAvailable:'):
+                        avail = int(line.split()[1]) / 1024
+                    if line.startswith('MemTotal:'):
+                        total = int(line.split()[1]) / 1024
+                if 'total' in locals() and 'avail' in locals():
+                    vitals["ram_percent"] = round((1 - avail / total) * 100, 1)
+        except Exception:
+            vitals["ram_percent"] = 0
+
+    # Disk usage
+    try:
+        import shutil
+        disk = shutil.disk_usage(cfg.ROOT_DIR)
+        vitals["disk_free_gb"] = round(disk.free / (1024**3), 2)
+        vitals["disk_percent"] = round(disk.used / disk.total * 100, 1)
+    except Exception:
+        vitals["disk_free_gb"] = 0
+        vitals["disk_percent"] = 0
+
+    # Network stats
+    try:
+        net_stats = {}
+        with open('/proc/net/dev', 'r') as f:
+            for line in f:
+                if ':' in line:
+                    iface, stats = line.split(':')
+                    iface = iface.strip()
+                    stats = stats.split()
+                    if iface not in ('lo',):
+                        net_stats[iface] = {
+                            'rx': int(stats[0]),
+                            'tx': int(stats[8])
+                        }
+        total_rx = sum(n['rx'] for n in net_stats.values()) if net_stats else 0
+        total_tx = sum(n['tx'] for n in net_stats.values()) if net_stats else 0
+        vitals["network_rx_mb"] = round(total_rx / (1024*1024), 2)
+        vitals["network_tx_mb"] = round(total_tx / (1024*1024), 2)
+    except Exception:
+        vitals["network_rx_mb"] = 0
+        vitals["network_tx_mb"] = 0
+
+    # Health status
+    vitals["status"] = "healthy"
+    if vitals["cpu_percent"] > 80 or vitals["ram_percent"] > 85 or vitals.get("disk_percent", 0) > 90:
+        vitals["status"] = "warning"
+    if vitals["cpu_percent"] > 95 or vitals["ram_percent"] > 95 or vitals.get("disk_percent", 0) > 98:
+        vitals["status"] = "critical"
+
+    return jsonify({"ok": True, "vitals": vitals})
+
+
+@bp.route("/office/incidents", methods=["GET"])
+def office_incidents():
+    """
+    Return current incident status based on recent audit log entries.
+    Used to trigger visual alarms in the office.
+    """
+    incidents = {
+        "status": "healthy",
+        "level": 0,
+        "recent_failures": 0,
+        "rate_limit_hits": 0,
+        "details": [],
+        "timestamp": datetime.now().isoformat()
+    }
+
+    try:
+        audit_log_path = Path(cfg.ROOT_DIR) / "audit.log"
+        if not audit_log_path.exists():
+            return jsonify({"ok": True, "incidents": incidents})
+
+        import time
+        now = time.time()
+        recent_window = 300
+        failure_count = 0
+        rate_limit_count = 0
+        details = []
+
+        with open(audit_log_path, 'r') as f:
+            lines = f.readlines()[-100:]
+
+        for line in lines:
+            try:
+                import json as js
+                entry = js.loads(line)
+                ts = entry.get('timestamp')
+                if not ts:
+                    continue
+                log_time = datetime.fromisoformat(ts).timestamp()
+                if now - log_time > recent_window:
+                    continue
+
+                event = entry.get('event', '')
+                details.append(f"{event} at {ts}")
+
+                if 'error' in event or 'failed' in event:
+                    failure_count += 1
+                if 'rate_limit' in event or '429' in event:
+                    rate_limit_count += 1
+            except Exception:
+                continue
+
+        incidents["recent_failures"] = failure_count
+        incidents["rate_limit_hits"] = rate_limit_count
+        incidents["details"] = details[:10]
+
+        if rate_limit_count > 0 or failure_count >= 5:
+            incidents["status"] = "critical"
+            incidents["level"] = 2
+        elif failure_count >= 2:
+            incidents["status"] = "warning"
+            incidents["level"] = 1
+
+    except Exception as e:
+        log.warning("Incident check failed", extra={"_error": str(e)})
+
+    return jsonify({"ok": True, "incidents": incidents})
+
+
+@bp.route("/office/briefing-status", methods=["GET"])
+def briefing_status():
+    """Check if a fresh briefing is available for the podium."""
+    briefing_file = Path(cfg.ROOT_DIR) / "growth" / "latest_briefing.json"
+    if not briefing_file.exists():
+        return jsonify({"ok": True, "fresh": False})
+
+    try:
+        data = json.loads(briefing_file.read_text())
+        gen_date = datetime.fromisoformat(data.get("generated_at", "2000-01-01")).date()
+        today = datetime.now().date()
+        fresh = gen_date == today
+        return jsonify({"ok": True, "fresh": fresh, "generated_at": data.get("generated_at")})
+    except Exception:
+        return jsonify({"ok": True, "fresh": False})
+
+
+@bp.route("/office/latest-briefing", methods=["GET"])
+def latest_briefing():
+    """Return the latest board meeting briefing text for the podium."""
+    briefing_file = Path(cfg.ROOT_DIR) / "growth" / "latest_briefing.json"
+    default_briefing = {
+        "text": "Good morning! The office is operational. No new updates.",
+        "generated_at": datetime.now().isoformat()
+    }
+
+    if briefing_file.exists():
+        try:
+            data = json.loads(briefing_file.read_text())
+            return jsonify({"ok": True, "briefing": data})
+        except Exception:
+            pass
+
+    return jsonify({"ok": True, "briefing": default_briefing})
+
+
+@bp.route("/office/generate-briefing", methods=["POST"])
+def generate_briefing():
+    """Generate a new board meeting briefing using office context."""
+    context = _get_office_context()
+    lines = [
+        "Board Meeting Briefing",
+        f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+        f"Active agents: {context['agents']['active']} total, {context['agents']['total']} registered",
+        f"Tasks: {context['tasks']['open']} open, {context['tasks']['overdue']} overdue",
+        f"Git: On branch '{context['git']['branch']}' with {context['git']['recent_commits']} recent commits",
+        f"Disk space: {context['system']['disk_free_gb']} GB free",
+        f"Top agent: {context['growth']['top_agent'] or 'none'}",
+        "Let's make today productive!"
+    ]
+    text = "\n".join(lines)
+
+    briefing = {
+        "text": text,
+        "generated_at": datetime.now().isoformat(),
+        "context": context
+    }
+
+    briefing_file = Path(cfg.ROOT_DIR) / "growth" / "latest_briefing.json"
+    briefing_file.write_text(json.dumps(briefing, indent=2, ensure_ascii=False))
+
+    log.info("Board briefing generated")
+    return jsonify({"ok": True, "briefing": briefing})
+
+
+@bp.route("/office/huddle/emergency", methods=["POST"])
+def emergency_huddle():
+    """Trigger an immediate huddle (bypass any normal scheduling)."""
+    return start_huddle()
+
+
+@bp.route("/office/data/context.json", methods=["GET"])
+def get_context_data():
+    """Return full office context snapshot for agent planning."""
+    context = _get_office_context()
+    return jsonify({"ok": True, "context": context})
+
+
+# === CM-12: Context Pressure Data ===
+
+@bp.route("/office/context-pressure", methods=["GET"])
+def context_pressure():
+    """
+    Return context usage estimates per agent.
+    In future, this will pull real context window stats from OpenClaw.
+    For now, estimates based on agent state and recent activity.
+    """
+    try:
+        with open(cfg.AGENTS_STATE_FILE) as f:
+            agents = json.load(f)
+    except Exception:
+        return jsonify({"ok": True, "agents": []})
+
+    pressure_data = []
+    for agent in agents:
+        if agent.get("state") == "left":
+            continue
+        state = agent.get("state", "idle")
+        # Estimate context usage by state
+        base_usage = {
+            "executing": 85, "researching": 80, "writing": 65,
+            "syncing": 40, "idle": 15, "error": 50
+        }
+        usage = base_usage.get(state, 20)
+        pressure_data.append({
+            "agentId": agent.get("agentId"),
+            "name": agent.get("name"),
+            "state": state,
+            "context_usage_pct": usage,
+        })
+
+    return jsonify({"ok": True, "agents": pressure_data})
+
+
+# === CM-13: Data Conduit Zones ===
+
+CONDUIT_ZONES = {
+    "library": {"label": "Knowledge Base", "color": "#3498db", "tools": ["kb_search", "kb_research"]},
+    "mailroom": {"label": "Communications", "color": "#e67e22", "tools": ["sessions_send", "discord"]},
+    "cloud": {"label": "External APIs", "color": "#9b59b6", "tools": ["web_fetch", "web_search", "openrouter"]},
+    "forge": {"label": "Execution", "color": "#e74c3c", "tools": ["exec", "git"]},
+}
+
+@bp.route("/office/conduits", methods=["GET"])
+def get_conduits():
+    """Return data conduit zone definitions for frontend visualization."""
+    return jsonify({"ok": True, "conduits": CONDUIT_ZONES})
+
+
+@bp.route("/office/conduits/activity", methods=["GET"])
+def conduit_activity():
+    """
+    Return recent tool call activity mapped to conduit zones.
+    Reads audit log to find recent tool invocations.
+    """
+    activity = {zone: {"calls": 0, "last_call": None} for zone in CONDUIT_ZONES}
+
+    try:
+        audit_log_path = Path(cfg.ROOT_DIR) / "audit.log"
+        if audit_log_path.exists():
+            import time as _time
+            now = _time.time()
+            window = 300  # 5 minutes
+
+            with open(audit_log_path, 'r') as f:
+                lines = f.readlines()[-200:]
+
+            for line in lines:
+                try:
+                    entry = json.loads(line)
+                    ts = entry.get('timestamp')
+                    if not ts:
+                        continue
+                    log_time = datetime.fromisoformat(ts).timestamp()
+                    if now - log_time > window:
+                        continue
+
+                    event = entry.get('event', '')
+                    details = entry.get('details', {})
+                    tool = details.get('tool', '') or event
+
+                    # Map to conduit zone
+                    for zone_id, zone_def in CONDUIT_ZONES.items():
+                        if any(t in tool.lower() for t in zone_def["tools"]):
+                            activity[zone_id]["calls"] += 1
+                            activity[zone_id]["last_call"] = ts
+                            break
+                except Exception:
+                    continue
+    except Exception as e:
+        log.warning("Conduit activity scan failed", extra={"_error": str(e)})
+
+    return jsonify({"ok": True, "activity": activity})
+
+
+# === CM-17: Skill Supply Closet ===
+
+@bp.route("/skills/list", methods=["GET"])
+def list_skills():
+    """
+    List available skills from OpenClaw workspace skills directory.
+    Each skill is a directory with a run script or manifest.
+    """
+    skills = []
+    skills_dirs = [
+        Path("/home/dustin/.openclaw/workspace/skills"),
+        Path("/home/dustin/.openclaw/workspace-ralph/skills"),
+        Path("/home/dustin/.openclaw/workspace-nova/skills"),
+    ]
+
+    for skills_dir in skills_dirs:
+        if not skills_dir.exists():
+            continue
+        agent_name = "Rook"
+        if "ralph" in str(skills_dir):
+            agent_name = "Ralph"
+        elif "nova" in str(skills_dir):
+            agent_name = "Nova"
+
+        for item in skills_dir.iterdir():
+            if item.is_dir():
+                skill_info = {
+                    "id": item.name,
+                    "name": item.name.replace("-", " ").replace("_", " ").title(),
+                    "agent": agent_name,
+                    "path": str(item),
+                    "has_run_script": (item / "run.sh").exists() or (item / "run_wallpaper.sh").exists(),
+                    "has_manifest": (item / "manifest.json").exists() or (item / "skill.json").exists(),
+                }
+                # Try to read manifest for description
+                for mf in ["manifest.json", "skill.json"]:
+                    manifest_path = item / mf
+                    if manifest_path.exists():
+                        try:
+                            manifest = json.loads(manifest_path.read_text())
+                            skill_info["description"] = manifest.get("description", "")
+                            skill_info["version"] = manifest.get("version", "")
+                            break
+                        except Exception:
+                            pass
+                skills.append(skill_info)
+
+    return jsonify({"ok": True, "skills": skills, "total": len(skills)})
+
+
+# === CM-15: Ghost Replay Data Capture ===
+
+@bp.route("/office/replay/sessions", methods=["GET"])
+def replay_sessions():
+    """
+    List available session replays with timestamps.
+    Returns metadata about recorded agent sessions for the time machine.
+    """
+    sessions = []
+    openclaw_agents_dir = Path("/home/dustin/.openclaw/agents")
+    if not openclaw_agents_dir.exists():
+        return jsonify({"ok": True, "sessions": []})
+
+    agent_names = {"main": "Rook", "ralph": "Ralph", "nova": "Nova"}
+
+    for agent_id, display_name in agent_names.items():
+        sessions_dir = openclaw_agents_dir / agent_id / "sessions"
+        if not sessions_dir.exists():
+            continue
+        for session_file in sorted(sessions_dir.glob("*.jsonl"), key=lambda f: f.stat().st_mtime, reverse=True)[:5]:
+            stat = session_file.stat()
+            sessions.append({
+                "agent": display_name,
+                "agent_id": agent_id,
+                "filename": session_file.name,
+                "size_kb": round(stat.st_size / 1024, 1),
+                "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                "created": datetime.fromtimestamp(stat.st_ctime).isoformat(),
+            })
+
+    sessions.sort(key=lambda s: s["modified"], reverse=True)
+    return jsonify({"ok": True, "sessions": sessions[:15]})
+

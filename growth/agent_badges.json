@@ -1,0 +1,41 @@
+{
+  "agents": {
+    "CodeMaster": [
+      {
+        "id": "first_contribution",
+        "name": "First Contribution",
+        "icon": "⭐",
+        "awarded_at": "2026-03-12T16:23:19.488678",
+        "reason": "Test award"
+      }
+    ],
+    "Rook": [
+      {
+        "id": "first_contribution",
+        "name": "First Contribution",
+        "icon": "⭐",
+        "awarded_at": "2026-03-12T16:24:37.263264",
+        "reason": "Has contributions"
+      }
+    ],
+    "Nova": [
+      {
+        "id": "first_contribution",
+        "name": "First Contribution",
+        "icon": "⭐",
+        "awarded_at": "2026-03-12T16:24:37.263503",
+        "reason": "Has contributions"
+      }
+    ],
+    "Ralph": [
+      {
+        "id": "first_contribution",
+        "name": "First Contribution",
+        "icon": "⭐",
+        "awarded_at": "2026-03-12T16:24:37.304614",
+        "reason": "Has contributions"
+      }
+    ]
+  },
+  "updated_at": "2026-03-12T16:24:37.304625"
+}

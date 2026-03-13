@@ -66,5 +66,12 @@
       Metrics auto-refresh every 15s via office-agent-push
     </div>
   </div>
+
+  <!-- Usage Tracking -->
+  <script src="/static/js/tracking.js"></script>
+  <script>
+    document.body.dataset.room = 'serverroom';
+    DashboardTracker.init({ room: 'serverroom' });
+  </script>
 </body>
 </html>

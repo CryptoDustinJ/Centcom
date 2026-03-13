@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metrics Lobby - Star Office</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eee;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+        .header p {
+            color: #888;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .card h3 {
+            color: #3498db;
+            margin-bottom: 15px;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .metric-label { color: #aaa; }
+        .metric-value { font-weight: bold; color: #fff; }
+        .big-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #3498db;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .section-title {
+            color: #fff;
+            margin: 30px 0 15px;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+        .activity-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .activity-item {
+            background: rgba(255,255,255,0.03);
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            border-left: 3px solid #3498db;
+        }
+        .activity-time {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .activity-desc {
+            margin-top: 5px;
+            color: #ddd;
+        }
+        .loading { text-align: center; padding: 40px; color: #888; }
+        .error { color: #ff6b6b; padding: 20px; }
+        .refresh-note {
+            text-align: center;
+            color: #666;
+            font-size: 0.85rem;
+            margin-top: 20px;
+        }
+        .connected-rooms {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        .room-tag {
+            background: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Metrics Lobby</h1>
+            <p>Office-wide statistics and health monitoring</p>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>Agents</h3>
+                <div class="big-value" id="agent-count">-</div>
+                <div class="metric-row"><span class="metric-label">Active</span><span class="metric-value" id="active-agents">-</span></div>
+                <div class="metric-row"><span class="metric-label">Total</span><span class="metric-value" id="total-agents">-</span></div>
+            </div>
+
+            <div class="card">
+                <h3>Tasks</h3>
+                <div class="big-value" id="task-count">-</div>
+                <div class="metric-row"><span class="metric-label">Open</span><span class="metric-value" id="open-tasks">-</span></div>
+                <div class="metric-row"><span class="metric-label">In Progress</span><span class="metric-value" id="inprog-tasks">-</span></div>
+                <div class="metric-row"><span class="metric-label">Completed</span><span class="metric-value" id="done-tasks">-</span></div>
+            </div>
+
+            <div class="card">
+                <h3>Growth</h3>
+                <div class="big-value" id="total-contributions">-</div>
+                <div class="metric-row"><span class="metric-label">Leader</span><span class="metric-value" id="top-agent">-</span></div>
+                <div class="metric-row"><span class="metric-label">Rooms</span><span class="metric-value" id="room-count">-</span></div>
+            </div>
+
+            <div class="card">
+                <h3>System</h3>
+                <div class="big-value" id="disk-free">-</div>
+                <div class="metric-row"><span class="metric-label">Git Branch</span><span class="metric-value" id="git-branch">-</span></div>
+                <div class="metric-row"><span class="metric-label">Uncommitted</span><span class="metric-value" id="git-dirty">-</span></div>
+            </div>
+        </div>
+
+        <div class="section-title">🔗 Connected Rooms</div>
+        <div class="card">
+            <div class="connected-rooms" id="room-list">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <div class="section-title">📈 Recent Activity</div>
+        <div class="card">
+            <div class="activity-list" id="activity-feed">
+                <div class="loading">Loading activity...</div>
+            </div>
+        </div>
+
+        <div class="refresh-note">
+            Data auto-refreshes every 30 seconds
+        </div>
+    </div>
+
+    <script>
+        async function loadDashboard() {
+            try {
+                const resp = await fetch('/office/data/context?' + Date.now());
+                const data = await resp.json();
+                const ctx = data.context;
+
+                // Agent stats
+                document.getElementById('agent-count').textContent = ctx.agents.active;
+                document.getElementById('active-agents').textContent = ctx.agents.active + ' active';
+                document.getElementById('total-agents').textContent = ctx.agents.total + ' total';
+
+                // Task stats
+                document.getElementById('task-count').textContent = ctx.tasks.total;
+                document.getElementById('open-tasks').textContent = ctx.tasks.open;
+                document.getElementById('inprog-tasks').textContent = ctx.tasks.in_progress;
+                document.getElementById('done-tasks').textContent = ctx.tasks.completed;
+
+                // Growth
+                document.getElementById('total-contributions').textContent = ctx.growth.total_contributions;
+                document.getElementById('top-agent').textContent = ctx.growth.top_agent || 'N/A';
+                document.getElementById('room-count').textContent = ctx.rooms.total;
+
+                // System
+                document.getElementById('disk-free').textContent = ctx.system.disk_free_gb.toFixed(1) + ' GB';
+                document.getElementById('git-branch').textContent = ctx.git.branch || 'N/A';
+                document.getElementById('git-dirty').textContent = ctx.git.dirty ? 'Yes ⚠️' : 'No ✓';
+
+                // Room list with connections (from rooms.json)
+                const roomsResp = await fetch('/office/rooms');
+                const roomsData = await roomsResp.json();
+                const roomList = document.getElementById('room-list');
+                roomList.innerHTML = roomsData.rooms.map(r =>
+                    `<span class="room-tag">${r.name}${r.connections ? ' ↔' : ''}</span>`
+                ).join('');
+
+                // Recent activity: fetch latest 10 contributions
+                const contribResp = await fetch('/growth/leaderboard');
+                const contribData = await contribResp.json();
+                // We don't have raw contributions here, so skip detailed activity for now
+                document.getElementById('activity-feed').innerHTML = '<div class="empty-state">Activity feed coming soon...</div>';
+
+            } catch (e) {
+                console.error('Dashboard load error:', e);
+                document.querySelector('.loading').textContent = 'Failed to load data';
+            }
+        }
+
+        // Load initially and refresh every 30s
+        loadDashboard();
+        setInterval(loadDashboard, 30000);
+    </script>
+</body>
+</html>

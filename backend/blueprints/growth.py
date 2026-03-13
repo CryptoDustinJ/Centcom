@@ -10,6 +10,13 @@ from flask import Blueprint, request, jsonify, current_app
 
 from config import config as cfg
 from logger import get_logger
+from rate_limit import rate_limit
+
+# Import badge system (avoid circular by importing at function call time)
+def _check_badges(contribution):
+    """Lazy import to avoid circular dependencies."""
+    from blueprints.growth_badges import check_and_award_badges
+    return check_and_award_badges(contribution)
 
 log = get_logger(__name__)
 bp = Blueprint('growth', __name__)
@@ -20,6 +27,7 @@ GROWTH_DIR.mkdir(exist_ok=True)
 METRICS_FILE = GROWTH_DIR / "metrics.json"
 AGENT_SCORES_FILE = GROWTH_DIR / "agent_scores.json"
 CONTRIBUTIONS_FILE = GROWTH_DIR / "contributions.json"
+USAGE_FILE = GROWTH_DIR / "usage.json"
 
 
 def _load_json(path: Path, default: dict):
@@ -341,6 +349,13 @@ def upgrade_room():
     contributions["contributions"] = contrib_list
     _save_json(CONTRIBUTIONS_FILE, contributions)
 
+    # Check for badge awards (after contribution is logged)
+    try:
+        contribution_record = contrib_list[-1]  # The one we just added
+        _check_badges(contribution_record)
+    except Exception as e:
+        log.warning("Badge check failed", extra={"_error": str(e)})
+
     agent_scores = _load_json(AGENT_SCORES_FILE, {"scores": {}})
     scores = agent_scores.get("scores", {})
     scores[agent] = scores.get(agent, 0) + contrib_data['points']
@@ -603,6 +618,13 @@ def complete_task(task_id):
     contributions["contributions"] = contrib_list
     _save_json(CONTRIBUTIONS_FILE, contributions)
 
+    # Check for badge awards
+    try:
+        contribution_record = contrib_list[-1]
+        _check_badges(contribution_record)
+    except Exception as e:
+        log.warning("Badge check failed", extra={"_error": str(e)})
+
     # Update agent score
     agent_scores = _load_json(AGENT_SCORES_FILE, {"scores": {}})
     scores = agent_scores.get("scores", {})
@@ -619,4 +641,291 @@ def complete_task(task_id):
         "points_earned": contrib_data['points'],
         "new_score": scores[agent],
         "msg": f"Task {task_id} completed by {agent}, earned {contrib_data['points']} points"
+    })
+
+
+# ========== USAGE TRACKING ==========
+
+@bp.route("/growth/track-view", methods=["POST"])
+@rate_limit(120, 60)  # generous limit for heartbeat
+def track_view():
+    """
+    Track dashboard view/usage.
+    Expected JSON: { "room": "serverroom", "agent": "Rook", "duration_seconds": 120, "interactions": 5 }
+    """
+    data = request.get_json()
+    if not data or "room" not in data:
+        return jsonify({"ok": False, "msg": "room required"}), 400
+
+    room = data["room"]
+    agent = data.get("agent", "unknown")
+    duration = int(data.get("duration_seconds", 0))
+    interactions = int(data.get("interactions", 0))
+    timestamp = datetime.now().isoformat()
+
+    # Load existing usage data
+    usage = _load_json(USAGE_FILE, {"views": []})
+
+    # Add new view
+    view = {
+        "id": f"view_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}",
+        "room": room,
+        "agent": agent,
+        "duration_seconds": duration,
+        "interactions": interactions,
+        "timestamp": timestamp,
+    }
+    usage["views"].append(view)
+
+    # Keep only last 10000 views to prevent unbounded growth
+    if len(usage["views"]) > 10000:
+        usage["views"] = usage["views"][-10000:]
+
+    _save_json(USAGE_FILE, usage)
+
+    # For debugging, also log brief summary
+    log.debug("Dashboard view tracked", extra={
+        "_room": room,
+        "_agent": agent,
+        "_duration": duration
+    })
+
+    return jsonify({"ok": True, "msg": "View tracked"})
+
+
+@bp.route("/growth/room/<room_id>/stats", methods=["GET"])
+def room_stats(room_id: str):
+    """Get usage statistics for a specific room."""
+    usage = _load_json(USAGE_FILE, {"views": []})
+
+    room_views = [v for v in usage["views"] if v.get("room") == room_id]
+
+    # Calculate metrics
+    total_views = len(room_views)
+    unique_agents = len(set(v.get("agent") for v in room_views if v.get("agent")))
+    avg_duration = 0
+    if total_views > 0:
+        total_duration = sum(v.get("duration_seconds", 0) for v in room_views)
+        avg_duration = total_duration / total_views
+
+    # Views by day (last 7 days)
+    from datetime import timedelta
+    now = datetime.now()
+    week_ago = now - timedelta(days=7)
+    recent_views = [
+        v for v in room_views
+        if datetime.fromisoformat(v.get("timestamp", "")) > week_ago
+    ]
+
+    return jsonify({
+        "ok": True,
+        "room": room_id,
+        "stats": {
+            "total_views": total_views,
+            "unique_agents": unique_agents,
+            "avg_duration_seconds": round(avg_duration, 1),
+            "views_last_7_days": len(recent_views),
+        }
+    })
+
+
+@bp.route("/growth/recalculate-scores", methods=["POST"])
+def recalculate_scores():
+    """
+    Recalculate all agent scores incorporating usage multipliers.
+    Formula: new_score = sum(contribution.points * usage_multiplier(room))
+    where usage_multiplier = 1 + min(total_views / 100, 2) for dashboard/room contributions.
+    """
+    try:
+        # Load data
+        contributions = _load_json(CONTRIBUTIONS_FILE, {"contributions": []}).get("contributions", [])
+        usage = _load_json(USAGE_FILE, {"views": []}).get("views", [])
+
+        # Compute room view counts
+        room_views = {}
+        for v in usage:
+            room = v.get("room")
+            if room:
+                room_views[room] = room_views.get(room, 0) + 1
+
+        # Calculate new scores
+        new_scores = {}
+        for contrib in contributions:
+            agent = contrib.get("agent")
+            if not agent:
+                continue
+
+            base_points = contrib.get("points", 0)
+            multiplier = 1.0  # default
+
+            # Apply usage multiplier for dashboard/room-related contributions
+            contrib_type = contrib.get("type", "")
+            room = contrib.get("room")
+            if room and room_views.get(room, 0) > 0:
+                views = room_views[room]
+                # Multiplier: 1 + min(views/100, 2) => caps at 3x
+                usage_factor = min(views / 100.0, 2.0)
+                multiplier = 1.0 + usage_factor
+
+            adjusted_points = int(base_points * multiplier)
+            new_scores[agent] = new_scores.get(agent, 0) + adjusted_points
+
+        # Save new scores
+        agent_scores = {"scores": new_scores, "updated_at": datetime.now().isoformat()}
+        _save_json(AGENT_SCORES_FILE, agent_scores)
+
+        log.info("Scores recalculated with usage", extra={
+            "_total_agents": len(new_scores),
+            "_total_rooms_tracked": len(room_views)
+        })
+
+        return jsonify({
+            "ok": True,
+            "msg": f"Scores recalculated for {len(new_scores)} agents",
+            "scores": new_scores,
+            "usage_multiplier_applied": True
+        })
+
+    except Exception as e:
+        log.error("Score recalculation failed", extra={"_error": str(e)})
+        return jsonify({"ok": False, "msg": str(e)}), 500
+
+
+# === CM-10: Multi-Agent Task Assignment ===
+
+@bp.route("/growth/tasks/<task_id>/assign-multi", methods=["POST"])
+def assign_multi_agents(task_id):
+    """
+    Assign multiple agents to a single task with credit splitting.
+    Expected JSON: { "assignees": [{"agent": "Rook", "agentId": "..."}, ...] }
+    """
+    data = request.get_json() or {}
+    assignees = data.get('assignees', [])
+
+    if not assignees or not isinstance(assignees, list):
+        return jsonify({"ok": False, "msg": "assignees array required"}), 400
+
+    tasks_data = _load_tasks()
+    tasks = tasks_data.get("tasks", [])
+    task = next((t for t in tasks if t.get('id') == task_id), None)
+
+    if not task:
+        return jsonify({"ok": False, "msg": "Task not found"}), 404
+
+    if task.get('status') == 'completed':
+        return jsonify({"ok": False, "msg": "Task already completed"}), 400
+
+    # Store multiple assignees
+    task['assignees'] = assignees
+    task['assignee'] = assignees[0].get('agent')  # Primary assignee for backward compat
+    task['assignee_id'] = assignees[0].get('agentId')
+    task['assigned_at'] = datetime.now().isoformat()
+    task['status'] = 'in_progress'
+    task['credit_split'] = round(100 / len(assignees), 1)  # Equal split percentage
+
+    _save_tasks(tasks_data)
+
+    log.info("Multi-agent task assigned", extra={
+        "_task_id": task_id,
+        "_agents": [a.get('agent') for a in assignees]
+    })
+
+    return jsonify({
+        "ok": True,
+        "task": task,
+        "msg": f"Task {task_id} assigned to {len(assignees)} agents"
+    })
+
+
+@bp.route("/growth/tasks/<task_id>/complete-multi", methods=["POST"])
+def complete_multi_task(task_id):
+    """
+    Complete a multi-agent task and split credit among assignees.
+    Expected JSON: { "agent": "Rook", "notes": "..." }
+    """
+    data = request.get_json() or {}
+    agent = data.get('agent')
+    notes = data.get('notes', '')
+
+    if not agent:
+        return jsonify({"ok": False, "msg": "Missing agent name"}), 400
+
+    tasks_data = _load_tasks()
+    tasks = tasks_data.get("tasks", [])
+    task = next((t for t in tasks if t.get('id') == task_id), None)
+
+    if not task:
+        return jsonify({"ok": False, "msg": "Task not found"}), 404
+
+    if task.get('status') == 'completed':
+        return jsonify({"ok": False, "msg": "Task already completed"}), 400
+
+    assignees = task.get('assignees', [])
+    if not assignees:
+        # Fall back to single-agent completion
+        assignees = [{"agent": task.get('assignee', agent)}]
+
+    # Verify the completing agent is an assignee
+    assignee_names = [a.get('agent') for a in assignees]
+    if agent not in assignee_names:
+        return jsonify({"ok": False, "msg": f"{agent} is not assigned to this task"}), 403
+
+    # Complete the task
+    task['status'] = 'completed'
+    task['completed_at'] = datetime.now().isoformat()
+    task['completed_by'] = agent
+    task['notes'] = notes
+    task['progress'] = 100
+    _save_tasks(tasks_data)
+
+    # Split credit among all assignees
+    total_points = task.get('points', 25)
+    split_points = max(1, total_points // len(assignees))
+
+    contributions = _load_json(CONTRIBUTIONS_FILE, {"contributions": []})
+    contrib_list = contributions.get("contributions", [])
+    agent_scores = _load_json(AGENT_SCORES_FILE, {"scores": {}})
+    scores = agent_scores.get("scores", {})
+
+    for assignee in assignees:
+        a_name = assignee.get('agent')
+        contrib = {
+            "id": f"contrib_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}_{a_name}",
+            "agent": a_name,
+            "agentId": assignee.get('agentId'),
+            "type": "task_completed",
+            "room": task.get('room', 'general'),
+            "description": f"Completed team task: {task['title']} (split {len(assignees)}-way)",
+            "points": split_points,
+            "task_id": task_id,
+            "timestamp": datetime.now().isoformat(),
+        }
+        contrib_list.append(contrib)
+        scores[a_name] = scores.get(a_name, 0) + split_points
+
+        # Check badges
+        try:
+            _check_badges(contrib)
+        except Exception:
+            pass
+
+    contributions["contributions"] = contrib_list
+    _save_json(CONTRIBUTIONS_FILE, contributions)
+
+    agent_scores["scores"] = scores
+    agent_scores["updated_at"] = datetime.now().isoformat()
+    _save_json(AGENT_SCORES_FILE, agent_scores)
+
+    log.info("Multi-agent task completed", extra={
+        "_task_id": task_id,
+        "_agents": assignee_names,
+        "_points_each": split_points
+    })
+
+    return jsonify({
+        "ok": True,
+        "task": task,
+        "points_per_agent": split_points,
+        "agents_credited": assignee_names,
+        "msg": f"Task {task_id} completed. {split_points} points each for {len(assignees)} agents"
     })

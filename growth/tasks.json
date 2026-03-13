@@ -311,7 +311,247 @@
       "dependencies": [],
       "progress": 100,
       "notes": "Dashboard created with status, disk, services, alerts. Ready for live data parsing."
+    },
+    {
+      "id": "task_0015",
+      "title": "Add lab room for code quality analysis",
+      "description": "Based on team size/growth, a lab would improve the office.",
+      "room": "lab",
+      "type": "new_room",
+      "status": "open",
+      "points": 25,
+      "assignee": "Rook",
+      "assignee_id": "agent_1773283982044_08u5",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-12T16:17:03.022536",
+      "assigned_at": "2026-03-12T16:17:03.022541",
+      "completed_at": null,
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0016",
+      "title": "Create system health dashboard",
+      "description": "Monitor CPU, memory, disk across all services.",
+      "room": "serverroom",
+      "type": "monitoring",
+      "status": "open",
+      "points": 25,
+      "assignee": "Ralph",
+      "assignee_id": "agent_1773274630238_8duq",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-12T16:17:03.022548",
+      "assigned_at": "2026-03-12T16:17:03.022550",
+      "completed_at": null,
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0017",
+      "title": "Build Badge System with Award Logic",
+      "description": "Implement backend for achievements and badges. Create growth/badges.json with badge definitions, conditions engine, and award tracking in agent_badges.json. Add endpoints: /growth/badges, /agents/<id>/badges. Include badges like 'First Room Creator', 'Dashboard Hero', 'Collaborator'.",
+      "room": "workspace",
+      "type": "feature",
+      "status": "open",
+      "points": 45,
+      "assignee": "CodeMaster",
+      "assignee_id": "agent_1773274638699_p6ki",
+      "created_by": "Rook",
+      "created_at": "2026-03-12T16:20:00.000000",
+      "assigned_at": "2026-03-12T16:20:00.000000",
+      "completed_at": null,
+      "tags": [
+        "feature",
+        "gamification",
+        "backend"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0018",
+      "title": "Create Agent Profile Pages with Badges Display",
+      "description": "New endpoint GET /agents/<id>/profile returns badges, stats, contribution history, skill matrix. Create frontend template agent-profile.html showing earned badges with icons, acquisition dates, and performance metrics.",
+      "room": "workspace",
+      "type": "frontend",
+      "status": "open",
+      "points": 40,
+      "assignee": "CodeMaster",
+      "assignee_id": "agent_1773274638699_p6ki",
+      "created_by": "Rook",
+      "created_at": "2026-03-12T16:20:00.000000",
+      "assigned_at": "2026-03-12T16:20:00.000000",
+      "completed_at": null,
+      "tags": [
+        "frontend",
+        "profile",
+        "ui"
+      ],
+      "dependencies": ["task_0017"],
+      "progress": 0
+    },
+    {
+      "id": "task_0019",
+      "title": "Dashboard Usage Tracking System",
+      "description": "Add JS snippet to all room dashboards to call POST /growth/track-view on load and heartbeat every 30s. Track agent ID, room, duration, interactions. Create /growth/room/<room_id>/stats for popularity metrics. Store in growth/usage.json.",
+      "room": "workspace",
+      "type": "feature",
+      "status": "open",
+      "points": 35,
+      "assignee": "CodeMaster",
+      "assignee_id": "agent_1773274638699_p6ki",
+      "created_by": "Rook",
+      "created_at": "2026-03-12T16:20:00.000000",
+      "assigned_at": "2026-03-12T16:20:00.000000",
+      "completed_at": null,
+      "tags": [
+        "tracking",
+        "analytics",
+        "frontend"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0020",
+      "title": "Recalculate Agent Scores with Usage Multipliers",
+      "description": "Update growth scoring algorithm: base_points * (1 + usage_multiplier). High-traffic dashboards earn bonus. Create endpoint /growth/recalculate-scores. Adjust contribution weights based on impact (views, duration).",
+      "room": "workspace",
+      "type": "feature",
+      "status": "open",
+      "points": 30,
+      "assignee": "CodeMaster",
+      "assignee_id": "agent_1773274638699_p6ki",
+      "created_by": "Rook",
+      "created_at": "2026-03-12T16:20:00.000000",
+      "assigned_at": "2026-03-12T16:20:00.000000",
+      "completed_at": null,
+      "tags": [
+        "scoring",
+        "gamification",
+        "backend"
+      ],
+      "dependencies": ["task_0019"],
+      "progress": 0
+    },
+    {
+      "id": "task_0021",
+      "title": "Implement Room Connection Graph & Navigation",
+      "description": "Extend rooms.json with 'connections' array (adjacent room IDs). Frontend: click to navigate between rooms with walking animation. Show mini-map of office layout. Update /office/rooms endpoint to include connections.",
+      "room": "workspace",
+      "type": "frontend",
+      "status": "open",
+      "points": 35,
+      "assignee": "CodeMaster",
+      "assignee_id": "agent_1773274638699_p6ki",
+      "created_by": "Rook",
+      "created_at": "2026-03-12T16:20:00.000000",
+      "assigned_at": "2026-03-12T16:20:00.000000",
+      "completed_at": null,
+      "tags": [
+        "frontend",
+        "navigation",
+        "ui"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0022",
+      "title": "Build Office Stats Dashboard",
+      "description": "Create new room 'lobby' or 'metrics' with dashboard showing: total commits, agent activity heatmap, room popularity, growth trends, real-time updates via WebSocket or polling. Use /office/data/context and /growth metrics.",
+      "room": "lobby",
+      "type": "dashboard",
+      "status": "open",
+      "points": 50,
+      "assignee": "CodeMaster",
+      "assignee_id": "agent_1773274638699_p6ki",
+      "created_by": "Rook",
+      "created_at": "2026-03-12T16:20:00.000000",
+      "assigned_at": "2026-03-12T16:20:00.000000",
+      "completed_at": null,
+      "tags": [
+        "dashboard",
+        "metrics",
+        "frontend"
+      ],
+      "dependencies": ["task_0021"],
+      "progress": 0
+    },
+    {
+      "id": "task_0023",
+      "title": "Decision Audit Trail for Huddles",
+      "description": "Store full reasoning from each agent during huddles. Create collaboration/decisions/<huddle_id>_reasoning.json with raw agent responses, vote weights, context snapshot. Build UI to view decision history and post-mortem analysis.",
+      "room": "workspace",
+      "type": "backend",
+      "status": "open",
+      "points": 35,
+      "assignee": "CodeMaster",
+      "assignee_id": "agent_1773274638699_p6ki",
+      "created_by": "Rook",
+      "created_at": "2026-03-12T16:20:00.000000",
+      "assigned_at": "2026-03-12T16:20:00.000000",
+      "completed_at": null,
+      "tags": [
+        "audit",
+        "transparency",
+        "backend"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0024",
+      "title": "Multi-Agent Task Assignment Workflow",
+      "description": "Growth UI: checkbox to select multiple agents for a task. Backend: POST /growth/tasks accepts assignees array. Credit splitting: points divided equally among completers. Update task claim/complete flow to support multiple assignees.",
+      "room": "workspace",
+      "type": "feature",
+      "status": "open",
+      "points": 40,
+      "assignee": "CodeMaster",
+      "assignee_id": "agent_1773274638699_p6ki",
+      "created_by": "Rook",
+      "created_at": "2026-03-12T16:20:00.000000",
+      "assigned_at": "2026-03-12T16:20:00.000000",
+      "completed_at": null,
+      "tags": [
+        "collaboration",
+        "workflow",
+        "frontend"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0025",
+      "title": "Emergency Huddle Endpoint",
+      "description": "Add POST /office/huddle/emergency to trigger immediate huddle outside normal schedule. Bypass rate limits, urgent priority flag, auto-notify all agents. Useful for critical alerts (disk full, service down). Include in office status dashboard.",
+      "room": "serverroom",
+      "type": "emergency",
+      "status": "open",
+      "points": 30,
+      "assignee": "CodeMaster",
+      "assignee_id": "agent_1773274638699_p6ki",
+      "created_by": "Rook",
+      "created_at": "2026-03-12T16:20:00.000000",
+      "assigned_at": "2026-03-12T16:20:00.000000",
+      "completed_at": null,
+      "tags": [
+        "emergency",
+        "huddle",
+        "backend"
+      ],
+      "dependencies": [],
+      "progress": 0
     }
   ],
-  "next_id": 15
+  "next_id": 26
 }
