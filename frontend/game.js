@@ -282,6 +282,25 @@ let agents = {}; // agentId -> sprite/container
 let lastAgentsFetch = 0;
 const AGENTS_FETCH_INTERVAL = 2500;
 
+// CM-7: Room Navigation Graph
+let officeRooms = {}; // roomId -> room definition (from /office/rooms)
+let roomGraphics = null; // graphics object for mini-map
+let navigationTarget = null; // { roomId, x, y } if agent is navigating
+let mainAgentArea = 'breakroom'; // current area of the main star agent (default)
+
+// Context pressure tracking (CM-12)
+let contextPressureData = {}; // agentId -> { usage_pct: number, last_update: timestamp }
+let lastPressureFetch = 0;
+const PRESSURE_FETCH_INTERVAL = 30000; // every 30s
+
+// CM-13: Data Conduits (variables declared at top)
+let conduitZones = {};
+let conduitActivity = {};
+let conduitGraphics = null;
+let conduitParticles = [];
+let lastConduitFetch = 0;
+const CONDUIT_FETCH_INTERVAL = 30000; // 30s (less frequent than agents)
+
 // agent 颜色配置
 const AGENT_COLORS = {
   star: 0xffd700,
@@ -330,6 +349,19 @@ const AREA_POSITIONS = {
     { x: 140, y: 250 },
     { x: 200, y: 210 },
     { x: 260, y: 260 }
+  ],
+  // Additional rooms for navigation
+  workspace: [
+    { x: 760, y: 320 } // shared with writing (they overlap)
+  ],
+  lobby: [
+    { x: 400, y: 150 }
+  ],
+  observatory: [
+    { x: 200, y: 150 }
+  ],
+  serverroom: [
+    { x: 180, y: 260 } // shared with error area
   ]
 };
 
@@ -674,6 +706,16 @@ function create() {
   loadMemo();
   fetchStatus();
   fetchAgents();
+  fetchContextPressure(); // CM-12 initial fetch
+
+  // CM-13: Initialize conduits
+  initConduitVisualization();
+  fetchConduits();
+  fetchConduitActivity();
+
+  // CM-7: Initialize room navigation
+  fetchOfficeRooms();
+  setupRoomNavigation();
 
   // 可选调试：仅在显式开启 debug 模式时渲染测试用尼卡 agent
   let debugAgents = false;
@@ -728,6 +770,20 @@ function create() {
 function update(time) {
   if (time - lastFetch > FETCH_INTERVAL) { fetchStatus(); lastFetch = time; }
   if (time - lastAgentsFetch > AGENTS_FETCH_INTERVAL) { fetchAgents(); lastAgentsFetch = time; }
+  if (time - lastPressureFetch > PRESSURE_FETCH_INTERVAL) { fetchContextPressure(); lastPressureFetch = time; }
+  if (time - lastConduitFetch > CONDUIT_FETCH_INTERVAL) { fetchConduitActivity(); lastConduitFetch = time; }
+
+  // Update context pressure glows (every frame for smooth animation)
+  updateAllAgentGlows(time);
+
+  // Draw data conduits (animated)
+  drawConduits(time);
+  if (Object.keys(conduitZones).length > 0) {
+    updateConduitLabels();
+  }
+
+  // Update room navigation
+  updateNavigation(time);
 
   const effectiveStateForServer = pendingDesiredState || currentState;
   if (serverroom) {
@@ -1018,6 +1074,444 @@ function showCatBubble() {
   setTimeout(() => { if (window.catBubble) { window.catBubble.destroy(); window.catBubble = null; } }, 4000);
 }
 
+// === CM-12: Context Pressure Heatmap ===
+
+function fetchContextPressure() {
+  fetch('/office/context-pressure?t=' + Date.now(), { cache: 'no-store' })
+    .then(response => response.json())
+    .then(data => {
+      if (!data.ok || !Array.isArray(data.agents)) return;
+
+      // Update pressure data map
+      data.agents.forEach(agent => {
+        if (agent.agentId && agent.context_usage_pct !== undefined) {
+          contextPressureData[agent.agentId] = {
+            usage: agent.context_usage_pct,
+            last_update: Date.now()
+          };
+        }
+      });
+    })
+    .catch(err => {
+      console.warn('Context pressure fetch failed:', err);
+    });
+}
+
+function updateAgentGlow(agentId, container) {
+  const pressure = contextPressureData[agentId];
+  if (!pressure) {
+    // No data, remove glow if exists
+    const existingGlow = container.getByName('glow');
+    if (existingGlow) {
+      existingGlow.destroy();
+    }
+    return;
+  }
+
+  const usage = pressure.usage; // 0-100
+  // Determine glow color based on usage
+  let glowColor = 0x22c55e; // green (<50%)
+  if (usage >= 80) glowColor = 0xf59e0b; // orange (80-90%)
+  if (usage >= 90) glowColor = 0xef4444; // red (>90%)
+
+  // Base glow radius: 30-50px depending on usage
+  const baseRadius = 30 + Math.min(usage / 100 * 30, 30);
+
+  // Pulsing for critical (>90%)
+  let alpha = 0.4;
+  if (usage >= 90) {
+    const pulse = 0.3 + 0.2 * Math.sin(Date.now() / 300); // oscillate 0.3-0.5
+    alpha = pulse;
+  } else if (usage >= 70) {
+    alpha = 0.25 + (usage - 70) / 30 * 0.3; // 0.25-0.55
+  } else {
+    alpha = 0.15 + usage / 70 * 0.2; // 0.15-0.35
+  }
+
+  // Get or create glow graphic
+  let glow = container.getByName('glow');
+  if (!glow) {
+    glow = game.add.graphics();
+    glow.setName('glow');
+    container.add(glow);
+    // Ensure glow is behind the star icon
+    container.sendToBack(glow);
+  }
+
+  // Draw glow (soft circle)
+  glow.clear();
+  glow.fillStyle(glowColor, alpha);
+  glow.fillCircle(0, 0, baseRadius);
+}
+
+function updateAllAgentGlows(time) {
+  for (let agentId in agents) {
+    const container = agents[agentId];
+    if (container && container.active) {
+      updateAgentGlow(agentId, container);
+    }
+  }
+}
+
+// === CM-13: Data Conduits Visualization ===
+
+function fetchConduits() {
+  fetch('/office/conduits?t=' + Date.now(), { cache: 'no-store' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok && data.conduits) {
+        conduitZones = data.conduits;
+      }
+    })
+    .catch(err => console.warn('Conduits fetch failed:', err));
+}
+
+function fetchConduitActivity() {
+  fetch('/office/conduits/activity?t=' + Date.now(), { cache: 'no-store' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.ok && data.activity) {
+        conduitActivity = data.activity;
+      }
+    })
+    .catch(err => console.warn('Conduit activity fetch failed:', err));
+}
+
+function initConduitVisualization() {
+  if (!conduitGraphics) {
+    conduitGraphics = game.add.graphics();
+    conduitGraphics.setDepth(900); // Below agents, above floor
+  }
+}
+
+function getZonePosition(zoneId, index, total) {
+  // Position zones along the bottom edge of the canvas, evenly spaced
+  const canvasWidth = LAYOUT.game.width;
+  const canvasHeight = LAYOUT.game.height;
+  const padding = 80;
+  const y = canvasHeight - 60;
+  const spacing = (canvasWidth - padding * 2) / (total - 1 || 1);
+  const x = padding + index * spacing;
+  return { x, y };
+}
+
+function drawConduits(time) {
+  if (!conduitGraphics) return;
+
+  conduitGraphics.clear();
+
+  const zoneIds = Object.keys(conduitZones);
+  if (zoneIds.length === 0) return;
+
+  // Compute positions for each zone
+  const positions = {};
+  zoneIds.forEach((id, idx) => {
+    positions[id] = getZonePosition(id, idx, zoneIds.length);
+  });
+
+  // Draw connections (complete graph) with activity-based intensity
+  for (let i = 0; i < zoneIds.length; i++) {
+    for (let j = i + 1; j < zoneIds.length; j++) {
+      const idA = zoneIds[i];
+      const idB = zoneIds[j];
+      const actA = conduitActivity[idA]?.calls || 0;
+      const actB = conduitActivity[idB]?.calls || 0;
+      const combined = actA + actB;
+      // Normalize: assume max ~20 calls in window for opacity scaling
+      const intensity = Math.min(combined / 20, 1);
+      if (intensity < 0.05) continue; // too faint
+
+      const posA = positions[idA];
+      const posB = positions[idB];
+      const color = Phaser.Display.Color.StringToColor(conduitZones[idA].color);
+
+      // Draw line
+      conduitGraphics.lineStyle(2 + intensity * 4, Phaser.Display.Color.GetColor(color.r, color.g, color.b), 0.3 + intensity * 0.7);
+      conduitGraphics.beginPath();
+      conduitGraphics.moveTo(posA.x, posA.y);
+      conduitGraphics.lineTo(posB.x, posB.y);
+      conduitGraphics.strokePath();
+
+      // Spawn particles if activity is notable
+      if (combined > 5) {
+        if (Math.random() < intensity * 0.1) { // spawn chance based on intensity
+          conduitParticles.push({
+            x: posA.x,
+            y: posA.y,
+            targetX: posB.x,
+            targetY: posB.y,
+            progress: 0,
+            speed: 0.01 + Math.random() * 0.01,
+            color: Phaser.Display.Color.GetColor(color.r, color.g, color.b)
+          });
+        }
+      }
+    }
+  }
+
+  // Draw and update particles
+  for (let i = conduitParticles.length - 1; i >= 0; i--) {
+    const p = conduitParticles[i];
+    p.progress += p.speed;
+    if (p.progress >= 1) {
+      conduitParticles.splice(i, 1);
+      continue;
+    }
+    const px = p.x + (p.targetX - p.x) * p.progress;
+    const py = p.y + (p.targetY - p.y) * p.progress;
+    conduitGraphics.fillStyle(p.color, 0.9);
+    conduitGraphics.fillCircle(px, py, 3);
+  }
+
+  // Draw zone nodes (circles with labels)
+  zoneIds.forEach((id, idx) => {
+    const pos = positions[id];
+    const zone = conduitZones[id];
+    const color = Phaser.Display.Color.StringToColor(zone.color);
+    const activity = conduitActivity[id]?.calls || 0;
+
+    // Node circle pulses with activity
+    const pulse = 1 + 0.2 * Math.sin(time / 500);
+    const radius = 15 + Math.min(activity * 2, 10) * pulse;
+
+    // Outer glow
+    conduitGraphics.fillStyle(color.r, color.g, color.b, 0.3);
+    conduitGraphics.fillCircle(pos.x, pos.y, radius + 4);
+
+    // Solid center
+    conduitGraphics.fillStyle(color.r, color.g, color.b, 0.9);
+    conduitGraphics.fillCircle(pos.x, pos.y, radius);
+
+    // Label (draw text directly? graphics can't draw text; use separate text objects)
+    // We'll create static text objects once; but simpler: use a separate layer
+  });
+}
+
+function updateConduitLabels() {
+  // Create text labels for zones if not present, update positions
+  const zoneIds = Object.keys(conduitZones);
+  if (zoneIds.length === 0) return;
+
+  if (!window.conduitLabels) {
+    window.conduitLabels = {};
+  }
+
+  zoneIds.forEach((id, idx) => {
+    const pos = getZonePosition(id, idx, zoneIds.length);
+    if (!window.conduitLabels[id]) {
+      const label = game.add.text(pos.x, pos.y + 25, conduitZones[id].label, {
+        fontFamily: 'ArkPixel, monospace',
+        fontSize: '10px',
+        fill: '#' + conduitZones[id].color.replace('#', ''),
+        stroke: '#000',
+        strokeThickness: 2
+      }).setOrigin(0.5);
+      label.setDepth(901);
+      window.conduitLabels[id] = label;
+    } else {
+      const label = window.conduitLabels[id];
+      label.setText(conduitZones[id].label);
+      label.setPosition(pos.x, pos.y + 25);
+    }
+  });
+
+  // Remove labels for zones no longer present
+  for (let id in window.conduitLabels) {
+    if (!zoneIds.includes(id)) {
+      window.conduitLabels[id].destroy();
+      delete window.conduitLabels[id];
+    }
+  }
+}
+
+// === CM-7: Room Navigation Graph ===
+
+function fetchOfficeRooms() {
+  fetch('/office/rooms?t=' + Date.now(), { cache: 'no-store' })
+    .then(r => r.json())
+    .then(data => {
+      if (data && Array.isArray(data.rooms)) {
+        officeRooms = {};
+        data.rooms.forEach(room => {
+          officeRooms[room.id] = room;
+        });
+        // If we have room graphics, update them
+        if (roomGraphics) {
+          drawRoomNavigationGraph();
+          updateRoomLabels();
+        }
+      }
+    })
+    .catch(err => console.warn('Failed to fetch rooms:', err));
+}
+
+function getRoomCenter(roomId) {
+  // Map room positions to canvas coordinates for mini-map
+  // Top-right corner area
+  const mapX = 1100;
+  const mapY = 60;
+  const radius = 20;
+  const spacing = 50;
+
+  const roomList = Object.keys(officeRooms);
+  const idx = roomList.indexOf(roomId);
+  if (idx === -1) return { x: mapX, y: mapY, radius };
+
+  const cols = 2;
+  const row = Math.floor(idx / cols);
+  const col = idx % cols;
+  return {
+    x: mapX + col * spacing,
+    y: mapY + row * spacing,
+    radius: radius
+  };
+}
+
+function drawRoomNavigationGraph() {
+  if (!roomGraphics) {
+    roomGraphics = game.add.graphics();
+    roomGraphics.setDepth(2000); // Above most things
+  }
+  roomGraphics.clear();
+
+  const roomIds = Object.keys(officeRooms);
+  if (roomIds.length === 0) return;
+
+  // Draw connections first (behind nodes)
+  roomIds.forEach(fromId => {
+    const fromRoom = officeRooms[fromId];
+    const fromPos = getRoomCenter(fromId);
+    (fromRoom.connections || []).forEach(toId => {
+      if (!officeRooms[toId]) return;
+      // Draw each connection once (undirected)
+      if (fromId < toId) {
+        const toPos = getRoomCenter(toId);
+        roomGraphics.lineStyle(2, 0xffffff, 0.3);
+        roomGraphics.beginPath();
+        roomGraphics.moveTo(fromPos.x, fromPos.y);
+        roomGraphics.lineTo(toPos.x, toPos.y);
+        roomGraphics.strokePath();
+      }
+    });
+  });
+
+  // Draw nodes
+  roomIds.forEach(roomId => {
+    const room = officeRooms[roomId];
+    const pos = getRoomCenter(roomId);
+    const color = Phaser.Display.Color.StringToColor(room.color);
+    const isCurrentRoom = (roomId === mainAgentArea);
+    const isNavigatingTo = navigationTarget && navigationTarget.roomId === roomId;
+
+    // Outer ring glows if current room or if navigating to it
+    if (isCurrentRoom || isNavigatingTo) {
+      const glowAlpha = isNavigatingTo ? 0.5 + 0.2 * Math.sin(Date.now() / 200) : 0.4;
+      roomGraphics.fillStyle(color.r, color.g, color.b, glowAlpha);
+      roomGraphics.fillCircle(pos.x, pos.y, pos.radius + 8);
+    }
+
+    // Solid node
+    roomGraphics.fillStyle(color.r, color.g, color.b, 0.9);
+    roomGraphics.fillCircle(pos.x, pos.y, pos.radius);
+
+    // Room name will be drawn by text labels separately
+  });
+}
+
+let roomLabels = {};
+
+function updateRoomLabels() {
+  const roomIds = Object.keys(officeRooms);
+  roomIds.forEach(roomId => {
+    const room = officeRooms[roomId];
+    const pos = getRoomCenter(roomId);
+    if (!roomLabels[roomId]) {
+      roomLabels[roomId] = game.add.text(pos.x, pos.y + 20, room.name, {
+        fontFamily: 'ArkPixel, monospace',
+        fontSize: '9px',
+        fill: '#ffffff',
+        stroke: '#000000',
+        strokeThickness: 1
+      }).setOrigin(0.5);
+      roomLabels[roomId].setDepth(2001);
+    } else {
+      roomLabels[roomId].setPosition(pos.x, pos.y + 20);
+      roomLabels[roomId].setText(room.name);
+    }
+  });
+  // Remove labels for rooms no longer present
+  for (let id in roomLabels) {
+    if (!officeRooms[id]) {
+      roomLabels[id].destroy();
+      delete roomLabels[id];
+    }
+  }
+}
+
+// Handle clicks on the mini-map for room navigation
+function setupRoomNavigation() {
+  game.input.on('pointerdown', (pointer) => {
+    // Check if click is in the mini-map region
+    const mapRegion = { x: 1020, y: 30, w: 160, h: 100 };
+    if (pointer.x >= mapRegion.x && pointer.x <= mapRegion.x + mapRegion.w &&
+        pointer.y >= mapRegion.y && pointer.y <= mapRegion.y + mapRegion.h) {
+      // Check if click is on a room node
+      const roomIds = Object.keys(officeRooms);
+      for (let roomId of roomIds) {
+        const pos = getRoomCenter(roomId);
+        const dist = Math.sqrt((pointer.x - pos.x) ** 2 + (pointer.y - pos.y) ** 2);
+        if (dist <= pos.radius + 5) {
+          initiateNavigationToRoom(roomId);
+          break;
+        }
+      }
+    }
+  });
+}
+
+function initiateNavigationToRoom(roomId) {
+  if (!officeRooms[roomId]) return;
+  if (AREA_POSITIONS[roomId] && AREA_POSITIONS[roomId].length > 0) {
+    // Set navigation target
+    const targetPos = AREA_POSITIONS[roomId][0]; // first slot
+    navigationTarget = {
+      roomId: roomId,
+      x: targetPos.x,
+      y: targetPos.y,
+      arrivalTime: Date.now() + 3000 // 3 second walk
+    };
+    addActivity(`Navigating to ${officeRooms[roomId].name}`, 'info');
+
+    // Set state to executing to show we're moving
+    // This will also update server state
+    fetch('/set_state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ state: 'executing', detail: `Walking to ${officeRooms[roomId].name}` })
+    }).then(() => fetchStatus());
+  } else {
+    alert(`Room "${officeRooms[roomId].name}" has no positions defined`);
+  }
+}
+
+function updateNavigation(time) {
+  if (!navigationTarget) return;
+
+  const remaining = navigationTarget.arrivalTime - Date.now();
+  if (remaining <= 0) {
+    // Arrived
+    fetch('/set_state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ state: 'idle', detail: `Arrived at ${officeRooms[navigationTarget.roomId]?.name || navigationTarget.roomId}` })
+    }).then(() => fetchStatus());
+    navigationTarget = null;
+  } else {
+    // In transit - could show walking animation
+    // Optionally, could move star sprite toward target gradually
+  }
+}
+
 function fetchAgents() {
   fetch('/agents?t=' + Date.now(), { cache: 'no-store' })
     .then(response => response.json())
@@ -1025,12 +1519,16 @@ function fetchAgents() {
       if (!Array.isArray(data)) return;
       // 重置位置计数器
       // 按区域分配不同位置索引，避免重叠
-      const areaSlots = { breakroom: 0, writing: 0, error: 0 };
+      const areaSlots = { breakroom: 0, writing: 0, error: 0, workspace: 0, lobby: 0, observatory: 0, serverroom: 0 };
       for (let agent of data) {
         const area = agent.area || 'breakroom';
         agent._slotIndex = areaSlots[area] || 0;
         areaSlots[area] = (areaSlots[area] || 0) + 1;
         renderAgent(agent);
+        // Track main star agent's area
+        if (agent.agentId === 'star') {
+          mainAgentArea = area;
+        }
       }
       // 移除不再存在的 agent
       const currentIds = new Set(data.map(a => a.agentId));

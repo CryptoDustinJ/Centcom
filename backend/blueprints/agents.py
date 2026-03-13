@@ -24,6 +24,26 @@ from pathlib import Path
 import json
 import subprocess
 from validation import validate_agent_name, validate_state_detail, validate_invite_code, validate_agent_id, ValidationError as ValidationErrorExc
+
+
+# === Skill Management (CM-17) ===
+AGENT_SKILLS_FILE = Path(config.ROOT_DIR) / "agent_skills.json"
+
+
+def _load_agent_skills():
+    """Load agent skill authorizations."""
+    if AGENT_SKILLS_FILE.exists():
+        try:
+            data = json.loads(AGENT_SKILLS_FILE.read_text())
+            return data if isinstance(data, dict) else {}
+        except Exception:
+            return {}
+    return {}
+
+
+def _save_agent_skills(skills_data):
+    """Save agent skill authorizations."""
+    AGENT_SKILLS_FILE.write_text(json.dumps(skills_data, indent=2, ensure_ascii=False))
 from rate_limit import rate_limit
 from logger import log_agent_action
 from audit import log_event as audit_log
@@ -1124,10 +1144,74 @@ def get_agent_profile(agent_id):
         else:
             profile["stats"]["experience"] = "newcomer"
 
+        # Load authorized skills for this agent
+        try:
+            all_skills = _load_agent_skills()
+            agent_skills = all_skills.get(agent_id, [])
+            profile["skills"] = agent_skills
+        except Exception as e:
+            current_app.logger.warning(f"Could not load skills: {e}")
+            profile["skills"] = []
+
         return jsonify(profile)
 
     except Exception as e:
         current_app.logger.error(f"Get agent profile error: {e}", exc_info=True)
+        return jsonify({"ok": False, "msg": str(e)}), 500
+
+
+@bp.route("/agents/<agent_id>/skills", methods=["GET"])
+@rate_limit(60, 60)
+def get_agent_skills(agent_id):
+    """Get list of authorized skill IDs for an agent."""
+    try:
+        all_skills = _load_agent_skills()
+        agent_skills = all_skills.get(agent_id, [])
+        return jsonify({"ok": True, "skills": agent_skills})
+    except Exception as e:
+        current_app.logger.error(f"Get agent skills error: {e}")
+        return jsonify({"ok": False, "msg": str(e)}), 500
+
+
+@bp.route("/agents/<agent_id>/skills", methods=["POST"])
+@rate_limit(30, 60)
+def update_agent_skills(agent_id):
+    """
+    Add or remove a skill from an agent's authorized list.
+    Expected JSON: { "skill_id": "daily-wallpaper", "action": "add" | "remove" }
+    """
+    data = request.get_json()
+    if not data or 'skill_id' not in data or 'action' not in data:
+        return jsonify({"ok": False, "msg": "Missing skill_id or action"}), 400
+
+    skill_id = data['skill_id']
+    action = data['action']
+
+    if action not in ['add', 'remove']:
+        return jsonify({"ok": False, "msg": "Invalid action (must be add or remove)"}), 400
+
+    # Basic validation for skill_id
+    if not re.match(r'^[\w\-]+$', skill_id):
+        return jsonify({"ok": False, "msg": "Invalid skill ID format"}), 400
+
+    try:
+        all_skills = _load_agent_skills()
+        agent_skills = set(all_skills.get(agent_id, []))
+
+        if action == 'add':
+            agent_skills.add(skill_id)
+        elif action == 'remove':
+            agent_skills.discard(skill_id)
+
+        all_skills[agent_id] = list(agent_skills)
+        _save_agent_skills(all_skills)
+
+        log_agent_action(current_app.logger, f"skill_{action}", agent_id, detail=f"Skill {skill_id}")
+        audit_log(event=f"skill_{action}", actor=request.remote_addr or "unknown", target=agent_id, details={"skill_id": skill_id})
+
+        return jsonify({"ok": True, "skills": list(agent_skills), "msg": f"Skill {skill_id} {action}ed"})
+    except Exception as e:
+        current_app.logger.error(f"Update agent skills error: {e}")
         return jsonify({"ok": False, "msg": str(e)}), 500
 
 

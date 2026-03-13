@@ -1334,6 +1334,44 @@
             justify-content: space-between;
             align-items: center;
         }
+        #task-tabs {
+            display: flex;
+            gap: 4px;
+        }
+        .task-tab {
+            background: #1f2937;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            padding: 4px 12px;
+            font-size: 11px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+        .task-tab.active {
+            background: #ffd700;
+            color: #0b1220;
+            border-color: #ffd700;
+        }
+        .task-tab:hover:not(.active) {
+            border-color: #60a5fa;
+            color: #e5e7eb;
+        }
+        #task-tab-content {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+        .tab-panel {
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .tab-panel.active {
+            display: flex;
+        }
         #task-board-header .close-btn {
             background: none;
             border: none;
@@ -1366,6 +1404,139 @@
             font-size: 10px;
             color: #94a3b8;
             margin-bottom: 4px;
+        }
+        /* Team Task Item (from growth system) */
+        .team-task-item {
+            background: #1e3a5f;
+            border: 2px solid #3b82f6;
+            border-radius: 6px;
+            padding: 8px;
+            color: #e5e7eb;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        .team-task-item .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+        .team-task-item .task-title {
+            font-weight: bold;
+            color: #60a5fa;
+            flex: 1;
+        }
+        .team-task-item .task-id {
+            font-size: 9px;
+            color: #64748b;
+            margin-left: 8px;
+        }
+        .team-task-item .task-description {
+            color: #cbd5e1;
+            margin-bottom: 6px;
+            font-size: 10px;
+        }
+        .team-task-item .task-meta {
+            display: flex;
+            gap: 8px;
+            font-size: 9px;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+        .team-task-item .task-tag {
+            background: #334155;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .team-task-item .task-assignees {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+        }
+        .assignee-avatar {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffd700;
+            color: #0b1220;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: bold;
+            border: 1px solid #f59e0b;
+        }
+        .assignee-avatar.multiple {
+            background: #10b981;
+            color: white;
+            border-color: #059669;
+        }
+        .multi-assign-control {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            margin-top: 6px;
+            padding: 6px;
+            background: #0f172a;
+            border-radius: 4px;
+        }
+        .multi-assign-control label {
+            font-size: 10px;
+            color: #cbd5e1;
+        }
+        .agent-checkbox {
+            width: auto;
+            height: auto;
+            margin: 0;
+        }
+        .agent-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            color: #94a3b8;
+            cursor: pointer;
+        }
+        .agent-checkbox-item input {
+            cursor: pointer;
+        }
+        .btn-assign-multi {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            font-size: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .btn-assign-multi:hover {
+            background: #2563eb;
+        }
+        .btn-assign-multi:disabled {
+            background: #64748b;
+            cursor: not-allowed;
+        }
+        .btn-complete-multi {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            font-size: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            margin-top: 4px;
+        }
+        .btn-complete-multi:hover {
+            background: #059669;
+        }
+        .credit-split-info {
+            font-size: 9px;
+            color: #fbbf24;
+            margin-top: 4px;
         }
 
         /* === Agent Control Panel (Right Sidebar) === */
@@ -1459,6 +1630,76 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 6px;
+        }
+        .agent-skills-section {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #1f2937;
+        }
+        #agent-skills-container {
+            max-height: 120px;
+            overflow-y: auto;
+            background: #0b1220;
+            border: 2px solid #1f2937;
+            border-radius: 6px;
+            padding: 4px;
+            font-size: 10px;
+        }
+        .skill-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 6px;
+            margin-bottom: 2px;
+            background: #1e3a5f;
+            border-radius: 4px;
+            color: #cbd5e1;
+        }
+        .skill-item .skill-name {
+            flex: 1;
+        }
+        .skill-item .skill-remove {
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+        .skill-item .skill-remove:hover {
+            color: #f87171;
+        }
+        .skill-item.disabled {
+            opacity: 0.6;
+            background: #1f2937;
+        }
+        .skill-select {
+            width: 100%;
+            background: #0f172a;
+            color: #e5e7eb;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            padding: 4px;
+            font-family: inherit;
+            font-size: 10px;
+            margin-bottom: 4px;
+        }
+        .skill-add-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            font-family: inherit;
+            width: 100%;
+        }
+        .skill-add-btn:hover {
+            background: #2563eb;
         }
         .agent-action-btn {
             background: #1f2937;
@@ -5521,11 +5762,19 @@ function toggleBrokerPanel() {
     <!-- === Task Board Panel === -->
     <div id="task-board">
         <div id="task-board-header">
-            <span>📋 Task Board</span>
+            <div class="task-tabs">
+                <button class="task-tab active" data-tab="soul">My Goals</button>
+                <button class="task-tab" data-tab="team">Team Tasks</button>
+            </div>
             <button class="close-btn" onclick="toggleTaskBoard()">✕</button>
         </div>
-        <div id="task-list">
-            <div style="padding:10px; color:#64748b; text-align:center;">Loading tasks...</div>
+        <div id="task-tab-content">
+            <div id="task-list" class="tab-panel active">
+                <div style="padding:10px; color:#64748b; text-align:center;">Loading tasks...</div>
+            </div>
+            <div id="team-task-list" class="tab-panel">
+                <div style="padding:10px; color:#64748b; text-align:center;">Loading team tasks...</div>
+            </div>
         </div>
     </div>
 
@@ -5556,6 +5805,14 @@ function toggleBrokerPanel() {
                 <div class="label">Console Output</div>
                 <div class="console-output" id="agent-console-output">
                     No output yet.
+                </div>
+            </div>
+
+            <!-- CM-17: Skill Management Section -->
+            <div class="agent-skills-section">
+                <div class="label">Skills (Supply Closet)</div>
+                <div id="agent-skills-container">
+                    <div style="font-size:10px; color:#94a3b8; padding:4px;">Loading skills...</div>
                 </div>
             </div>
 
@@ -5646,11 +5903,245 @@ function toggleBrokerPanel() {
             }
         }
 
+        // === Team Tasks (Growth System) ===
+        let agentsList = []; // Cached agents list for checkboxes
+        let currentTaskTab = 'soul';
+
+        // Tab switching
+        document.querySelectorAll('.task-tab').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.task-tab').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                const tab = btn.dataset.tab;
+                currentTaskTab = tab;
+                document.getElementById(tab === 'soul' ? 'task-list' : 'team-task-list').classList.add('active');
+                if (tab === 'team') {
+                    loadTeamTasks();
+                }
+            });
+        });
+
+        async function loadAgentsList() {
+            if (agentsList.length > 0) return agentsList;
+            try {
+                const resp = await fetch('/agents?t=' + Date.now());
+                if (resp.ok) {
+                    const data = await resp.json();
+                    agentsList = data.agents || [];
+                }
+            } catch (e) {
+                console.warn('Failed to load agents:', e);
+            }
+            return agentsList;
+        }
+
+        async function loadTeamTasks() {
+            const list = document.getElementById('team-task-list');
+            if (!list) return;
+
+            // Ensure agents list is loaded for checkboxes
+            await loadAgentsList();
+
+            try {
+                const resp = await fetch('/growth/tasks?t=' + Date.now());
+                const data = await resp.json();
+                list.innerHTML = '';
+
+                if (data.tasks && data.tasks.length > 0) {
+                    data.tasks.forEach(task => {
+                        const item = renderTeamTaskItem(task);
+
+                        list.appendChild(item);
+                    });
+                } else {
+                    list.innerHTML = '<div style="padding:10px; color:#64748b; text-align:center;">No team tasks found</div>';
+                }
+            } catch (err) {
+                list.innerHTML = '<div style="padding:10px; color:#ef4444; text-align:center;">Failed to load team tasks</div>';
+            }
+        }
+
+        function renderTeamTaskItem(task) {
+            const item = document.createElement('div');
+            item.className = 'team-task-item';
+            item.dataset.taskId = task.id;
+
+            // Normalize assignees: backend stores both 'assignees' (array) and 'assignee' (single)
+            let assignees = [];
+            if (task.assignees && Array.isArray(task.assignees)) {
+                assignees = task.assignees;
+            } else if (task.assignee) {
+                assignees = [{ agent: task.assignee, agentId: task.assignee_id }];
+            }
+
+            // Build assignee avatars
+            const assigneeAvatars = assignees.map(a => {
+                const initials = a.agent ? a.agent.charAt(0).toUpperCase() : '?';
+                const isMulti = assignees.length > 1;
+                return `<span class="assignee-avatar ${isMulti ? 'multiple' : ''}" title="${a.agent}">${initials}</span>`;
+            }).join('');
+
+            // Build tags
+            const tags = (task.tags || []).map(t => `<span class="task-tag">${t}</span>`).join('');
+
+            // Room and points
+            const meta = [];
+            if (task.room) meta.push(`📍 ${task.room}`);
+            if (task.points !== undefined) meta.push(`⚡ ${task.points} pts`);
+            if (assignees.length > 1) {
+                const splitPct = task.credit_split || Math.round(100 / assignees.length);
+                meta.push(`👥 ${assignees.length} way (${splitPct}% each)`);
+            }
+            meta.push(`#${task.id ? task.id.split('_')[1] : '??'}`);
+
+            // Status color
+            const statusColors = { open: '#10b981', in_progress: '#f59e0b', completed: '#64748b' };
+            const statusColor = statusColors[task.status] || '#94a3b8';
+
+            // Build controls based on task status
+            let controlsHtml = '';
+            if (task.status === 'open') {
+                // Show assignment UI
+                controlsHtml = buildAssignmentControl(task.id, assignees);
+            } else if (task.status === 'in_progress') {
+                // Show complete button - anyone can complete, not just assignees (flexible)
+                controlsHtml = `<button class="btn-complete-multi" onclick="completeMultiTask('${task.id}')">✓ Complete Task</button>`;
+            } else if (task.status === 'completed') {
+                controlsHtml = `<div style="font-size:10px;color:#10b981;">✓ Completed ${task.completed_at ? 'on ' + new Date(task.completed_at).toLocaleDateString() : ''}</div>`;
+            }
+
+            item.innerHTML = `
+                <div class="task-header">
+                    <span class="task-title">${task.title}</span>
+                    <span class="task-id" style="color:${statusColor}">${task.status.replace('_', ' ').toUpperCase()}</span>
+                </div>
+                ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                <div class="task-meta">${tags}${meta.length ? ' • ' + meta.join(' • ') : ''}</div>
+                ${assigneeAvatars ? `<div class="task-assignees">${assigneeAvatars}</div>` : ''}
+                <div class="multi-assign-control">
+                    ${controlsHtml}
+                </div>
+            `;
+
+            return item;
+        }
+
+        function buildAssignmentControl(taskId, currentAssignees) {
+            // Get set of assigned agent names for pre-checking
+            const assignedNames = new Set(currentAssignees.map(a => a.agent));
+
+            // Build checkbox list of all agents
+            const agentOptions = agentsList.map(a => {
+                const checked = assignedNames.has(a.name) ? 'checked' : '';
+                return `
+                    <label class="agent-checkbox-item">
+                        <input type="checkbox" class="agent-checkbox" value="${a.name}" data-agent-id="${a.agentId}" ${checked}>
+                        ${a.name}
+                    </label>
+                `;
+            }).join('');
+
+            if (agentsList.length === 0) {
+                return `<div style="color:#ef4444; font-size:10px;">No agents available to assign</div>`;
+            }
+
+            return `
+                <label style="width:100%; margin-bottom:4px;">Assign to:</label>
+                <div style="display:flex; flex-wrap:wrap; gap:4px; margin: 4px 0 8px 0;">
+                    ${agentOptions}
+                </div>
+                <button class="btn-assign-multi" onclick="assignMultiAgentsFromTask(this, '${taskId}')">Assign Selected</button>
+            `;
+        }
+
+        // Exposed globally for onclick handlers
+        window.assignMultiAgentsFromTask = async function(btn, taskId) {
+            const container = btn.closest('.multi-assign-control');
+            const checkboxes = container.querySelectorAll('.agent-checkbox:checked');
+            const agentIds = [];
+            const agentNames = [];
+
+            checkboxes.forEach(cb => {
+                agentIds.push(cb.dataset.agentId);
+                agentNames.push(cb.value);
+            });
+
+            if (agentNames.length === 0) {
+                alert('Please select at least one agent');
+                return;
+            }
+
+            try {
+                const resp = await fetch(`/growth/tasks/${taskId}/assign-multi`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        assignees: agentNames.map((name, idx) => ({
+                            agent: name,
+                            agentId: agentIds[idx]
+                        }))
+                    })
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    addActivity(`Task assigned to ${agentNames.join(', ')}: ${data.task.title}`, 'success');
+                    // Reload team tasks
+                    loadTeamTasks();
+                } else {
+                    alert('Failed: ' + data.msg);
+                }
+            } catch (err) {
+                alert('Assignment error');
+            }
+        };
+
+        window.completeMultiTask = async function(taskId) {
+            if (!confirm('Mark this task as complete? All assigned agents will receive credit.')) return;
+
+            // Determine completing agent: use selected agent ID if available, else prompt
+            let agentName = null;
+            if (selectedAgentId) {
+                const agent = agentsList.find(a => a.agentId === selectedAgentId);
+                if (agent) agentName = agent.name;
+            }
+            if (!agentName) {
+                // Could show a quick selection modal, but for now prompt
+                agentName = prompt('Enter your agent name:');
+            }
+            if (!agentName) return;
+
+            try {
+                const resp = await fetch(`/growth/tasks/${taskId}/complete-multi`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agent: agentName, notes: 'Completed via UI' })
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    addActivity(`Task ${taskId} completed! ${data.agents_credited.join(', ')} earned ${data.points_per_agent} pts each`, 'success');
+                    celebrate();
+                    loadTeamTasks();
+                    // Also refresh the single task board if visible? No, they're separate
+                } else {
+                    alert('Failed: ' + data.msg);
+                }
+            } catch (err) {
+                alert('Completion error');
+            }
+        };
+
         function toggleTaskBoard() {
             const board = document.getElementById('task-board');
             taskBoardVisible = !taskBoardVisible;
             board.classList.toggle('open', taskBoardVisible);
-            if (taskBoardVisible) loadTaskBoard();
+            if (taskBoardVisible) {
+                if (currentTaskTab === 'soul') {
+                    loadTaskBoard();
+                } else if (currentTaskTab === 'team') {
+                    loadTeamTasks();
+                }
+            }
         }
         function hideTaskBoard() { if (taskBoardVisible) toggleTaskBoard(); }
 
@@ -5684,6 +6175,8 @@ function toggleBrokerPanel() {
             await loadAgentMemory(agentId);
             // Load console
             await loadAgentConsole(agentId);
+            // Load skills (CM-17)
+            await loadAgentSkills(agentId);
         }
         async function loadAgentMemory(agentId) {
             const list = document.getElementById('agent-memory-list');
@@ -6084,4 +6577,119 @@ function toggleBrokerPanel() {
         window.closeAgentPanel = closeAgentPanel;
         window.toggleConsole = toggleConsole;
         window.toggleCommandPalette = toggleCommandPalette;
+
+        // === CM-17: Skill Supply Closet ===
+        let allSkillsCache = []; // Cached list of all skills from /skills/list
+
+        async function loadAgentSkills(agentId) {
+            const container = document.getElementById('agent-skills-container');
+            if (!container) return;
+
+            // Load all skills if not cached
+            if (allSkillsCache.length === 0) {
+                try {
+                    const resp = await fetch('/skills/list?t=' + Date.now());
+                    const data = await resp.json();
+                    if (data.ok && Array.isArray(data.skills)) {
+                        allSkillsCache = data.skills;
+                    }
+                } catch (err) {
+                    console.warn('Failed to load skills list:', err);
+                }
+            }
+
+            // Load agent's current authorized skills
+            let agentSkills = [];
+            try {
+                const resp = await fetch(`/agents/${agentId}/skills?t=${Date.now()}`);
+                const data = await resp.json();
+                if (data.ok && Array.isArray(data.skills)) {
+                    agentSkills = data.skills;
+                }
+            } catch (err) {
+                console.warn('Failed to load agent skills:', err);
+            }
+
+            // Render UI
+            container.innerHTML = '';
+
+            if (allSkillsCache.length === 0) {
+                container.innerHTML = '<div style="padding:6px; color:#64748b;">No skills available</div>';
+                return;
+            }
+
+            // Show current skills with remove buttons
+            agentSkills.forEach(skillId => {
+                const skillInfo = allSkillsCache.find(s => s.id === skillId);
+                const skillName = skillInfo ? skillInfo.name : skillId;
+                const item = document.createElement('div');
+                item.className = 'skill-item';
+                item.innerHTML = `
+                    <span class="skill-name">${skillName}</span>
+                    <button class="skill-remove" onclick="removeAgentSkill('${agentId}', '${skillId}')">✕</button>
+                `;
+                container.appendChild(item);
+            });
+
+            // Add "Add skill" dropdown + button
+            const unassigned = allSkillsCache.filter(s => !agentSkills.includes(s.id));
+            if (unassigned.length > 0) {
+                const addRow = document.createElement('div');
+                addRow.style.display = 'flex';
+                addRow.style.gap = '4px';
+                addRow.innerHTML = `
+                    <select id="skill-select-${agentId}" class="skill-select" style="flex:1;">
+                        <option value="">Add skill...</option>
+                        ${unassigned.map(s => `<option value="${s.id}">${s.name}</option>`).join('')}
+                    </select>
+                    <button class="skill-add-btn" onclick="addAgentSkill('${agentId}')">Add</button>
+                `;
+                container.appendChild(addRow);
+            }
+        }
+
+        window.addAgentSkill = async function(agentId) {
+            const select = document.getElementById(`skill-select-${agentId}`);
+            if (!select) return;
+            const skillId = select.value;
+            if (!skillId) return;
+
+            try {
+                const resp = await fetch(`/agents/${agentId}/skills`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ skill_id: skillId, action: 'add' })
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    addActivity(`Skill "${skillId}" added to ${agentId}`, 'success');
+                    // Refresh skills list
+                    await loadAgentSkills(agentId);
+                } else {
+                    alert('Failed: ' + data.msg);
+                }
+            } catch (err) {
+                alert('Error adding skill');
+            }
+        };
+
+        window.removeAgentSkill = async function(agentId, skillId) {
+            if (!confirm(`Remove skill "${skillId}" from ${agentId}?`)) return;
+            try {
+                const resp = await fetch(`/agents/${agentId}/skills`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ skill_id: skillId, action: 'remove' })
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    addActivity(`Skill "${skillId}" removed from ${agentId}`, 'info');
+                    await loadAgentSkills(agentId);
+                } else {
+                    alert('Failed: ' + data.msg);
+                }
+            } catch (err) {
+                alert('Error removing skill');
+            }
+        };
     </script>

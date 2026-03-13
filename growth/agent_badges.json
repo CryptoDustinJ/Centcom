@@ -35,7 +35,16 @@
         "awarded_at": "2026-03-12T16:24:37.304614",
         "reason": "Has contributions"
       }
+    ],
+    "Star": [
+      {
+        "id": "first_contribution",
+        "name": "First Contribution",
+        "icon": "⭐",
+        "awarded_at": "2026-03-12T18:58:39.398393",
+        "reason": "First contribution to office"
+      }
     ]
   },
-  "updated_at": "2026-03-12T16:24:37.304625"
+  "updated_at": "2026-03-12T18:58:39.398398"
 }

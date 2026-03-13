@@ -65,9 +65,15 @@
 
 **CM-6 COMPLETE 2026-03-12 16:44**
 
-### Task CM-7: Room Connection Graph ⏸️ Deferred (UI complexity)
-- [ ] Extend rooms.json with `connections` array (adjacent room IDs) - partially done in CM-8
-- [ ] Frontend navigation UI - complex, defer
+### Task CM-7: Room Connection Graph ✅ COMPLETE
+- [x] Extend rooms.json with `connections` array for all rooms ✓
+- [x] Frontend: Mini-map UI in top-right corner with room nodes ✓
+- [x] Draw connection lines between rooms ✓
+- [x] Click-to-navigate with walking state (3s transition) ✓
+- [x] Highlight current room and navigation target ✓
+- [x] Integration with /office/rooms endpoint ✓
+
+**CM-7 COMPLETE 2026-03-12** (frontend + data)
 
 ### Task CM-8: Office Stats Dashboard ✅ COMPLETE
 - [x] Added "lobby" room to rooms.json ✓
@@ -85,13 +91,15 @@
 - [x] Include raw agent responses and vote breakdown ✓
 - [x] Update decision file on execution (success/failure) ✓
 
-### Task CM-10: Multi-Agent Tasks ✅ BACKEND COMPLETE
-- [ ] UI checkboxes for selecting multiple agents (frontend TODO)
+### Task CM-10: Multi-Agent Tasks ✅ COMPLETE
+- [x] UI checkboxes for selecting multiple agents ✓
 - [x] Backend accepts assignees array (`/growth/tasks/<id>/assign-multi`) ✓
 - [x] Credit splitting logic (`/growth/tasks/<id>/complete-multi`) ✓
 - [x] Equal split percentage stored in task ✓
+- [x] Team Tasks tab in UI with multi-select assignment ✓
+- [x] Integration with existing task board ✓
 
-**CM-10 Backend COMPLETE 2026-03-12**
+**CM-10 COMPLETE 2026-03-12** (frontend + backend)
 
 ### Task CM-11: Emergency Huddle ✅ COMPLETE
 - [x] New endpoint `/office/huddle/emergency` ✓
@@ -106,19 +114,25 @@
 
 ### Task CM-12: Context Pressure Heatmaps ✅ COMPLETE
 - [x] Backend: `/office/context-pressure` endpoint with per-agent usage estimates ✓
-- [x] Frontend: Glow effect based on usage level (game.js getGlowColor/getContextUsagePct) ✓
+- [x] Frontend: Glow effect based on usage level (usage-based radius, color zones) ✓
 - [x] Animate critical threshold (90%+) with pulsing glow ✓
 - [x] Per-frame glow animation in update loop ✓
+- [x] Periodic data fetch (every 30s) ✓
 
-**CM-12 COMPLETE 2026-03-12**
+**CM-12 COMPLETE 2026-03-12** (frontend + backend)
 
-### Task CM-13: Data Conduits ✅ BACKEND COMPLETE
+### Task CM-13: Data Conduits ✅ COMPLETE
 - [x] Define conduit zones (Library, Mailroom, Cloud, Forge) ✓
 - [x] Backend: `/office/conduits` and `/office/conduits/activity` endpoints ✓
 - [x] Color-code by tool type (zone-based mapping) ✓
-- [ ] Frontend: Animated pipes/beams visualization (frontend TODO)
+- [x] Frontend: Animated pipes/beams visualization ✓
+  - Zones displayed at bottom edge with labels
+  - Complete graph connections with activity-based line thickness/opacity
+  - Animated particles flowing along lines when activity > threshold
+  - Pulsing zone nodes (circles) based on recent call counts
+  - Fetches activity every 30s, drawn per-frame
 
-**CM-13 Backend COMPLETE 2026-03-12**
+**CM-13 COMPLETE 2026-03-12** (frontend + backend)
 
 ### Task CM-14: Water Cooler OOC Zone ✅ COMPLETE
 - [x] Added water cooler furniture in breakroom ✓
@@ -144,10 +158,14 @@
 - [x] Briefing modal for read-aloud ✓
 - [x] Podium lamp glows when fresh briefing available ✓
 
-### Task CM-17: Skill Supply Closet ✅ BACKEND COMPLETE
+### Task CM-17: Skill Supply Closet ✅ COMPLETE
 - [x] Endpoint `/skills/list` reads skills directory ✓
-- [ ] Drag & drop UI for skill authorization
-- [ ] Visual skill indicators on agent desks
+- [x] GET `/agents/<agent_id>/skills` returns authorized skills ✓
+- [x] POST `/agents/<agent_id>/skills` add/remove skills ✓
+- [x] Frontend: Skills section in agent control panel ✓
+- [x] Dropdown to assign new skills ✓
+- [x] Remove button with confirmation ✓
+- [x] Refresh on change, activity logging ✓
 
 ### Task CM-18: Incident Alarm System ✅ COMPLETE
 - [x] Monitor audit.log for failures (recent 5 min) ✓
@@ -220,9 +238,9 @@
 ## Progress Summary
 
 **Total Tasks**: 21 (CM-1 through CM-21)
-**Completed (backend+frontend)**: 15 (CM-1 through CM-9, CM-11, CM-14, CM-16, CM-18, CM-19, CM-20, CM-21)
-**Backend complete (frontend TODO)**: 5 (CM-10, CM-12, CM-13, CM-15, CM-17)
-**Deferred**: 1 (CM-7 Room Connection Graph - UI complexity)
+**Completed (backend+frontend)**: 20 (CM-1 through CM-14, CM-16, CM-17, CM-18, CM-19, CM-20, CM-21)
+**Backend complete (frontend TODO)**: 0
+**Deferred**: 1 (CM-15 Ghost Replays - paused per user request)
 **Blocked**: 0
 
 ### Bugs Fixed

@@ -3,6 +3,7 @@
 
 import json
 import os
+import re
 import subprocess
 from datetime import datetime
 from flask import Blueprint, request, jsonify, session, current_app
@@ -1619,4 +1620,56 @@ def replay_sessions():
 
     sessions.sort(key=lambda s: s["modified"], reverse=True)
     return jsonify({"ok": True, "sessions": sessions[:15]})
+
+
+@bp.route("/office/replay/session/<agent_id>/<filename>", methods=["GET"])
+def replay_session_data(agent_id, filename):
+    """
+    Read a specific session JSONL file and return parsed events.
+    Used by the Ghost Replays time machine UI.
+    """
+    # Validate agent_id
+    if agent_id not in ['main', 'ralph', 'nova']:
+        return jsonify({"ok": False, "msg": "Invalid agent ID"}), 400
+
+    # Sanitize filename: prevent path traversal
+    if not re.match(r'^[\w\-\.]+\.jsonl$', filename):
+        return jsonify({"ok": False, "msg": "Invalid filename"}), 400
+
+    # Construct full path (must reside within agent's sessions directory)
+    base_sessions_dir = Path("/home/dustin/.openclaw/agents") / agent_id / "sessions"
+    session_path = base_sessions_dir / filename
+
+    # Additional check: ensure resolved path is within base_sessions_dir
+    try:
+        resolved = session_path.resolve()
+        if not str(resolved).startswith(str(base_sessions_dir.resolve())):
+            return jsonify({"ok": False, "msg": "Invalid path"}), 400
+    except Exception:
+        return jsonify({"ok": False, "msg": "Invalid path"}), 400
+
+    if not session_path.exists() or not session_path.is_file():
+        return jsonify({"ok": False, "msg": "Session file not found"}), 404
+
+    try:
+        # Read entire file (session files are small, < few MB)
+        content = session_path.read_text(encoding='utf-8', errors='ignore')
+        lines = content.strip().splitlines()
+
+        events = []
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                event = json.loads(line)
+                events.append(event)
+            except json.JSONDecodeError:
+                continue
+
+        log.info("Session data served", extra={"_agent": agent_id, "_file": filename, "_events": len(events)})
+        return jsonify({"ok": True, "events": events, "count": len(events)})
+    except Exception as e:
+        log.error("Failed to read session", extra={"_error": str(e)})
+        return jsonify({"ok": False, "msg": str(e)}), 500
 

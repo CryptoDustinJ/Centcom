@@ -11,7 +11,8 @@
       "furniture": [],
       "created_by": "Rook",
       "created_at": "2026-03-12T15:18:24.676213",
-      "description": "Add a server room with live system metrics dashboard"
+      "description": "Add a server room with live system metrics dashboard",
+      "connections": ["lobby"]
     },
     {
       "id": "lobby",
@@ -27,7 +28,9 @@
       "description": "Office-wide statistics and health dashboard",
       "connections": [
         "serverroom",
-        "workspace"
+        "workspace",
+        "breakroom",
+        "observatory"
       ]
     },
     {
@@ -61,7 +64,8 @@
       "created_by": "Rook",
       "created_at": "2026-03-12T17:27:48.931581",
       "description": "Build observatory room for API monitoring",
-      "plan_type": "new_room"
+      "plan_type": "new_room",
+      "connections": ["lobby"]
     },
     {
       "id": "breakroom",
@@ -94,7 +98,8 @@
       "created_by": "Nova",
       "created_at": "2026-03-12T17:28:37.096140",
       "description": "Add story corner with sci-fi snippets",
-      "plan_type": "creative"
+      "plan_type": "creative",
+      "connections": ["lobby"]
     },
     {
       "id": "workspace",
@@ -135,7 +140,8 @@
       "description": "Add cron job status board",
       "plan_type": "automation",
       "last_updated_by": "Ralph (fixup)",
-      "last_updated_at": "2026-03-12T18:34:01.020150"
+      "last_updated_at": "2026-03-12T18:34:01.020150",
+      "connections": ["lobby"]
     }
   ]
 }

@@ -200,6 +200,17 @@
       "points": 25,
       "task_id": "task_0013",
       "timestamp": "2026-03-12T15:58:44.941401"
+    },
+    {
+      "id": "contrib_20260312_185839_398118_Star",
+      "agent": "Star",
+      "agentId": "star",
+      "type": "task_completed",
+      "room": "breakroom",
+      "description": "Completed team task: Add Story Corner to Breakroom (split 1-way)",
+      "points": 40,
+      "task_id": "task_0002",
+      "timestamp": "2026-03-12T18:58:39.398143"
     }
   ]
 }
