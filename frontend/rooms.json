@@ -8,7 +8,26 @@
         "idle"
       ],
       "background": null,
-      "furniture": [],
+      "furniture": [
+        {
+          "type": "server_rack",
+          "x": 0.2,
+          "y": 0.3,
+          "label": "Main Server"
+        },
+        {
+          "type": "dashboard",
+          "x": 0.5,
+          "y": 0.3,
+          "label": "System Health"
+        },
+        {
+          "type": "log_stream",
+          "x": 0.8,
+          "y": 0.3,
+          "label": "Live Logs"
+        }
+      ],
       "created_by": "Rook",
       "created_at": "2026-03-12T15:18:24.676213",
       "description": "Add a server room with live system metrics dashboard",
@@ -24,7 +43,26 @@
         "idle"
       ],
       "background": null,
-      "furniture": [],
+      "furniture": [
+        {
+          "type": "globe",
+          "x": 0.3,
+          "y": 0.3,
+          "label": "Office Map"
+        },
+        {
+          "type": "trophy",
+          "x": 0.6,
+          "y": 0.3,
+          "label": "Leaderboard"
+        },
+        {
+          "type": "calendar",
+          "x": 0.8,
+          "y": 0.5,
+          "label": "Schedule"
+        }
+      ],
       "created_by": "Rook",
       "created_at": "2026-03-12T16:45:00.000000",
       "description": "Office-wide statistics and health dashboard",
@@ -32,7 +70,11 @@
         "serverroom",
         "workspace",
         "breakroom",
-        "observatory"
+        "observatory",
+        "lab",
+        "archive",
+        "library",
+        "ops_center"
       ]
     },
     {
@@ -161,22 +203,37 @@
       ],
       "furniture": [
         {
-          "type": "desk",
-          "x": 0.3,
+          "type": "linter",
+          "x": 0.15,
           "y": 0.3,
-          "label": "Workstation"
+          "label": "Lint Results"
         },
         {
-          "type": "lamp",
-          "x": 0.7,
+          "type": "coverage",
+          "x": 0.4,
           "y": 0.3,
-          "label": "Lamp"
+          "label": "Test Coverage"
+        },
+        {
+          "type": "pr_board",
+          "x": 0.65,
+          "y": 0.3,
+          "label": "PR Stats"
+        },
+        {
+          "type": "beaker",
+          "x": 0.85,
+          "y": 0.5,
+          "label": "Experiments"
         }
       ],
       "created_by": "CodeMaster",
       "created_at": "2026-03-12T22:10:27.941454",
       "description": "Add code quality metrics dashboard",
-      "plan_type": "code_quality"
+      "plan_type": "code_quality",
+      "connections": [
+        "lobby"
+      ]
     },
     {
       "id": "archive",
@@ -188,22 +245,31 @@
       ],
       "furniture": [
         {
-          "type": "desk",
-          "x": 0.3,
+          "type": "archive",
+          "x": 0.2,
           "y": 0.3,
-          "label": "Workstation"
+          "label": "Decision Archive"
         },
         {
-          "type": "lamp",
-          "x": 0.7,
+          "type": "whiteboard",
+          "x": 0.5,
           "y": 0.3,
-          "label": "Lamp"
+          "label": "Architecture Board"
+        },
+        {
+          "type": "filing_cabinet",
+          "x": 0.8,
+          "y": 0.5,
+          "label": "Old Plans"
         }
       ],
       "created_by": "Rook",
       "created_at": "2026-03-12T22:11:49.102954",
       "description": "Create archive room for decision history",
-      "plan_type": "new_room"
+      "plan_type": "new_room",
+      "connections": [
+        "lobby"
+      ]
     },
     {
       "id": "library",
@@ -242,7 +308,52 @@
       "created_by": "Claude",
       "created_at": "2026-03-12T22:12:22.159369",
       "description": "Build knowledge library room",
-      "plan_type": "new_room"
+      "plan_type": "new_room",
+      "connections": [
+        "lobby"
+      ]
+    },
+    {
+      "id": "ops_center",
+      "name": "Ops Center",
+      "color": "#e74c3c",
+      "states": [
+        "idle",
+        "active"
+      ],
+      "furniture": [
+        {
+          "type": "server_rack",
+          "x": 0.2,
+          "y": 0.3,
+          "label": "Gateway"
+        },
+        {
+          "type": "server_rack",
+          "x": 0.5,
+          "y": 0.3,
+          "label": "Node Host"
+        },
+        {
+          "type": "terminal",
+          "x": 0.8,
+          "y": 0.3,
+          "label": "Ollama"
+        },
+        {
+          "type": "log_stream",
+          "x": 0.5,
+          "y": 0.6,
+          "label": "Log Tail"
+        }
+      ],
+      "created_by": "Ralph",
+      "created_at": "2026-03-12T22:14:31.267550",
+      "description": "Create ops center with live service dashboards",
+      "plan_type": "new_room",
+      "connections": [
+        "lobby"
+      ]
     }
   ]
 }

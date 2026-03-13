@@ -497,7 +497,15 @@ def _furniture_icon(item_type):
         "linter": "🔍", "coverage": "✅", "pr_board": "📋",
         "new_room": "🏠", "automation": "⚙️", "monitoring": "📊", "creative": "🎨",
         "theming": "🎨", "reasoning": "🧠", "code_quality": "🔍",
-        "cron_board": "⏰",
+        "cron_board": "⏰", "coffee": "☕", "plant": "🌿", "trophy": "🏆",
+        "clock": "🕐", "lamp": "💡", "printer": "🖨️", "phone": "📞",
+        "calendar": "📅", "tv": "📺", "radio": "📻", "globe": "🌐",
+        "toolbox": "🧰", "shield": "🛡️", "telescope": "🔭", "microscope": "🔬",
+        "beaker": "🧪", "satellite": "📡", "battery": "🔋", "plug": "🔌",
+        "wrench": "🔧", "hammer": "🔨", "gear": "⚙️", "magnet": "🧲",
+        "bulb": "💡", "podium": "🎤", "water_cooler": "🚰", "couch": "🛋️",
+        "desk": "🪑", "filing_cabinet": "🗃️", "safe": "🔐", "map": "🗺️",
+        "compass": "🧭",
     }
     return icons.get(item_type, "📦")
 
@@ -631,9 +639,18 @@ def _execute_plan_impl(huddle_id: str):
                 "created_at": datetime.now().isoformat(),
                 "description": plan["idea"],
                 "plan_type": plan_type,
+                "connections": ["lobby"],
             }
             existing_rooms["rooms"].append(new_room)
             execution_log.append(f"Room '{room_name}' created with {len(room_config['furniture'])} furniture items")
+
+            # Add bidirectional connection: lobby -> new room
+            lobby = next((r for r in existing_rooms["rooms"] if r.get("id") == "lobby"), None)
+            if lobby:
+                if "connections" not in lobby:
+                    lobby["connections"] = []
+                if room_name not in lobby["connections"]:
+                    lobby["connections"].append(room_name)
 
         room_file.write_text(json.dumps(existing_rooms, indent=2, ensure_ascii=False))
 
@@ -950,9 +967,18 @@ def execute_plan(huddle_id):
                 "created_at": datetime.now().isoformat(),
                 "description": plan["idea"],
                 "plan_type": plan_type,
+                "connections": ["lobby"],
             }
             existing_rooms["rooms"].append(new_room)
             execution_log.append(f"Room '{room_name}' created with {len(room_config['furniture'])} furniture items")
+
+            # Add bidirectional connection: lobby -> new room
+            lobby = next((r for r in existing_rooms["rooms"] if r.get("id") == "lobby"), None)
+            if lobby:
+                if "connections" not in lobby:
+                    lobby["connections"] = []
+                if room_name not in lobby["connections"]:
+                    lobby["connections"].append(room_name)
 
         room_file.write_text(json.dumps(existing_rooms, indent=2, ensure_ascii=False))
 
