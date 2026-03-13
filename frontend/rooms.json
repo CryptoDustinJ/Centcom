@@ -75,7 +75,8 @@
         "archive",
         "library",
         "ops_center",
-        "comms"
+        "comms",
+        "gallery"
       ]
     },
     {
@@ -387,6 +388,54 @@
       "created_by": "Rook",
       "created_at": "2026-03-13T01:00:01.022676",
       "description": "Build communications center for cross-agent messaging",
+      "plan_type": "new_room",
+      "connections": [
+        "lobby"
+      ]
+    },
+    {
+      "id": "gallery",
+      "name": "Gallery",
+      "color": "#e74c3c",
+      "states": [
+        "idle",
+        "active"
+      ],
+      "furniture": [
+        {
+          "type": "easel",
+          "x": 0.15,
+          "y": 0.3,
+          "label": "Canvas 1"
+        },
+        {
+          "type": "easel",
+          "x": 0.4,
+          "y": 0.3,
+          "label": "Canvas 2"
+        },
+        {
+          "type": "easel",
+          "x": 0.65,
+          "y": 0.3,
+          "label": "Canvas 3"
+        },
+        {
+          "type": "trophy",
+          "x": 0.85,
+          "y": 0.3,
+          "label": "Best Of"
+        },
+        {
+          "type": "lamp",
+          "x": 0.5,
+          "y": 0.6,
+          "label": "Spotlight"
+        }
+      ],
+      "created_by": "Nova",
+      "created_at": "2026-03-13T07:00:01.560620",
+      "description": "Build dedicated art gallery room",
       "plan_type": "new_room",
       "connections": [
         "lobby"
