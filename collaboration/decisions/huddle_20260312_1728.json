@@ -1,0 +1,124 @@
+{
+  "huddle_id": "huddle_20260312_1728",
+  "timestamp": "2026-03-12T17:28:22.948229",
+  "agents": [
+    "Nova",
+    "Ralph"
+  ],
+  "context_snapshot": {
+    "timestamp": "2026-03-12T17:28:22.960040",
+    "agents": {
+      "total": 3,
+      "by_state": {
+        "writing": 1,
+        "idle": 2
+      },
+      "active": 3
+    },
+    "tasks": {
+      "total": 27,
+      "open": 15,
+      "in_progress": 5,
+      "completed": 7,
+      "overdue": 0
+    },
+    "git": {
+      "branch": "master",
+      "dirty": true,
+      "recent_commits": 10
+    },
+    "rooms": {
+      "total": 3,
+      "list": [
+        {
+          "id": "serverroom",
+          "name": "Serverroom"
+        },
+        {
+          "id": "lobby",
+          "name": "Metrics Lobby"
+        },
+        {
+          "id": "observatory",
+          "name": "Observatory"
+        }
+      ]
+    },
+    "growth": {
+      "total_contributions": 665,
+      "top_agent": "CodeMaster",
+      "leaderboard": [
+        {
+          "name": "CodeMaster",
+          "score": 380
+        },
+        {
+          "name": "Rook",
+          "score": 150
+        },
+        {
+          "name": "Ralph",
+          "score": 70
+        },
+        {
+          "name": "Nova",
+          "score": 65
+        }
+      ]
+    },
+    "system": {
+      "disk_free_gb": 903.63,
+      "uptime_days": 0
+    }
+  },
+  "proposals": [
+    {
+      "agent": "Nova",
+      "type": "creative",
+      "room": "breakroom",
+      "idea": "Add story corner with sci-fi snippets",
+      "priority": 2,
+      "details": "Show latest generated stories and storybook database stats.",
+      "reasoning": "As a artist with expertise in creative_content, visuals, theming, I analyzed: agents=3, tasks=27, rooms=3, disk=903.63 GB. Suggested creative.\n\n[Context snapshot]: agents=3, tasks=27, rooms=3, disk=903.63 GB, top_agent=CodeMaster",
+      "agentId": "agent_1773274638510_bld6",
+      "requires": [
+        "exec",
+        "git"
+      ],
+      "status": "pending"
+    },
+    {
+      "agent": "Ralph",
+      "type": "automation",
+      "room": "workspace",
+      "idea": "Add cron job status board",
+      "priority": 2,
+      "details": "Show running/failed cron jobs and their last execution times.",
+      "reasoning": "As a devops with expertise in monitoring, maintenance, syscheck, I analyzed: agents=3, tasks=27, rooms=3, disk=903.63 GB. Suggested automation.\n\n[Context snapshot]: agents=3, tasks=27, rooms=3, disk=903.63 GB, top_agent=CodeMaster",
+      "agentId": "agent_1773274630238_8duq",
+      "requires": [
+        "exec",
+        "git"
+      ],
+      "status": "pending"
+    }
+  ],
+  "selected_plan": {
+    "agent": "Nova",
+    "type": "creative",
+    "room": "breakroom",
+    "idea": "Add story corner with sci-fi snippets",
+    "priority": 2,
+    "details": "Show latest generated stories and storybook database stats.",
+    "reasoning": "As a artist with expertise in creative_content, visuals, theming, I analyzed: agents=3, tasks=27, rooms=3, disk=903.63 GB. Suggested creative.\n\n[Context snapshot]: agents=3, tasks=27, rooms=3, disk=903.63 GB, top_agent=CodeMaster",
+    "agentId": "agent_1773274638510_bld6",
+    "requires": [
+      "exec",
+      "git"
+    ],
+    "status": "pending"
+  },
+  "status": "approved",
+  "execution_log": [],
+  "completed": false
+}

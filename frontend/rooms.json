@@ -62,6 +62,39 @@
       "created_at": "2026-03-12T17:27:48.931581",
       "description": "Build observatory room for API monitoring",
       "plan_type": "new_room"
+    },
+    {
+      "id": "breakroom",
+      "name": "Breakroom",
+      "color": "#27ae60",
+      "states": [
+        "idle",
+        "active"
+      ],
+      "furniture": [
+        {
+          "type": "bookshelf",
+          "x": 0.2,
+          "y": 0.3,
+          "label": "Story Corner"
+        },
+        {
+          "type": "easel",
+          "x": 0.5,
+          "y": 0.3,
+          "label": "Art Display"
+        },
+        {
+          "type": "speaker",
+          "x": 0.8,
+          "y": 0.3,
+          "label": "TTS Speaker"
+        }
+      ],
+      "created_by": "Nova",
+      "created_at": "2026-03-12T17:28:37.096140",
+      "description": "Add story corner with sci-fi snippets",
+      "plan_type": "creative"
     }
   ]
 }
