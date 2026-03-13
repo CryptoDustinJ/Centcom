@@ -350,7 +350,28 @@ def _generate_room_dashboard(room_name, plan, room_config):
           document.querySelectorAll('.data-value-ram').forEach(el => el.textContent = (v.ram_percent || 0) + '%');
           document.querySelectorAll('.data-value-disk').forEach(el => el.textContent = (v.disk_free_gb || 0) + ' GB free');
         }}
-      }} catch(e) {{ console.warn('Refresh failed:', e); }}
+      }} catch(e) {{ console.warn('Vitals refresh failed:', e); }}
+
+      // Cron board refresh
+      try {{
+        const cronResp = await fetch('/office/cron-status');
+        if (cronResp.ok) {{
+          const cronData = await cronResp.json();
+          const cronJobs = cronData.cron_jobs || [];
+          const runningCount = cronJobs.filter(j => j.running).length;
+          const failedCount = cronJobs.filter(j => j.status === 'failed' || (j.last_run && j.status !== 'recent')).length;
+          document.querySelectorAll('.cron-running').forEach(el => el.textContent = runningCount);
+          document.querySelectorAll('.cron-failed').forEach(el => el.textContent = failedCount);
+          document.querySelectorAll('.cron-last').forEach(el => {{
+            if (cronJobs.length > 0) {{
+              const last = cronJobs[0].last_run ? new Date(cronJobs[0].last_run).toLocaleTimeString() : 'Never';
+              el.textContent = `last: ${{last}}`;
+            }} else {{
+              el.textContent = 'No jobs';
+            }}
+          }});
+        }}
+      }} catch(e) {{ console.warn('Cron refresh failed:', e); }}
     }}
     refreshData();
     setInterval(refreshData, 10000);
@@ -369,6 +390,7 @@ def _furniture_icon(item_type):
         "linter": "🔍", "coverage": "✅", "pr_board": "📋",
         "new_room": "🏠", "automation": "⚙️", "monitoring": "📊", "creative": "🎨",
         "theming": "🎨", "reasoning": "🧠", "code_quality": "🔍",
+        "cron_board": "⏰",
     }
     return icons.get(item_type, "📦")
 
@@ -377,18 +399,226 @@ def _generate_furniture_card(item, color):
     """Generate a single furniture card HTML."""
     icon = _furniture_icon(item.get("type", ""))
     label = item.get("label", "Unknown")
+    item_type = item.get("type", "")
+
+    # Custom data panel based on furniture type
+    if item_type == "cron_board":
+        data_panel = """<div class="data-panel">
+          <span class="cron-running">--</span> running |
+          <span class="cron-failed">--</span> failed |
+          <span class="cron-last">--</span>
+        </div>"""
+    else:
+        data_panel = """<div class="data-panel">
+          <span class="data-value-cpu">--</span> CPU |
+          <span class="data-value-ram">--</span> RAM |
+          <span class="data-value-disk">--</span> Disk
+        </div>"""
+
     return f"""<div class="furniture-card">
       <div class="icon">{icon}</div>
       <h3>{label}</h3>
-      <div class="data-panel">
-        <span class="data-value-cpu">--</span> CPU |
-        <span class="data-value-ram">--</span> RAM |
-        <span class="data-value-disk">--</span> Disk
-      </div>
+      {data_panel}
     </div>"""
 
 
 @bp.route("/office/huddle/start", methods=["POST"])
+def _execute_plan_impl(huddle_id: str):
+    """
+    Internal: Execute the selected plan from a huddle.
+    Returns (success, execution_log).
+    """
+    plans = _load_plans()
+    huddle = next((p for p in plans["plans"] if p["id"] == huddle_id), None)
+
+    if not huddle:
+        return False, ["Huddle not found"]
+
+    if huddle["completed"]:
+        return False, ["Huddle already completed"]
+
+    if not huddle.get("selected_plan"):
+        return False, ["No plan selected"]
+
+    plan = huddle["selected_plan"]
+    execution_log = []
+
+    # Load decision audit record if it exists
+    decisions_dir = COLLAB_DIR / "decisions"
+    decision_file = decisions_dir / f"{huddle_id}.json"
+    decision_data = None
+    if decision_file.exists():
+        try:
+            decision_data = json.loads(decision_file.read_text())
+        except Exception:
+            pass
+
+    try:
+        room_name = plan.get("room", "workspace")
+
+        # Execute based on plan type - ALL types create/update rooms with content
+        execution_log.append(f"Executing plan type '{plan['type']}' for room '{room_name}'")
+
+        # Load or create rooms.json
+        room_file = Path(cfg.FRONTEND_DIR) / "rooms.json"
+        existing_rooms = {"rooms": []}
+        if room_file.exists():
+            try:
+                existing_rooms = json.loads(room_file.read_text())
+            except Exception:
+                pass
+
+        # Room color and furniture definitions by type
+        ROOM_CONFIGS = {
+            "new_room": {
+                "color": "#e74c3c",
+                "furniture": [
+                    {"type": "server_rack", "x": 0.2, "y": 0.3, "label": "Gateway"},
+                    {"type": "monitor", "x": 0.5, "y": 0.3, "label": "Metrics"},
+                    {"type": "terminal", "x": 0.8, "y": 0.3, "label": "Console"},
+                ]
+            },
+            "automation": {
+                "color": "#27ae60",
+                "furniture": [
+                    {"type": "pipeline", "x": 0.2, "y": 0.3, "label": "Syscheck Pipeline"},
+                    {"type": "chart", "x": 0.5, "y": 0.3, "label": "Health Trends"},
+                    {"type": "alert_board", "x": 0.8, "y": 0.3, "label": "Alert Board"},
+                    {"type": "cron_board", "x": 0.5, "y": 0.6, "label": "Cron Job Status"},
+                ]
+            },
+            "monitoring": {
+                "color": "#2980b9",
+                "furniture": [
+                    {"type": "dashboard", "x": 0.3, "y": 0.3, "label": "CPU/RAM Monitor"},
+                    {"type": "gauge", "x": 0.6, "y": 0.3, "label": "Disk Usage"},
+                    {"type": "log_stream", "x": 0.8, "y": 0.5, "label": "Live Logs"},
+                ]
+            },
+            "creative": {
+                "color": "#8e44ad",
+                "furniture": [
+                    {"type": "bookshelf", "x": 0.2, "y": 0.3, "label": "Story Corner"},
+                    {"type": "easel", "x": 0.5, "y": 0.3, "label": "Art Display"},
+                    {"type": "speaker", "x": 0.8, "y": 0.3, "label": "TTS Speaker"},
+                ]
+            },
+            "theming": {
+                "color": "#e67e22",
+                "furniture": [
+                    {"type": "palette", "x": 0.3, "y": 0.3, "label": "Theme Palette"},
+                    {"type": "preview", "x": 0.6, "y": 0.3, "label": "Theme Preview"},
+                ]
+            },
+            "reasoning": {
+                "color": "#7f8c8d",
+                "furniture": [
+                    {"type": "whiteboard", "x": 0.3, "y": 0.3, "label": "Decision Board"},
+                    {"type": "archive", "x": 0.7, "y": 0.3, "label": "Reasoning Logs"},
+                ]
+            },
+            "code_quality": {
+                "color": "#9b59b6",
+                "furniture": [
+                    {"type": "linter", "x": 0.2, "y": 0.3, "label": "Lint Results"},
+                    {"type": "coverage", "x": 0.5, "y": 0.3, "label": "Test Coverage"},
+                    {"type": "pr_board", "x": 0.8, "y": 0.3, "label": "PR Stats"},
+                ]
+            },
+        }
+
+        plan_type = plan.get("type", "new_room")
+        room_config = ROOM_CONFIGS.get(plan_type, ROOM_CONFIGS["new_room"])
+
+        # Ensure room exists in rooms.json
+        existing_room = next((r for r in existing_rooms.get("rooms", []) if r.get("id") == room_name), None)
+        if existing_room:
+            # Update existing room with new furniture from this plan
+            old_furniture = existing_room.get("furniture", [])
+            for item in room_config["furniture"]:
+                if not any(f.get("label") == item["label"] for f in old_furniture):
+                    old_furniture.append(item)
+            existing_room["furniture"] = old_furniture
+            existing_room["last_updated_by"] = plan["agent"]
+            existing_room["last_updated_at"] = datetime.now().isoformat()
+            execution_log.append(f"Room '{room_name}' updated with new furniture")
+        else:
+            # Create new room
+            room_colors = {
+                "serverroom": "#e74c3c", "lab": "#9b59b6", "knowledge": "#3498db",
+                "archive": "#7f8c8d", "dashboard": "#2ecc71", "breakroom": "#27ae60",
+            }
+            new_room = {
+                "id": room_name,
+                "name": plan.get("room_name", room_name.replace("_", " ").replace("-", " ").title()),
+                "color": room_colors.get(room_name, room_config.get("color", "#95a5a6")),
+                "states": ["idle", "active"],
+                "furniture": room_config["furniture"],
+                "created_by": plan["agent"],
+                "created_at": datetime.now().isoformat(),
+                "description": plan["idea"],
+                "plan_type": plan_type,
+            }
+            existing_rooms["rooms"].append(new_room)
+            execution_log.append(f"Room '{room_name}' created with {len(room_config['furniture'])} furniture items")
+
+        room_file.write_text(json.dumps(existing_rooms, indent=2, ensure_ascii=False))
+
+        # Create room-specific dashboard HTML if it doesn't exist
+        rooms_dir = Path(cfg.FRONTEND_DIR) / "rooms" / room_name
+        rooms_dir.mkdir(parents=True, exist_ok=True)
+        dashboard_file = rooms_dir / "dashboard.html"
+        if not dashboard_file.exists():
+            dashboard_html = _generate_room_dashboard(room_name, plan, room_config)
+            dashboard_file.write_text(dashboard_html)
+            execution_log.append(f"Dashboard created: rooms/{room_name}/dashboard.html")
+
+        # Update agents-state to reflect the agent is working on this
+        try:
+            with open(cfg.AGENTS_STATE_FILE, 'r') as f:
+                agents_state = json.load(f)
+            for agent in agents_state:
+                if agent.get("name") == plan["agent"] or agent.get("agentId") == plan.get("agentId"):
+                    agent["state"] = "executing"
+                    agent["detail"] = f"Building: {plan['idea']}"
+                    agent["updated_at"] = datetime.now().isoformat()
+                    break
+            with open(cfg.AGENTS_STATE_FILE, 'w') as f:
+                json.dump(agents_state, f, indent=2, ensure_ascii=False)
+            execution_log.append(f"Agent {plan['agent']} status updated to 'executing'")
+        except Exception as e:
+            execution_log.append(f"Warning: could not update agent state: {e}")
+
+        # Optional: git commit the changes
+        try:
+            import subprocess
+            subprocess.check_call(["git", "add", "-A"], cwd=cfg.ROOT_DIR)
+            commit_msg = f"🤖 Huddle: {plan['idea']} (room: {room_name}, type: {plan_type})"
+            subprocess.check_call(["git", "commit", "-m", commit_msg], cwd=cfg.ROOT_DIR)
+            execution_log.append("Git commit created")
+        except Exception as e:
+            execution_log.append(f"Git commit skipped: {e}")
+
+        # Mark huddle as completed
+        huddle["status"] = "completed"
+        huddle["completed"] = True
+        huddle["execution_log"] = execution_log
+        plans["plans"] = [p if p["id"] != huddle_id else huddle for p in plans["plans"]]
+        _save_plans(plans)
+
+        # Update decision audit record with execution results
+        if decision_data:
+            decision_data["execution_log"] = execution_log
+            decision_data["status"] = "completed"
+            decision_file.write_text(json.dumps(decision_data, indent=2, ensure_ascii=False))
+
+        return True, execution_log
+
+    except Exception as e:
+        log.error("Huddle execution failed", extra={"_error": str(e)})
+        return False, [f"Execution error: {e}"]
+
+
 def start_huddle():
     """
     Trigger a daily collaboration huddle.
@@ -433,6 +663,7 @@ def start_huddle():
         huddle["proposals"].append(proposal)
 
     # Simple voting: sum of priorities, pick highest
+    selected = None
     if huddle["proposals"]:
         # Sort by priority (lower = higher priority)
         sorted_proposals = sorted(huddle["proposals"], key=lambda p: p["priority"])
@@ -507,14 +738,32 @@ def start_huddle():
 
     log.info("Office huddle started", extra={"_huddle_id": huddle_id, "_agents": len(collaborators)})
 
-    return jsonify({
+    response_data = {
         "ok": True,
         "huddle_id": huddle_id,
         "agents": [a["name"] for a in collaborators],
         "proposals": huddle["proposals"],
         "selected_plan": selected,
-        "msg": f"Huddle started with {len(collaborators)} agents. Plan: {selected['idea']}"
-    })
+        "msg": f"Huddle started with {len(collaborators)} agents. Plan: {selected['idea'] if selected else 'No plan'}"
+    }
+
+    # AUTO-EXECUTE: If a plan was selected, execute it immediately
+    log.info(f"Auto-execute check: selected={selected is not None}, huddle_id={huddle_id}")
+    if selected:
+        try:
+            log.info("Calling _execute_plan_impl")
+            success, exec_log = _execute_plan_impl(huddle_id)
+            response_data["execution"] = {"success": success, "log": exec_log}
+            if success:
+                response_data["msg"] = f"Huddle completed and plan executed: {selected['idea']}"
+            else:
+                response_data["msg"] = f"Huddle plan selected but execution failed: {exec_log[0] if exec_log else 'Unknown error'}"
+            log.info("Auto-execute finished", extra={"success": success, "log": exec_log})
+        except Exception as e:
+            log.error("Auto-execution failed", extra={"_error": str(e)})
+            response_data["execution"] = {"success": False, "log": [f"Auto-execution error: {e}"]}
+
+    return jsonify(response_data)
 
 
 @bp.route("/office/plans", methods=["GET"])
@@ -586,6 +835,7 @@ def execute_plan(huddle_id):
                     {"type": "pipeline", "x": 0.2, "y": 0.3, "label": "Syscheck Pipeline"},
                     {"type": "chart", "x": 0.5, "y": 0.3, "label": "Health Trends"},
                     {"type": "alert_board", "x": 0.8, "y": 0.3, "label": "Alert Board"},
+                    {"type": "cron_board", "x": 0.5, "y": 0.6, "label": "Cron Job Status"},
                 ]
             },
             "monitoring": {
@@ -972,6 +1222,64 @@ def office_vitals():
         vitals["status"] = "critical"
 
     return jsonify({"ok": True, "vitals": vitals})
+
+
+@bp.route("/office/cron-status", methods=["GET"])
+def office_cron_status():
+    """
+    Return cron job status for monitoring.
+    Shows configured cron jobs, whether they're currently running,
+    and their last execution times.
+    """
+    cron_jobs = []
+
+    try:
+        # Get user crontab entries
+        result = subprocess.run(['crontab', '-l'], capture_output=True, text=True, timeout=2)
+        if result.returncode == 0:
+            for line in result.stdout.splitlines():
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    parts = line.split(None, 5)
+                    if len(parts) >= 6:
+                        schedule = ' '.join(parts[:5])
+                        command = parts[5]
+                        # Extract job name
+                        job_name = command.split('/')[-1].split()[0]
+                        # Check if currently running
+                        running = False
+                        try:
+                            ps = subprocess.run(['pgrep', '-f', job_name], capture_output=True)
+                            running = ps.returncode == 0
+                        except:
+                            pass
+
+                        # Estimate last run from log file if exists
+                        last_run = None
+                        status = "unknown"
+                        log_path = Path(cfg.ROOT_DIR) / "logs" / f"{job_name}.log"
+                        if log_path.exists():
+                            try:
+                                mtime = datetime.fromtimestamp(log_path.stat().st_mtime)
+                                last_run = mtime.isoformat()
+                                # If log modified within last minute and job not running, assume success
+                                if (datetime.now() - mtime).total_seconds() < 60:
+                                    status = "recent"
+                            except:
+                                pass
+
+                        cron_jobs.append({
+                            "name": job_name,
+                            "schedule": schedule,
+                            "running": running,
+                            "last_run": last_run,
+                            "status": status,
+                            "command": command[:50] + ("..." if len(command) > 50 else "")
+                        })
+    except Exception as e:
+        log.warning("Cron status check failed", extra={"_error": str(e)})
+
+    return jsonify({"ok": True, "cron_jobs": cron_jobs})
 
 
 @bp.route("/office/incidents", methods=["GET"])

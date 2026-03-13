@@ -1,0 +1,112 @@
+{
+  "huddle_id": "huddle_20260312_1809",
+  "timestamp": "2026-03-12T18:09:48.630731",
+  "agents": [
+    "Ralph"
+  ],
+  "context_snapshot": {
+    "timestamp": "2026-03-12T18:09:48.640767",
+    "agents": {
+      "total": 2,
+      "by_state": {
+        "writing": 1,
+        "idle": 1
+      },
+      "active": 2
+    },
+    "tasks": {
+      "total": 28,
+      "open": 16,
+      "in_progress": 5,
+      "completed": 7,
+      "overdue": 0
+    },
+    "git": {
+      "branch": "master",
+      "dirty": true,
+      "recent_commits": 10
+    },
+    "rooms": {
+      "total": 4,
+      "list": [
+        {
+          "id": "serverroom",
+          "name": "Serverroom"
+        },
+        {
+          "id": "lobby",
+          "name": "Metrics Lobby"
+        },
+        {
+          "id": "observatory",
+          "name": "Observatory"
+        },
+        {
+          "id": "breakroom",
+          "name": "Breakroom"
+        }
+      ]
+    },
+    "growth": {
+      "total_contributions": 665,
+      "top_agent": "CodeMaster",
+      "leaderboard": [
+        {
+          "name": "CodeMaster",
+          "score": 380
+        },
+        {
+          "name": "Rook",
+          "score": 150
+        },
+        {
+          "name": "Ralph",
+          "score": 70
+        },
+        {
+          "name": "Nova",
+          "score": 65
+        }
+      ]
+    },
+    "system": {
+      "disk_free_gb": 903.59,
+      "uptime_days": 0
+    }
+  },
+  "proposals": [
+    {
+      "agent": "Ralph",
+      "type": "automation",
+      "room": "workspace",
+      "idea": "Add cron job status board",
+      "priority": 2,
+      "details": "Show running/failed cron jobs and their last execution times.",
+      "reasoning": "As a devops with expertise in monitoring, maintenance, syscheck, I analyzed: agents=2, tasks=28, rooms=4, disk=903.59 GB. Suggested automation.\n\n[Context snapshot]: agents=2, tasks=28, rooms=4, disk=903.59 GB, top_agent=CodeMaster",
+      "agentId": "agent_1773274630238_8duq",
+      "requires": [
+        "exec",
+        "git"
+      ],
+      "status": "pending"
+    }
+  ],
+  "selected_plan": {
+    "agent": "Ralph",
+    "type": "automation",
+    "room": "workspace",
+    "idea": "Add cron job status board",
+    "priority": 2,
+    "details": "Show running/failed cron jobs and their last execution times.",
+    "reasoning": "As a devops with expertise in monitoring, maintenance, syscheck, I analyzed: agents=2, tasks=28, rooms=4, disk=903.59 GB. Suggested automation.\n\n[Context snapshot]: agents=2, tasks=28, rooms=4, disk=903.59 GB, top_agent=CodeMaster",
+    "agentId": "agent_1773274630238_8duq",
+    "requires": [
+      "exec",
+      "git"
+    ],
+    "status": "pending"
+  },
+  "status": "approved",
+  "execution_log": [],
+  "completed": false
+}

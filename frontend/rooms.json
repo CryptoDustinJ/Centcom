@@ -95,6 +95,39 @@
       "created_at": "2026-03-12T17:28:37.096140",
       "description": "Add story corner with sci-fi snippets",
       "plan_type": "creative"
+    },
+    {
+      "id": "workspace",
+      "name": "Workspace",
+      "color": "#27ae60",
+      "states": [
+        "idle",
+        "active"
+      ],
+      "furniture": [
+        {
+          "type": "pipeline",
+          "x": 0.2,
+          "y": 0.3,
+          "label": "Syscheck Pipeline"
+        },
+        {
+          "type": "chart",
+          "x": 0.5,
+          "y": 0.3,
+          "label": "Health Trends"
+        },
+        {
+          "type": "alert_board",
+          "x": 0.8,
+          "y": 0.3,
+          "label": "Alert Board"
+        }
+      ],
+      "created_by": "Ralph",
+      "created_at": "2026-03-12T18:33:06.431052",
+      "description": "Add cron job status board",
+      "plan_type": "automation"
     }
   ]
 }

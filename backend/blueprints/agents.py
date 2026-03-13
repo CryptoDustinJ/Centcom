@@ -599,13 +599,11 @@ def _read_recent_agent_messages(limit: int = 25) -> list:
 # Command Center Mappings
 SCRIPTS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "scripts")
 SCRIPT_MAP = {
-    "weather": os.path.join(SCRIPTS_DIR, "get_weather.sh"),
-    "email-list": os.path.join(SCRIPTS_DIR, "get_emails.sh"),
+    "syscheck": os.path.join(SCRIPTS_DIR, "syscheck.sh"),
+    "morning-briefing": os.path.join(SCRIPTS_DIR, "morning-briefing.sh"),
     "wallpaper": "/home/dustin/.openclaw/workspace/skills/daily-wallpaper/run_wallpaper.sh",
-    "morning-briefing": "/home/dustin/.openclaw/scripts/morning-briefing.sh",
-    "syscheck": "/home/dustin/.openclaw/scripts/syscheck.sh",
-    "huddle": "INTERNAL:huddle",
-    "huddle-execute": "INTERNAL:huddle-execute",
+    "weather": os.path.join(SCRIPTS_DIR, "get_weather.sh"),
+    "email-list": os.path.join(SCRIPTS_DIR, "get_emails.sh")
 }
 
 OPENCLAW_CMD_MAP = {
@@ -669,9 +667,26 @@ def dispatch():
             if not os.path.exists(script_path):
                 return jsonify({"ok": False, "msg": f"Script not found: {script_path}"}), 500
 
+            # Prepare environment with brew PATH
+            env = {**os.environ, "PATH": "/home/linuxbrew/.linuxbrew/bin:" + os.environ.get("PATH", "")}
+
+            # Inject Google API key for wallpaper command if available
+            if command == "wallpaper":
+                try:
+                    auth_profile_path = Path("/home/dustin/.openclaw/agents/main/agent/auth-profiles.json")
+                    if auth_profile_path.exists():
+                        with open(auth_profile_path, 'r') as f:
+                            auth_data = json.load(f)
+                            google_profile = auth_data.get("profiles", {}).get("google:default", {})
+                            if google_profile.get("key"):
+                                env["GOOGLE_API_KEY"] = google_profile["key"]
+                                current_app.logger.info("Injected GOOGLE_API_KEY for wallpaper command")
+                except Exception as e:
+                    current_app.logger.warning(f"Failed to load Google API key for wallpaper: {e}")
+
             result = subprocess.run(
                 ["bash", script_path], capture_output=True, text=True, timeout=60,
-                env={**os.environ, "PATH": "/home/linuxbrew/.linuxbrew/bin:" + os.environ.get("PATH", "")}
+                env=env
             )
             return jsonify({"ok": result.returncode == 0, "output": result.stdout, "error": result.stderr})
 
@@ -699,8 +714,8 @@ def list_dispatch_commands():
         {"id": "status", "label": "System Status", "icon": "📊", "category": "system"},
         {"id": "syscheck", "label": "Quick Syscheck", "icon": "🔍", "category": "system"},
         {"id": "restart-services", "label": "Restart Services", "icon": "🔄", "category": "system", "confirm": True},
-        {"id": "weather", "label": "Weather", "icon": "🌤️", "category": "info"},
-        {"id": "email-list", "label": "Check Email", "icon": "📧", "category": "info"},
+        {"id": "weather", "label": "Current Weather", "icon": "🌤️", "category": "info"},
+        {"id": "email-list", "label": "Email List", "icon": "📧", "category": "info"},
         {"id": "morning-briefing", "label": "Morning Briefing", "icon": "📋", "category": "info"},
         {"id": "huddle", "label": "Start Huddle", "icon": "🤝", "category": "collaboration"},
         {"id": "fullcheck", "label": "Full Report", "icon": "📊", "category": "openclaw"},

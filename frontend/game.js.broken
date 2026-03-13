@@ -1,0 +1,290 @@
+// === OpenClaw Office Frontend (v1.1) ===
+// 🚀 Integrated Rook's Ideas: Context Heatmaps, Incident Alarms, Vitals, and more.
+
+let game;
+let star;
+let sofa;
+let serverroom;
+let syncAnimSprite;
+let statusText;
+let bubble = null;
+let lastFetch = 0;
+let lastAgentsFetch = 0;
+let lastBubble = 0;
+let lastCatBubble = 0;
+let lastTypewriter = 0;
+const FETCH_INTERVAL = 3000;
+const AGENTS_FETCH_INTERVAL = 5000;
+const BUBBLE_INTERVAL = 8000;
+const CAT_BUBBLE_INTERVAL = 12000;
+const TYPEWRITER_DELAY = 50;
+
+let currentState = 'idle';
+let pendingDesiredState = null;
+let typewriterTarget = '';
+let typewriterText = '';
+let typewriterIndex = 0;
+let targetX = 0;
+let targetY = 0;
+let isMoving = false;
+let waypoints = [];
+
+const agents = {};
+
+// === Layout Configuration ===
+const LAYOUT = {
+  canvas: { width: 1280, height: 720 },
+  furniture: {
+    serverroom: { x: 91, y: 350 },
+    sofa: { x: 300, y: 550 },
+    cat: { x: 659, y: 540 },
+    errorBug: { x: 100, y: 150, pingPong: { leftX: 50, rightX: 1200, speed: 2 } },
+    sync: { x: 640, y: 200 }
+  }
+};
+
+const areas = {
+  breakroom: { x: 300, y: 550 },
+  writing: { x: 800, y: 350 },
+  researching: { x: 1000, y: 350 },
+  serverroom: { x: 150, y: 450 },
+  error: { x: 640, y: 150 }
+};
+
+const AREA_POSITIONS = {
+  breakroom: [{ x: 300, y: 550 }, { x: 350, y: 530 }, { x: 250, y: 530 }, { x: 300, y: 500 }],
+  writing: [{ x: 800, y: 350 }, { x: 850, y: 380 }, { x: 750, y: 320 }, { x: 800, y: 300 }],
+  researching: [{ x: 1050, y: 350 }, { x: 1000, y: 380 }, { x: 1100, y: 320 }],
+  serverroom: [{ x: 150, y: 450 }, { x: 120, y: 480 }, { x: 180, y: 420 }],
+  error: [{ x: 640, y: 150 }, { x: 580, y: 180 }, { x: 700, y: 120 }]
+};
+
+const AGENT_COLORS = {
+  rook: 0x3498db,
+  ralph: 0xe67e22,
+  nova: 0x9b59b6,
+  codemaster: 0x2ecc71,
+  default: 0x95a5a6
+};
+
+const NAME_TAG_COLORS = {
+  approved: 0x2ecc71,
+  pending: 0xf1c40f,
+  rejected: 0xe74c3c,
+  offline: 0x7f8c8d,
+  default: 0xecf0f1
+};
+
+const STATES = {
+  idle: { name: 'IDLE', area: 'breakroom' },
+  writing: { name: 'WRITING', area: 'writing' },
+  researching: { name: 'RESEARCHING', area: 'researching' },
+  executing: { name: 'EXECUTING', area: 'writing' },
+  syncing: { name: 'SYNCING', area: 'serverroom' },
+  error: { name: 'ERROR', area: 'error' }
+};
+
+const BUBBLE_TEXTS = {
+  idle: ['Resting...', 'Waiting for task...', 'Checking logs...', 'Purr...'],
+  writing: ['Coding...', 'Thinking...', 'Drafting PR...', 'Refactoring...'],
+  researching: ['Searching web...', 'Reading docs...', 'Learning...', 'Analyzing...'],
+  executing: ['Running tools...', 'Testing...', 'Deploying...', 'Fetching...'],
+  syncing: ['Uploading...', 'Downloading...', 'Rclone running...', 'Syncing Drive...'],
+  error: ['Something broke!', 'Help!', '404...', 'Retrying...', 'Loop detected!'],
+  cat: ['Meow~', 'Purrr...', 'Zzz...', 'Feed me?', 'Searching for bugs... 🐈']
+};
+
+function initGame() {
+  const config = {
+    type: Phaser.AUTO,
+    width: LAYOUT.canvas.width,
+    height: LAYOUT.canvas.height,
+    parent: 'game-container',
+    backgroundColor: '#0a0a1a',
+    pixelArt: true,
+    scene: { preload, create, update }
+  };
+  game = new Phaser.Game(config);
+}
+
+function preload() {
+  // Base assets
+  this.load.image('office_bg', 'assets/office_bg.png');
+  this.load.spritesheet('star_idle', 'assets/star_idle.png', { frameWidth: 32, frameHeight: 32 });
+  this.load.spritesheet('star_working', 'assets/star_working.png', { frameWidth: 48, frameHeight: 48 });
+  this.load.spritesheet('sofa_idle', 'assets/sofa.png', { frameWidth: 128, frameHeight: 64 });
+  this.load.spritesheet('sofa_busy', 'assets/sofa_busy.png', { frameWidth: 128, frameHeight: 64 });
+  this.load.spritesheet('serverroom', 'assets/serverroom.png', { frameWidth: 192, frameHeight: 128 });
+  this.load.spritesheet('cat', 'assets/cat.png', { frameWidth: 32, frameHeight: 32 });
+  this.load.spritesheet('error_bug', 'assets/bug.png', { frameWidth: 32, frameHeight: 32 });
+  this.load.spritesheet('sync_anim', 'assets/sync.png', { frameWidth: 64, frameHeight: 64 });
+}
+
+function create() {
+  this.add.image(640, 360, 'office_bg').setDepth(0);
+
+  // Animations
+  this.anims.create({ key: 'serverroom_on', frames: this.anims.generateFrameNumbers('serverroom', { start: 0, end: 3 }), frameRate: 8, repeat: -1 });
+  this.anims.create({ key: 'sofa_busy', frames: this.anims.generateFrameNumbers('sofa_busy', { start: 0, end: 1 }), frameRate: 2, repeat: -1 });
+  this.anims.create({ key: 'cat_idle', frames: this.anims.generateFrameNumbers('cat', { start: 0, end: 3 }), frameRate: 4, repeat: -1 });
+  this.anims.create({ key: 'error_bug', frames: this.anims.generateFrameNumbers('error_bug', { start: 0, end: 3 }), frameRate: 12, repeat: -1 });
+  this.anims.create({ key: 'sync_anim', frames: this.anims.generateFrameNumbers('sync_anim', { start: 0, end: 7 }), frameRate: 10, repeat: -1 });
+  this.anims.create({ key: 'star_working', frames: this.anims.generateFrameNumbers('star_working', { start: 0, end: 5 }), frameRate: 12, repeat: -1 });
+
+  // Fixed furniture
+  serverroom = this.add.sprite(LAYOUT.furniture.serverroom.x, LAYOUT.furniture.serverroom.y, 'serverroom').setDepth(10);
+  sofa = this.add.sprite(LAYOUT.furniture.sofa.x, LAYOUT.furniture.sofa.y, 'sofa_idle').setDepth(15);
+  window.catSprite = this.add.sprite(LAYOUT.furniture.cat.x, LAYOUT.furniture.cat.y, 'cat').setDepth(20);
+  window.catSprite.play('cat_idle');
+
+  window.errorBug = this.add.sprite(LAYOUT.furniture.errorBug.x, LAYOUT.furniture.errorBug.y, 'error_bug').setDepth(100).setVisible(false);
+  syncAnimSprite = this.add.sprite(LAYOUT.furniture.sync.x, LAYOUT.furniture.sync.y, 'sync_anim').setDepth(100).setVisible(false);
+
+  // Main Agent Star
+  star = this.add.sprite(areas.breakroom.x, areas.breakroom.y, 'star_idle').setDepth(1000).setVisible(false);
+  window.starWorking = this.add.sprite(areas.breakroom.x, areas.breakroom.y, 'star_working').setDepth(1000).setVisible(false);
+
+  // Status bar
+  statusText = document.getElementById('status-line');
+
+  // Integrated Rook's Idea Systems
+  initCommandCenter();
+  initVitalsTiles(this);
+  initIncidentAlarm(this);
+  initPodium(this);
+
+  // Debug Agents (Nika)
+  const debugAgents = new URLSearchParams(window.location.search).get('debugAgents') === 'true';
+  if (debugAgents) {
+    const testNika = { agentId: 'agent_nika', name: 'Nika', state: 'writing', area: 'writing', authStatus: 'approved' };
+    renderAgent(testNika);
+  }
+}
+
+// === Integrated Features ===
+
+function initCommandCenter() {
+  const btn = document.createElement('button');
+  btn.id = 'cmd-center-btn';
+  btn.textContent = '⚡ Command Center';
+  btn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:9999;background:#1a1a2e;color:#00d4ff;border:2px solid #00d4ff;border-radius:8px;padding:8px 16px;font-family:ArkPixel,monospace;font-size:13px;cursor:pointer;';
+  btn.addEventListener('click', toggleCommandCenter);
+  document.body.appendChild(btn);
+
+  const panel = document.createElement('div');
+  panel.id = 'cmd-center-panel';
+  panel.style.cssText = 'display:none;position:fixed;top:50px;right:10px;z-index:9998;background:#1a1a2e;border:2px solid #00d4ff;border-radius:12px;padding:16px;width:320px;max-height:500px;overflow-y:auto;font-family:ArkPixel,monospace;color:#eee;';
+  panel.innerHTML = \'<h3 style="margin:0 0 12px;color:#00d4ff;">⚡ Command Center</h3><div id="cmd-list">Loading...</div><div id="cmd-output" style="margin-top:12px;background:#0a0a1a;border-radius:6px;padding:8px;font-size:11px;max-height:150px;overflow-y:auto;display:none;"></div>\';
+  document.body.appendChild(panel);
+  window.commandCenterEl = panel;
+}
+
+function toggleCommandCenter() {
+  const p = window.commandCenterEl;
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+
+function initVitalsTiles(scene) {
+  window.vitalsContainer = scene.add.container(80, 650).setDepth(800);
+  const tiles = [{ key: 'cpu', label: 'CPU', x: 0 }, { key: 'ram', label: 'RAM', x: 90 }, { key: 'disk', label: 'DISK', x: 180 }];
+  for (const tile of tiles) {
+    const bg = scene.add.rectangle(tile.x, 0, 80, 44, 0x16213e, 0.85).setStrokeStyle(1, 0x334455);
+    const label = scene.add.text(tile.x, -14, tile.label, { fontFamily: "ArkPixel", fontSize: "9px", fill: "#888" }).setOrigin(0.5);
+    const value = scene.add.text(tile.x, 6, "--", { fontFamily: "ArkPixel", fontSize: "14px", fill: "#2ecc71" }).setOrigin(0.5);
+    value.name = "vitals_" + tile.key;
+    window.vitalsContainer.add([bg, label, value]);
+  }
+}
+
+function initIncidentAlarm(scene) {
+  window.incidentBadge = scene.add.container(1230, 30).setDepth(2500);
+  const bg = scene.add.circle(0, 0, 18, 0xe74c3c, 0);
+  bg.name = 'incident_bg';
+  const icon = scene.add.text(0, 0, '🚨', { fontSize: '20px' }).setOrigin(0.5).setVisible(false);
+  icon.name = 'incident_icon';
+  window.incidentBadge.add([bg, icon]);
+}
+
+function initPodium(scene) {
+  const podiumX = 450, podiumY = 660;
+  const icon = scene.add.text(podiumX, podiumY, '🎙️', { fontSize: '24px' }).setOrigin(0.5).setDepth(1800).setInteractive({ useHandCursor: true });
+  icon.on('pointerdown', () => alert('Playing Rook\'s Morning Briefing...'));
+}
+
+function update(time) {
+  if (time - lastFetch > FETCH_INTERVAL) { fetchStatus(); lastFetch = time; }
+  if (time - lastAgentsFetch > AGENTS_FETCH_INTERVAL) { fetchAgents(); lastAgentsFetch = time; }
+  if (time - lastBubble > BUBBLE_INTERVAL) { showBubble(); lastBubble = time; }
+  if (time - lastCatBubble > CAT_BUBBLE_INTERVAL) { showCatBubble(); lastCatBubble = time; }
+
+  // Heatmap pulse effect
+  for (let id in agents) {
+    const agent = agents[id];
+    if (agent.glowGraphics) {
+        agent.glowPhase = (agent.glowPhase || 0) + 0.05;
+        agent.glowGraphics.alpha = 0.3 + Math.sin(agent.glowPhase) * 0.2;
+    }
+  }
+
+  // Typewriter effect
+  if (typewriterIndex < typewriterTarget.length && time - lastTypewriter > TYPEWRITER_DELAY) {
+    typewriterText += typewriterTarget[typewriterIndex];
+    statusText.textContent = typewriterText;
+    typewriterIndex++;
+    lastTypewriter = time;
+  }
+}
+
+function fetchStatus() {
+  fetch(\'/status\').then(r => r.json()).then(data => {
+    currentState = normalizeState(data.state);
+    const line = \'[\' + (STATES[currentState]?.name || \'IDLE\') + \'] \' + (data.detail || \'...\');
+    if (typewriterTarget !== line) {
+        typewriterTarget = line; typewriterText = \'\'; typewriterIndex = 0;
+    }
+    // Update main star visibility based on state
+    const isIdle = currentState === \'idle\';
+    window.starWorking.setVisible(!isIdle);
+    if (!isIdle) window.starWorking.play(\'star_working\', true);
+  }).catch(() => {});
+}
+
+function fetchAgents() {
+  fetch(\'/agents\').then(r => r.json()).then(data => {
+    data.forEach(renderAgent);
+  }).catch(() => {});
+}
+
+function renderAgent(agent) {
+  if (!agents[agent.agentId]) {
+    const pos = AREA_POSITIONS[agent.area || \'breakroom\'][0];
+    const container = game.scene.scenes[0].add.container(pos.x, pos.y);
+    container.setDepth(1200);
+
+    // Heatmap Glow (Idea CM-12)
+    const glow = game.scene.scenes[0].add.graphics();
+    glow.fillStyle(0x00d4ff, 0.4);
+    glow.fillCircle(0, 0, 40);
+    container.add(glow);
+    container.glowGraphics = glow;
+
+    const starIcon = game.scene.scenes[0].add.text(0, 0, \'⭐\', { fontSize: \'32px\' }).setOrigin(0.5);
+    const nameTag = game.scene.scenes[0].add.text(0, -36, agent.name, { fontSize: \'14px\', fill: \'#fff\', stroke: \'#000\', strokeThickness: 3 }).setOrigin(0.5);
+    container.add([starIcon, nameTag]);
+    agents[agent.agentId] = container;
+  }
+}
+
+function normalizeState(s) {
+  return s === \'working\' ? \'writing\' : (s || \'idle\');
+}
+
+function showBubble() {
+  // Simplistic bubble logic
+}
+
+function showCatBubble() {
+  // Cat specific bubbles
+}
+
+initGame();

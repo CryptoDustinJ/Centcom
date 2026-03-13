@@ -1,3 +1,2 @@
 #!/bin/bash
-# Command Center: List recent emails
-himalaya envelope list --max-width 100 2>/dev/null || echo "Email check unavailable"
+himalaya envelope list -m 5 || echo "No emails found or himalaya not configured."

@@ -1,3 +1,2 @@
 #!/bin/bash
-# Command Center: Get weather summary
-curl -sf "wttr.in/?format=3" 2>/dev/null || echo "Weather unavailable"
+curl -s "wttr.in?format=%c+%t+%C"
