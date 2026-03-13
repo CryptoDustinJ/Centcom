@@ -52,6 +52,14 @@
         <span class="data-value-ram">--</span> RAM |
         <span class="data-value-disk">--</span> Disk
       </div>
+    </div><div class="furniture-card">
+      <div class="icon">⏰</div>
+      <h3>Cron Job Status</h3>
+      <div class="data-panel">
+        <span class="cron-running">--</span> running |
+        <span class="cron-failed">--</span> failed |
+        <span class="cron-last">--</span>
+      </div>
     </div>
   </div>
   <script>
@@ -66,7 +74,28 @@
           document.querySelectorAll('.data-value-ram').forEach(el => el.textContent = (v.ram_percent || 0) + '%');
           document.querySelectorAll('.data-value-disk').forEach(el => el.textContent = (v.disk_free_gb || 0) + ' GB free');
         }
-      } catch(e) { console.warn('Refresh failed:', e); }
+      } catch(e) { console.warn('Vitals refresh failed:', e); }
+
+      // Cron board refresh
+      try {
+        const cronResp = await fetch('/office/cron-status');
+        if (cronResp.ok) {
+          const cronData = await cronResp.json();
+          const cronJobs = cronData.cron_jobs || [];
+          const runningCount = cronJobs.filter(j => j.running).length;
+          const failedCount = cronJobs.filter(j => j.status === 'failed' || (j.last_run && j.status !== 'recent')).length;
+          document.querySelectorAll('.cron-running').forEach(el => el.textContent = runningCount);
+          document.querySelectorAll('.cron-failed').forEach(el => el.textContent = failedCount);
+          document.querySelectorAll('.cron-last').forEach(el => {
+            if (cronJobs.length > 0) {
+              const last = cronJobs[0].last_run ? new Date(cronJobs[0].last_run).toLocaleTimeString() : 'Never';
+              el.textContent = `last: ${last}`;
+            } else {
+              el.textContent = 'No jobs';
+            }
+          });
+        }
+      } catch(e) { console.warn('Cron refresh failed:', e); }
     }
     refreshData();
     setInterval(refreshData, 10000);

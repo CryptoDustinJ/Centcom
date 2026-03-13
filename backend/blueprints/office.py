@@ -1243,9 +1243,11 @@ def office_cron_status():
                     parts = line.split(None, 5)
                     if len(parts) >= 6:
                         schedule = ' '.join(parts[:5])
-                        command = parts[5]
-                        # Extract job name
-                        job_name = command.split('/')[-1].split()[0]
+                        command = parts[5].strip()
+                        # Extract script path (before any redirection)
+                        script_part = command.split('>>')[0].split('>')[0].strip()
+                        # Get job name from script path
+                        job_name = script_part.split('/')[-1].split()[0]
                         # Check if currently running
                         running = False
                         try:
@@ -1257,7 +1259,17 @@ def office_cron_status():
                         # Estimate last run from log file if exists
                         last_run = None
                         status = "unknown"
-                        log_path = Path(cfg.ROOT_DIR) / "logs" / f"{job_name}.log"
+                        # Try to find the actual log file from the redirection
+                        log_file = None
+                        if '>>' in command:
+                            log_file = command.split('>>')[1].strip().split()[0]
+                        elif '>' in command:
+                            log_file = command.split('>')[1].strip().split()[0]
+                        if log_file:
+                            log_path = Path(log_file)
+                        else:
+                            log_path = Path(cfg.ROOT_DIR) / "logs" / f"{job_name}.log"
+
                         if log_path.exists():
                             try:
                                 mtime = datetime.fromtimestamp(log_path.stat().st_mtime)
@@ -1274,7 +1286,7 @@ def office_cron_status():
                             "running": running,
                             "last_run": last_run,
                             "status": status,
-                            "command": command[:50] + ("..." if len(command) > 50 else "")
+                            "command": command[:80] + ("..." if len(command) > 80 else "")
                         })
     except Exception as e:
         log.warning("Cron status check failed", extra={"_error": str(e)})
