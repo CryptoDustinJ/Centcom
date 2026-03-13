@@ -1,0 +1,196 @@
+{
+  "huddle_id": "huddle_20260313_1300",
+  "timestamp": "2026-03-13T13:00:02.089795",
+  "agents": [
+    "Rook"
+  ],
+  "context_snapshot": {
+    "timestamp": "2026-03-13T13:00:02.150591",
+    "agents": {
+      "total": 2,
+      "by_state": {
+        "writing": 1,
+        "idle": 1
+      },
+      "active": 2
+    },
+    "tasks": {
+      "total": 36,
+      "open": 24,
+      "in_progress": 4,
+      "completed": 8,
+      "overdue": 0
+    },
+    "git": {
+      "branch": "master",
+      "dirty": true,
+      "recent_commits": 10
+    },
+    "rooms": {
+      "total": 11,
+      "list": [
+        {
+          "id": "serverroom",
+          "name": "Serverroom"
+        },
+        {
+          "id": "lobby",
+          "name": "Metrics Lobby"
+        },
+        {
+          "id": "observatory",
+          "name": "Observatory"
+        },
+        {
+          "id": "breakroom",
+          "name": "Breakroom"
+        },
+        {
+          "id": "workspace",
+          "name": "Workspace"
+        },
+        {
+          "id": "lab",
+          "name": "Lab"
+        },
+        {
+          "id": "archive",
+          "name": "Archive"
+        },
+        {
+          "id": "library",
+          "name": "Library"
+        },
+        {
+          "id": "ops_center",
+          "name": "Ops Center"
+        },
+        {
+          "id": "comms",
+          "name": "Comms"
+        },
+        {
+          "id": "gallery",
+          "name": "Gallery"
+        }
+      ]
+    },
+    "growth": {
+      "total_contributions": 705,
+      "top_agent": "CodeMaster",
+      "leaderboard": [
+        {
+          "name": "CodeMaster",
+          "score": 380
+        },
+        {
+          "name": "Rook",
+          "score": 150
+        },
+        {
+          "name": "Ralph",
+          "score": 70
+        },
+        {
+          "name": "Nova",
+          "score": 65
+        },
+        {
+          "name": "Star",
+          "score": 40
+        }
+      ]
+    },
+    "system": {
+      "disk_free_gb": 901.3,
+      "uptime_days": 0
+    }
+  },
+  "proposals": [
+    {
+      "agent": "Rook",
+      "type": "new_room",
+      "room": "garden",
+      "idea": "Create rooftop garden for agent relaxation",
+      "priority": 3,
+      "details": "A peaceful space with plants and ambient nature sounds.",
+      "reasoning": "As a architect with expertise in rooms, layout, integration, I analyzed: agents=2, tasks=36, rooms=11, disk=901.3 GB. Suggested new_room.\n\n[Context snapshot]: agents=2, tasks=36, rooms=11, disk=901.3 GB, top_agent=CodeMaster",
+      "agentId": "8c0ca478e96b",
+      "requires": [
+        "exec",
+        "git"
+      ],
+      "status": "pending",
+      "furniture": [
+        {
+          "type": "plant",
+          "x": 0.2,
+          "y": 0.3,
+          "label": "Bonsai"
+        },
+        {
+          "type": "plant",
+          "x": 0.5,
+          "y": 0.2,
+          "label": "Fern"
+        },
+        {
+          "type": "water_cooler",
+          "x": 0.8,
+          "y": 0.4,
+          "label": "Fountain"
+        },
+        {
+          "type": "couch",
+          "x": 0.5,
+          "y": 0.6,
+          "label": "Hammock"
+        }
+      ]
+    }
+  ],
+  "selected_plan": {
+    "agent": "Rook",
+    "type": "new_room",
+    "room": "garden",
+    "idea": "Create rooftop garden for agent relaxation",
+    "priority": 3,
+    "details": "A peaceful space with plants and ambient nature sounds.",
+    "reasoning": "As a architect with expertise in rooms, layout, integration, I analyzed: agents=2, tasks=36, rooms=11, disk=901.3 GB. Suggested new_room.\n\n[Context snapshot]: agents=2, tasks=36, rooms=11, disk=901.3 GB, top_agent=CodeMaster",
+    "agentId": "8c0ca478e96b",
+    "requires": [
+      "exec",
+      "git"
+    ],
+    "status": "pending",
+    "furniture": [
+      {
+        "type": "plant",
+        "x": 0.2,
+        "y": 0.3,
+        "label": "Bonsai"
+      },
+      {
+        "type": "plant",
+        "x": 0.5,
+        "y": 0.2,
+        "label": "Fern"
+      },
+      {
+        "type": "water_cooler",
+        "x": 0.8,
+        "y": 0.4,
+        "label": "Fountain"
+      },
+      {
+        "type": "couch",
+        "x": 0.5,
+        "y": 0.6,
+        "label": "Hammock"
+      }
+    ]
+  },
+  "status": "approved",
+  "execution_log": [],
+  "completed": false
+}
