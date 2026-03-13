@@ -1,3 +1,7 @@
+// Global error reporting
+window.addEventListener("error", (e) => console.error("❌", e.error || e.message));
+window.addEventListener("unhandledrejection", (e) => console.error("❌ Unhandled Promise Rejection:", e.reason));
+
 // Star Office UI - 游戏主逻辑
 // 依赖: layout.js（必须在这个之前加载）
 
@@ -39,7 +43,7 @@ function getExt(pngFile) {
   return supportsWebP ? '.webp' : '.png';
 }
 
-const config = {
+const gameConfig = {
   type: Phaser.AUTO,
   width: LAYOUT.game.width,
   height: LAYOUT.game.height,
@@ -122,29 +126,42 @@ async function loadOfficeRooms() {
         OFFICE_ROOMS[room.id] = room;
         // Generate positions for this room if not already defined
         if (!AREA_POSITIONS[room.id]) {
-          // Distribute rooms in a grid pattern to the right side
-          const roomIds = Object.keys(OFFICE_ROOMS);
-          const idx = roomIds.indexOf(room.id);
-          const cols = 2;
-          const startX = 700;
-          const startY = 100;
-          const spacingX = 200;
-          const spacingY = 120;
-          const col = idx % cols;
-          const row = Math.floor(idx / cols);
-          const baseX = startX + col * spacingX;
-          const baseY = startY + row * spacingY;
-          // Primary position (for single agent placement)
+          // Distribute dynamic rooms around the office edges to avoid
+          // overlapping the main office area (center-left)
+          const dynamicRooms = rooms.filter(r =>
+            !['workspace', 'breakroom', 'bugarea'].includes(r.id) ||
+            (r.furniture && r.furniture.length > 0)
+          );
+          const idx = dynamicRooms.findIndex(r => r.id === room.id);
+          if (idx < 0) continue; // skip if not in dynamic list
+
+          // Layout: wrap rooms around the periphery
+          // Top row, then bottom row, then right column
+          const positions = [
+            { x: 460, y: 480 },   // bottom-center-left
+            { x: 700, y: 480 },   // bottom-center
+            { x: 940, y: 480 },   // bottom-right
+            { x: 940, y: 300 },   // right-middle
+            { x: 940, y: 120 },   // top-right
+            { x: 700, y: 120 },   // top-center
+            { x: 460, y: 120 },   // top-left
+            { x: 460, y: 300 },   // left-middle
+            { x: 580, y: 300 },   // center
+            { x: 820, y: 300 },   // center-right
+          ];
+          const posIdx = idx % positions.length;
+          const baseX = positions[posIdx].x;
+          const baseY = positions[posIdx].y;
+
           LAYOUT.areas[room.id] = { x: baseX, y: baseY };
-          // Multiple slots for multiple agents in same room
           AREA_POSITIONS[room.id] = [
             { x: baseX, y: baseY },
-            { x: baseX + 25, y: baseY + 25 },
-            { x: baseX - 25, y: baseY + 25 },
-            { x: baseX + 25, y: baseY - 25 },
-            { x: baseX - 25, y: baseY - 25 },
-            { x: baseX + 50, y: baseY },
-            { x: baseX - 50, y: baseY },
+            { x: baseX + 25, y: baseY + 20 },
+            { x: baseX - 25, y: baseY + 20 },
+            { x: baseX + 25, y: baseY - 20 },
+            { x: baseX - 25, y: baseY - 20 },
+            { x: baseX + 45, y: baseY },
+            { x: baseX - 45, y: baseY },
           ];
         }
       }
@@ -153,6 +170,27 @@ async function loadOfficeRooms() {
   } catch (e) {
     console.warn('[Office] Failed to load rooms:', e);
   }
+}
+
+// Furniture type -> emoji icon mapping (matches backend _furniture_icon)
+const FURNITURE_ICONS = {
+  server_rack: '🖥️', monitor: '📊', terminal: '💻', pipeline: '⚙️',
+  chart: '📈', alert_board: '🚨', dashboard: '📊', gauge: '🎯',
+  log_stream: '📜', bookshelf: '📚', easel: '🎨', speaker: '🔊',
+  palette: '🎨', preview: '👁️', whiteboard: '📝', archive: '🗄️',
+  linter: '🔍', coverage: '✅', pr_board: '📋', cron_board: '⏰',
+  coffee: '☕', plant: '🌿', trophy: '🏆', clock: '🕐',
+  lamp: '💡', printer: '🖨️', phone: '📞', calendar: '📅',
+  tv: '📺', radio: '📻', globe: '🌐', toolbox: '🧰',
+  shield: '🛡️', telescope: '🔭', microscope: '🔬', beaker: '🧪',
+  satellite: '📡', battery: '🔋', plug: '🔌', wrench: '🔧',
+  hammer: '🔨', gear: '⚙️', magnet: '🧲', bulb: '💡',
+  podium: '🎤', water_cooler: '🚰', couch: '🛋️', desk: '🪑',
+  filing_cabinet: '🗃️', safe: '🔐', map: '🗺️', compass: '🧭',
+};
+
+function getFurnitureIcon(type) {
+  return FURNITURE_ICONS[type] || '📦';
 }
 
 function drawRoomsOverlay(scene) {
@@ -164,10 +202,10 @@ function drawRoomsOverlay(scene) {
     if (positions && positions.length > 0) {
       const xs = positions.map(p => p.x);
       const ys = positions.map(p => p.y);
-      const minX = Math.min(...xs) - 60;
-      const minY = Math.min(...ys) - 40;
-      const maxX = Math.max(...xs) + 60;
-      const maxY = Math.max(...ys) + 40;
+      const minX = Math.min(...xs) - 80;
+      const minY = Math.min(...ys) - 50;
+      const maxX = Math.max(...xs) + 80;
+      const maxY = Math.max(...ys) + 50;
       const w = maxX - minX;
       const h = maxY - minY;
       // Room background
@@ -176,13 +214,43 @@ function drawRoomsOverlay(scene) {
       graphics.lineStyle(2, Phaser.Display.Color.GetColor(color.r, color.g, color.b), 0.4);
       graphics.strokeRoundedRect(minX, minY, w, h, 10);
       // Room label
-      scene.add.text(minX + 10, minY + 10, room.name, {
+      scene.add.text(minX + 10, minY + 6, room.name, {
         fontFamily: '"Press Start 2P", monospace',
         fontSize: '10px',
         fill: 'white',
         stroke: '#000000',
         strokeThickness: 2
-      }).setScrollFactor(0).setDepth(1000);
+      }).setDepth(1000);
+
+      // Render furniture items inside room zone
+      const furniture = room.furniture || [];
+      if (furniture.length > 0) {
+        const furnitureStartY = minY + 24;
+        const furnitureH = h - 30;
+        const furnitureW = w - 20;
+        for (let fi = 0; fi < furniture.length; fi++) {
+          const item = furniture[fi];
+          // Position furniture using relative coords (0-1) mapped to room bounds
+          const fx = minX + 10 + (item.x || (fi / furniture.length)) * furnitureW;
+          const fy = furnitureStartY + (item.y || 0.5) * furnitureH;
+          const icon = getFurnitureIcon(item.type);
+          // Furniture icon
+          scene.add.text(fx, fy, icon, {
+            fontFamily: 'ArkPixel, monospace',
+            fontSize: '18px'
+          }).setOrigin(0.5).setDepth(1001);
+          // Furniture label (smaller, below icon)
+          if (item.label) {
+            scene.add.text(fx, fy + 14, item.label, {
+              fontFamily: 'ArkPixel, monospace',
+              fontSize: '7px',
+              fill: '#cccccc',
+              stroke: '#000000',
+              strokeThickness: 1
+            }).setOrigin(0.5).setDepth(1001);
+          }
+        }
+      }
     }
   }
 }
@@ -377,6 +445,7 @@ function setState(state, detail) {
 
 // 初始化：先检测 WebP 支持，再启动游戏
 async function initGame() {
+  console.log("🚀 initGame starting...");
   try {
     supportsWebP = await checkWebPSupport();
   } catch (e) {
@@ -392,7 +461,7 @@ async function initGame() {
   // Load office rooms before starting game
   await loadOfficeRooms();
 
-  new Phaser.Game(config);
+  new Phaser.Game(gameConfig);
 }
 
 function preload() {
@@ -682,6 +751,7 @@ function create() {
 
   window.starSprite = star;
 
+  console.log("✅ create() called");
   statusText = document.getElementById('status-text');
   coordsOverlay = document.getElementById('coords-overlay');
   coordsDisplay = document.getElementById('coords-display');
@@ -696,8 +766,8 @@ function create() {
 
   game.input.on('pointermove', (pointer) => {
     if (!showCoords) return;
-    const x = Math.max(0, Math.min(config.width - 1, Math.round(pointer.x)));
-    const y = Math.max(0, Math.min(config.height - 1, Math.round(pointer.y)));
+    const x = Math.max(0, Math.min(gameConfig.width - 1, Math.round(pointer.x)));
+    const y = Math.max(0, Math.min(gameConfig.height - 1, Math.round(pointer.y)));
     coordsDisplay.textContent = `${x}, ${y}`;
     coordsOverlay.style.left = (pointer.x + 18) + 'px';
     coordsOverlay.style.top = (pointer.y + 18) + 'px';
@@ -1663,4 +1733,4 @@ function renderAgent(agent) {
 }
 
 // 启动游戏
-initGame();
+try { initGame(); } catch(e) { console.error("Init failed:", e); }

@@ -1,0 +1,87 @@
+{
+  "huddle_id": "huddle_20260312_1954",
+  "timestamp": "2026-03-12T19:54:46.014510",
+  "agents": [],
+  "context_snapshot": {
+    "timestamp": "2026-03-12T19:54:46.027588",
+    "agents": {
+      "total": 1,
+      "by_state": {
+        "writing": 1
+      },
+      "active": 1
+    },
+    "tasks": {
+      "total": 28,
+      "open": 16,
+      "in_progress": 4,
+      "completed": 8,
+      "overdue": 0
+    },
+    "git": {
+      "branch": "master",
+      "dirty": true,
+      "recent_commits": 10
+    },
+    "rooms": {
+      "total": 5,
+      "list": [
+        {
+          "id": "serverroom",
+          "name": "Serverroom"
+        },
+        {
+          "id": "lobby",
+          "name": "Metrics Lobby"
+        },
+        {
+          "id": "observatory",
+          "name": "Observatory"
+        },
+        {
+          "id": "breakroom",
+          "name": "Breakroom"
+        },
+        {
+          "id": "workspace",
+          "name": "Workspace"
+        }
+      ]
+    },
+    "growth": {
+      "total_contributions": 705,
+      "top_agent": "CodeMaster",
+      "leaderboard": [
+        {
+          "name": "CodeMaster",
+          "score": 380
+        },
+        {
+          "name": "Rook",
+          "score": 150
+        },
+        {
+          "name": "Ralph",
+          "score": 70
+        },
+        {
+          "name": "Nova",
+          "score": 65
+        },
+        {
+          "name": "Star",
+          "score": 40
+        }
+      ]
+    },
+    "system": {
+      "disk_free_gb": 903.53,
+      "uptime_days": 0
+    }
+  },
+  "proposals": [],
+  "selected_plan": null,
+  "status": "planning",
+  "execution_log": [],
+  "completed": false
+}

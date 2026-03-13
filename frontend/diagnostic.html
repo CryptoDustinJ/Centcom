@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Centcom Diagnostics</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a2e; color: #fff; }
+        .test { margin: 10px 0; padding: 10px; background: #2a2a45; border-radius: 5px; }
+        .pass { border-left: 4px solid #22c55e; }
+        .fail { border-left: 4px solid #ef4444; }
+        .info { border-left: 4px solid #3b82f6; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Centcom Frontend Diagnostics</h1>
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+
+        function addTest(name, passed, details = '') {
+            const div = document.createElement('div');
+            div.className = `test ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `<strong>${passed ? '✅' : '❌'} ${name}</strong>` + (details ? `<pre>${details}</pre>` : '');
+            results.appendChild(div);
+        }
+
+        function addInfo(title, content) {
+            const div = document.createElement('div');
+            div.className = 'test info';
+            div.innerHTML = `<strong>ℹ️ ${title}</strong><pre>${content}</pre>`;
+            results.appendChild(div);
+        }
+
+        async function runTests() {
+            // Test 1: Backend reachable
+            try {
+                const health = await fetch('/health');
+                addTest('Backend reachable', health.ok, `Status: ${health.status}`);
+            } catch (e) {
+                addTest('Backend reachable', false, e.message);
+            }
+
+            // Test 2: Agents endpoint
+            try {
+                const agents = await fetch('/agents');
+                const agentsData = await agents.json();
+                addTest('Agents endpoint', agents.ok, `Found ${agentsData.length} agents\n${JSON.stringify(agentsData, null, 2)}`);
+            } catch (e) {
+                addTest('Agents endpoint', false, e.message);
+            }
+
+            // Test 3: Rooms endpoint
+            try {
+                const rooms = await fetch('/office/rooms');
+                const roomsData = await rooms.json();
+                const hasConnections = roomsData.rooms.some(r => r.connections);
+                addTest('Rooms endpoint', rooms.ok && hasConnections,
+                    `Rooms: ${roomsData.rooms.length}\nHas connections: ${hasConnections}\nSample: ${JSON.stringify(roomsData.rooms[0], null, 2)}`);
+            } catch (e) {
+                addTest('Rooms endpoint', false, e.message);
+            }
+
+            // Test 4: Context pressure endpoint
+            try {
+                const pressure = await fetch('/office/context-pressure');
+                const pressureData = await pressure.json();
+                addTest('Context pressure heatmap', pressure.ok,
+                    `Data: ${JSON.stringify(pressureData, null, 2)}`);
+            } catch (e) {
+                addTest('Context pressure heatmap', false, e.message);
+            }
+
+            // Test 5: Conduits endpoints
+            try {
+                const [conduits, activity] = await Promise.all([
+                    fetch('/office/conduits'),
+                    fetch('/office/conduits/activity')
+                ]);
+                const cData = await conduits.json();
+                const aData = await activity.json();
+                addTest('Data conduits', conduits.ok && activity.ok,
+                    `Zones: ${Object.keys(cData.zones || cData).length}\nActivity calls: ${Object.keys(aData.activity || aData).length}`);
+            } catch (e) {
+                addTest('Data conduits', false, e.message);
+            }
+
+            // Test 6: Game.js loaded
+            const scripts = document.querySelectorAll('script');
+            let gameJsLoaded = false;
+            scripts.forEach(s => {
+                if (s.src && s.src.includes('game.js')) gameJsLoaded = true;
+            });
+            addTest('game.js loaded', gameJsLoaded,
+                `Found ${scripts.length} script tags\ngame.js present: ${gameJsLoaded}`);
+
+            // Test 7: Check for canvas (Phaser)
+            const canvas = document.querySelector('canvas');
+            addTest('Phaser canvas exists', !!canvas,
+                canvas ? `Size: ${canvas.width}x${canvas.height}` : 'No canvas found');
+
+            // Test 8: LocalStorage check
+            addInfo('LocalStorage', `Keys: ${Object.keys(localStorage).join(', ')}`);
+
+            // Test 9: Check service worker
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                addInfo('Service Workers', `Registered: ${registrations.length}\n${registrations.map(r => r.scope).join('\n')}`);
+            } else {
+                addInfo('Service Workers', 'Not supported');
+            }
+
+            // Instructions
+            addInfo('Next Steps', `
+1. Open browser DevTools (F12)
+2. Go to Network tab, reload page, check for 404s or errors
+3. Go to Console tab, check for JavaScript errors (red)
+4. In console, type: window.game && window.game.scene && window.game.scene.scenes
+5. Check if these exist: conduitZones, navigationTarget, agentGlows
+            `);
+        }
+
+        runTests();
+    </script>
+</body>
+</html>

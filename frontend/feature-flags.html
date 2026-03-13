@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head><title>Feature Flags Check</title></head>
+<body>
+<h1>Feature Detection</h1>
+<div id="out"></div>
+<script src="/static/game.js"></script>
+<script>
+document.getElementById('out').innerHTML = `
+<p>game.js loaded: YES</p>
+<p>Has navigationTarget: ${typeof navigationTarget !== 'undefined'}</p>
+<p>Has conduitZones: ${typeof conduitZones !== 'undefined'}</p>
+<p>Has agentGlows: ${typeof agentGlows !== 'undefined'}</p>
+<p>Has setupRoomNavigation: ${typeof setupRoomNavigation === 'function'}</p>
+<p>Has drawConduits: ${typeof drawConduits === 'function'}</p>
+<p>Game object exists: ${typeof game !== 'undefined'}</p>
+<p>Scene count: ${game ? game.scene.scenes.length : 0}
+`;
+</script>
+</body>
+</html>

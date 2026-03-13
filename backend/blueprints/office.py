@@ -192,58 +192,160 @@ def _get_office_context():
 
 
 # Agent role definitions for context-aware proposals
+# Each proposal can include custom 'furniture' to be placed in the room
 _AGENT_ROLES = {
     "Rook": {
         "role": "architect", "expertise": ["rooms", "layout", "integration"],
         "proposal_pool": [
             {"type": "new_room", "room": "lab", "idea": "Add lab room for code quality analysis", "priority": 2,
-             "details": "Based on team size/growth, a lab would improve the office."},
+             "details": "A dedicated lab for testing, linting, and code review.",
+             "furniture": [{"type": "linter", "x": 0.2, "y": 0.3, "label": "Lint Results"},
+                           {"type": "coverage", "x": 0.5, "y": 0.3, "label": "Test Coverage"},
+                           {"type": "pr_board", "x": 0.8, "y": 0.3, "label": "PR Stats"}]},
             {"type": "new_room", "room": "archive", "idea": "Create archive room for decision history", "priority": 2,
-             "details": "Store and display architectural decisions and reasoning logs."},
-            {"type": "new_room", "room": "observatory", "idea": "Build observatory room for API monitoring", "priority": 2,
-             "details": "Track external API health, response times, and rate limits."},
+             "details": "Store and display architectural decisions and reasoning logs.",
+             "furniture": [{"type": "archive", "x": 0.2, "y": 0.3, "label": "Decision Archive"},
+                           {"type": "whiteboard", "x": 0.6, "y": 0.3, "label": "Architecture Board"},
+                           {"type": "filing_cabinet", "x": 0.8, "y": 0.5, "label": "Old Plans"}]},
+            {"type": "new_room", "room": "comms", "idea": "Build communications center for cross-agent messaging", "priority": 2,
+             "details": "Central hub for agent-to-agent messaging and status updates.",
+             "furniture": [{"type": "satellite", "x": 0.3, "y": 0.2, "label": "Signal Relay"},
+                           {"type": "radio", "x": 0.6, "y": 0.3, "label": "Dispatch Radio"},
+                           {"type": "tv", "x": 0.5, "y": 0.6, "label": "Status Wall"}]},
             {"type": "monitoring", "room": "serverroom", "idea": "Expand server room with GPU monitoring", "priority": 1,
-             "details": "Add GPU temp, VRAM usage, and Ollama model status."},
+             "details": "Add GPU temp, VRAM usage, and Ollama model status.",
+             "furniture": [{"type": "gauge", "x": 0.3, "y": 0.5, "label": "GPU Temps"},
+                           {"type": "dashboard", "x": 0.7, "y": 0.5, "label": "VRAM Usage"}]},
+            {"type": "monitoring", "room": "serverroom", "idea": "Add network traffic monitor to server room", "priority": 2,
+             "details": "Visualize inbound/outbound network traffic and API call rates.",
+             "furniture": [{"type": "globe", "x": 0.5, "y": 0.4, "label": "Traffic Map"}]},
+            {"type": "new_room", "room": "war_room", "idea": "Create incident war room for emergencies", "priority": 2,
+             "details": "Dedicated room for coordinating during outages and critical issues.",
+             "furniture": [{"type": "alert_board", "x": 0.2, "y": 0.3, "label": "Incident Board"},
+                           {"type": "phone", "x": 0.5, "y": 0.3, "label": "Hotline"},
+                           {"type": "shield", "x": 0.8, "y": 0.3, "label": "Defense Status"},
+                           {"type": "clock", "x": 0.5, "y": 0.6, "label": "Uptime Clock"}]},
+            {"type": "new_room", "room": "garden", "idea": "Create rooftop garden for agent relaxation", "priority": 3,
+             "details": "A peaceful space with plants and ambient nature sounds.",
+             "furniture": [{"type": "plant", "x": 0.2, "y": 0.3, "label": "Bonsai"},
+                           {"type": "plant", "x": 0.5, "y": 0.2, "label": "Fern"},
+                           {"type": "water_cooler", "x": 0.8, "y": 0.4, "label": "Fountain"},
+                           {"type": "couch", "x": 0.5, "y": 0.6, "label": "Hammock"}]},
         ]
     },
     "Ralph": {
         "role": "devops", "expertise": ["monitoring", "maintenance", "syscheck"],
         "proposal_pool": [
             {"type": "monitoring", "room": "serverroom", "idea": "Create system health dashboard", "priority": 1,
-             "details": "Monitor CPU, memory, disk across all services."},
-            {"type": "automation", "room": "serverroom", "idea": "Add syscheck pipeline visualization", "priority": 1,
-             "details": "Display recent syscheck runs, alerts, and system health trends."},
-            {"type": "automation", "room": "workspace", "idea": "Add cron job status board", "priority": 2,
-             "details": "Show running/failed cron jobs and their last execution times."},
+             "details": "Monitor CPU, memory, disk across all services.",
+             "furniture": [{"type": "dashboard", "x": 0.3, "y": 0.3, "label": "CPU/RAM"},
+                           {"type": "gauge", "x": 0.7, "y": 0.3, "label": "Disk Usage"}]},
+            {"type": "automation", "room": "workspace", "idea": "Add deployment pipeline tracker", "priority": 1,
+             "details": "Visualize the CI/CD pipeline with build/test/deploy stages.",
+             "furniture": [{"type": "pipeline", "x": 0.3, "y": 0.4, "label": "Build Pipeline"},
+                           {"type": "battery", "x": 0.7, "y": 0.4, "label": "Deploy Status"}]},
+            {"type": "automation", "room": "workspace", "idea": "Install alert escalation board", "priority": 2,
+             "details": "Track alert severity, who's on call, and escalation chains.",
+             "furniture": [{"type": "alert_board", "x": 0.5, "y": 0.3, "label": "Escalations"}]},
+            {"type": "monitoring", "room": "serverroom", "idea": "Add Ollama model health panel", "priority": 1,
+             "details": "Show loaded models, inference speed, and context window usage.",
+             "furniture": [{"type": "terminal", "x": 0.5, "y": 0.5, "label": "Model Status"}]},
+            {"type": "new_room", "room": "ops_center", "idea": "Create ops center with live service dashboards", "priority": 2,
+             "details": "Centralized monitoring for all services: gateway, node, ollama.",
+             "furniture": [{"type": "server_rack", "x": 0.2, "y": 0.3, "label": "Gateway"},
+                           {"type": "server_rack", "x": 0.5, "y": 0.3, "label": "Node Host"},
+                           {"type": "terminal", "x": 0.8, "y": 0.3, "label": "Ollama"},
+                           {"type": "log_stream", "x": 0.5, "y": 0.6, "label": "Log Tail"}]},
+            {"type": "automation", "room": "workspace", "idea": "Add backup status indicator", "priority": 2,
+             "details": "Show latest backup timestamps and verification status.",
+             "furniture": [{"type": "safe", "x": 0.5, "y": 0.4, "label": "Backup Vault"}]},
+            {"type": "monitoring", "room": "serverroom", "idea": "Install network latency tracker", "priority": 2,
+             "details": "Ping times to key services and external APIs.",
+             "furniture": [{"type": "compass", "x": 0.4, "y": 0.5, "label": "Latency Compass"},
+                           {"type": "globe", "x": 0.7, "y": 0.5, "label": "Endpoint Map"}]},
         ]
     },
     "Nova": {
         "role": "artist", "expertise": ["creative_content", "visuals", "theming"],
         "proposal_pool": [
-            {"type": "theming", "room": "workspace", "idea": "Apply consistent visual theme across rooms", "priority": 3,
-             "details": "Use color schemes and furniture to create cohesive look."},
             {"type": "creative", "room": "breakroom", "idea": "Add story corner with sci-fi snippets", "priority": 2,
-             "details": "Show latest generated stories and storybook database stats."},
-            {"type": "creative", "room": "breakroom", "idea": "Create art gallery wall for generated images", "priority": 3,
-             "details": "Display AI-generated artwork and wallpapers."},
+             "details": "Show latest generated stories and storybook database stats.",
+             "furniture": [{"type": "bookshelf", "x": 0.2, "y": 0.3, "label": "Story Corner"},
+                           {"type": "lamp", "x": 0.5, "y": 0.3, "label": "Reading Lamp"}]},
+            {"type": "creative", "room": "breakroom", "idea": "Create art gallery wall for generated images", "priority": 2,
+             "details": "Display AI-generated artwork and wallpapers.",
+             "furniture": [{"type": "easel", "x": 0.3, "y": 0.3, "label": "Art Display"},
+                           {"type": "palette", "x": 0.7, "y": 0.3, "label": "Color Palette"}]},
+            {"type": "new_room", "room": "gallery", "idea": "Build dedicated art gallery room", "priority": 2,
+             "details": "A whole room for displaying generated art, wallpapers, and creative output.",
+             "furniture": [{"type": "easel", "x": 0.15, "y": 0.3, "label": "Canvas 1"},
+                           {"type": "easel", "x": 0.4, "y": 0.3, "label": "Canvas 2"},
+                           {"type": "easel", "x": 0.65, "y": 0.3, "label": "Canvas 3"},
+                           {"type": "trophy", "x": 0.85, "y": 0.3, "label": "Best Of"},
+                           {"type": "lamp", "x": 0.5, "y": 0.6, "label": "Spotlight"}]},
+            {"type": "creative", "room": "breakroom", "idea": "Install jukebox with ambient sounds", "priority": 3,
+             "details": "Background music and sound effects for the office.",
+             "furniture": [{"type": "radio", "x": 0.5, "y": 0.4, "label": "Jukebox"}]},
+            {"type": "new_room", "room": "lounge", "idea": "Create cozy lounge with coffee bar", "priority": 3,
+             "details": "A relaxation space with sofas and beverages.",
+             "furniture": [{"type": "couch", "x": 0.2, "y": 0.3, "label": "Sofa"},
+                           {"type": "coffee", "x": 0.5, "y": 0.3, "label": "Espresso Bar"},
+                           {"type": "plant", "x": 0.8, "y": 0.3, "label": "Ficus"},
+                           {"type": "tv", "x": 0.5, "y": 0.6, "label": "News Feed"}]},
+            {"type": "theming", "room": "workspace", "idea": "Add motivational poster wall", "priority": 3,
+             "details": "Rotating inspirational quotes and team achievements.",
+             "furniture": [{"type": "trophy", "x": 0.5, "y": 0.4, "label": "Wall of Fame"}]},
+            {"type": "creative", "room": "breakroom", "idea": "Set up storybook reading nook", "priority": 2,
+             "details": "Cozy corner to browse the storybook database.",
+             "furniture": [{"type": "bookshelf", "x": 0.3, "y": 0.3, "label": "Storybooks"},
+                           {"type": "lamp", "x": 0.6, "y": 0.3, "label": "Reading Light"},
+                           {"type": "couch", "x": 0.5, "y": 0.6, "label": "Bean Bag"}]},
         ]
     },
     "Claude": {
         "role": "analyst", "expertise": ["reasoning", "architecture", "code_review"],
         "proposal_pool": [
             {"type": "reasoning", "room": "archive", "idea": "Create reasoning logs wall", "priority": 2,
-             "details": "Display recent deep analysis threads and architectural decisions."},
+             "details": "Display recent deep analysis threads and architectural decisions.",
+             "furniture": [{"type": "whiteboard", "x": 0.3, "y": 0.3, "label": "Decision Board"},
+                           {"type": "archive", "x": 0.7, "y": 0.3, "label": "Reasoning Logs"}]},
             {"type": "code_quality", "room": "lab", "idea": "Add code review dashboard", "priority": 2,
-             "details": "Track code quality metrics, tech debt, and review comments."},
+             "details": "Track code quality metrics, tech debt, and review comments.",
+             "furniture": [{"type": "linter", "x": 0.3, "y": 0.3, "label": "Review Queue"},
+                           {"type": "coverage", "x": 0.7, "y": 0.3, "label": "Quality Score"}]},
+            {"type": "new_room", "room": "library", "idea": "Build knowledge library room", "priority": 2,
+             "details": "Central repository for documentation, guides, and learned patterns.",
+             "furniture": [{"type": "bookshelf", "x": 0.15, "y": 0.3, "label": "Docs"},
+                           {"type": "bookshelf", "x": 0.4, "y": 0.3, "label": "Guides"},
+                           {"type": "telescope", "x": 0.65, "y": 0.3, "label": "Research"},
+                           {"type": "desk", "x": 0.85, "y": 0.3, "label": "Study Desk"}]},
+            {"type": "reasoning", "room": "workspace", "idea": "Add architecture diagram board", "priority": 2,
+             "details": "Visual system architecture with component relationships.",
+             "furniture": [{"type": "map", "x": 0.5, "y": 0.4, "label": "System Map"}]},
         ]
     },
     "CodeMaster": {
         "role": "engineer", "expertise": ["code_quality", "testing", "optimization"],
         "proposal_pool": [
             {"type": "code_quality", "room": "lab", "idea": "Add code quality metrics dashboard", "priority": 1,
-             "details": "Show test coverage, lint results, and recent PR stats."},
+             "details": "Show test coverage, lint results, and recent PR stats.",
+             "furniture": [{"type": "linter", "x": 0.2, "y": 0.3, "label": "Lint Results"},
+                           {"type": "coverage", "x": 0.5, "y": 0.3, "label": "Test Coverage"},
+                           {"type": "pr_board", "x": 0.8, "y": 0.3, "label": "PR Stats"}]},
             {"type": "automation", "room": "lab", "idea": "Create CI/CD pipeline monitor", "priority": 2,
-             "details": "Track build status, deployment history, and test results."},
+             "details": "Track build status, deployment history, and test results.",
+             "furniture": [{"type": "pipeline", "x": 0.3, "y": 0.3, "label": "CI Pipeline"},
+                           {"type": "chart", "x": 0.7, "y": 0.3, "label": "Build History"}]},
+            {"type": "automation", "room": "workspace", "idea": "Install automated test runner display", "priority": 2,
+             "details": "Live view of test suite execution and results.",
+             "furniture": [{"type": "terminal", "x": 0.3, "y": 0.4, "label": "Test Runner"},
+                           {"type": "coverage", "x": 0.7, "y": 0.4, "label": "Pass Rate"}]},
+            {"type": "new_room", "room": "forge", "idea": "Build code forge for build artifacts", "priority": 2,
+             "details": "Where code gets compiled, packaged, and deployed.",
+             "furniture": [{"type": "hammer", "x": 0.2, "y": 0.3, "label": "Compiler"},
+                           {"type": "gear", "x": 0.5, "y": 0.3, "label": "Packager"},
+                           {"type": "plug", "x": 0.8, "y": 0.3, "label": "Deployer"},
+                           {"type": "toolbox", "x": 0.5, "y": 0.6, "label": "Build Tools"}]},
         ]
     },
 }
@@ -423,7 +525,6 @@ def _generate_furniture_card(item, color):
     </div>"""
 
 
-@bp.route("/office/huddle/start", methods=["POST"])
 def _execute_plan_impl(huddle_id: str):
     """
     Internal: Execute the selected plan from a huddle.
@@ -469,67 +570,34 @@ def _execute_plan_impl(huddle_id: str):
             except Exception:
                 pass
 
-        # Room color and furniture definitions by type
-        ROOM_CONFIGS = {
-            "new_room": {
-                "color": "#e74c3c",
-                "furniture": [
-                    {"type": "server_rack", "x": 0.2, "y": 0.3, "label": "Gateway"},
-                    {"type": "monitor", "x": 0.5, "y": 0.3, "label": "Metrics"},
-                    {"type": "terminal", "x": 0.8, "y": 0.3, "label": "Console"},
-                ]
-            },
-            "automation": {
-                "color": "#27ae60",
-                "furniture": [
-                    {"type": "pipeline", "x": 0.2, "y": 0.3, "label": "Syscheck Pipeline"},
-                    {"type": "chart", "x": 0.5, "y": 0.3, "label": "Health Trends"},
-                    {"type": "alert_board", "x": 0.8, "y": 0.3, "label": "Alert Board"},
-                    {"type": "cron_board", "x": 0.5, "y": 0.6, "label": "Cron Job Status"},
-                ]
-            },
-            "monitoring": {
-                "color": "#2980b9",
-                "furniture": [
-                    {"type": "dashboard", "x": 0.3, "y": 0.3, "label": "CPU/RAM Monitor"},
-                    {"type": "gauge", "x": 0.6, "y": 0.3, "label": "Disk Usage"},
-                    {"type": "log_stream", "x": 0.8, "y": 0.5, "label": "Live Logs"},
-                ]
-            },
-            "creative": {
-                "color": "#8e44ad",
-                "furniture": [
-                    {"type": "bookshelf", "x": 0.2, "y": 0.3, "label": "Story Corner"},
-                    {"type": "easel", "x": 0.5, "y": 0.3, "label": "Art Display"},
-                    {"type": "speaker", "x": 0.8, "y": 0.3, "label": "TTS Speaker"},
-                ]
-            },
-            "theming": {
-                "color": "#e67e22",
-                "furniture": [
-                    {"type": "palette", "x": 0.3, "y": 0.3, "label": "Theme Palette"},
-                    {"type": "preview", "x": 0.6, "y": 0.3, "label": "Theme Preview"},
-                ]
-            },
-            "reasoning": {
-                "color": "#7f8c8d",
-                "furniture": [
-                    {"type": "whiteboard", "x": 0.3, "y": 0.3, "label": "Decision Board"},
-                    {"type": "archive", "x": 0.7, "y": 0.3, "label": "Reasoning Logs"},
-                ]
-            },
-            "code_quality": {
-                "color": "#9b59b6",
-                "furniture": [
-                    {"type": "linter", "x": 0.2, "y": 0.3, "label": "Lint Results"},
-                    {"type": "coverage", "x": 0.5, "y": 0.3, "label": "Test Coverage"},
-                    {"type": "pr_board", "x": 0.8, "y": 0.3, "label": "PR Stats"},
-                ]
-            },
+        # Color defaults by plan type
+        TYPE_COLORS = {
+            "new_room": "#e74c3c", "automation": "#27ae60", "monitoring": "#2980b9",
+            "creative": "#8e44ad", "theming": "#e67e22", "reasoning": "#7f8c8d",
+            "code_quality": "#9b59b6",
+        }
+
+        # Fallback furniture if proposal doesn't include any
+        FALLBACK_FURNITURE = {
+            "new_room": [{"type": "desk", "x": 0.3, "y": 0.3, "label": "Workstation"},
+                         {"type": "lamp", "x": 0.7, "y": 0.3, "label": "Lamp"}],
+            "automation": [{"type": "pipeline", "x": 0.3, "y": 0.3, "label": "Pipeline"},
+                           {"type": "gear", "x": 0.7, "y": 0.3, "label": "Automation"}],
+            "monitoring": [{"type": "dashboard", "x": 0.3, "y": 0.3, "label": "Monitor"},
+                           {"type": "gauge", "x": 0.7, "y": 0.3, "label": "Gauge"}],
+            "creative": [{"type": "easel", "x": 0.3, "y": 0.3, "label": "Canvas"},
+                         {"type": "palette", "x": 0.7, "y": 0.3, "label": "Palette"}],
         }
 
         plan_type = plan.get("type", "new_room")
-        room_config = ROOM_CONFIGS.get(plan_type, ROOM_CONFIGS["new_room"])
+
+        # Use furniture from proposal if available, otherwise use fallback
+        plan_furniture = plan.get("furniture")
+        if plan_furniture:
+            room_config = {"color": TYPE_COLORS.get(plan_type, "#95a5a6"), "furniture": plan_furniture}
+        else:
+            fallback = FALLBACK_FURNITURE.get(plan_type, FALLBACK_FURNITURE["new_room"])
+            room_config = {"color": TYPE_COLORS.get(plan_type, "#95a5a6"), "furniture": fallback}
 
         # Ensure room exists in rooms.json
         existing_room = next((r for r in existing_rooms.get("rooms", []) if r.get("id") == room_name), None)
@@ -620,6 +688,7 @@ def _execute_plan_impl(huddle_id: str):
         return False, [f"Execution error: {e}"]
 
 
+@bp.route("/office/huddle/start", methods=["POST"])
 def start_huddle():
     """
     Trigger a daily collaboration huddle.
@@ -820,67 +889,34 @@ def execute_plan(huddle_id):
             except Exception:
                 pass
 
-        # Room color and furniture definitions by type
-        ROOM_CONFIGS = {
-            "new_room": {
-                "color": "#e74c3c",
-                "furniture": [
-                    {"type": "server_rack", "x": 0.2, "y": 0.3, "label": "Gateway"},
-                    {"type": "monitor", "x": 0.5, "y": 0.3, "label": "Metrics"},
-                    {"type": "terminal", "x": 0.8, "y": 0.3, "label": "Console"},
-                ]
-            },
-            "automation": {
-                "color": "#27ae60",
-                "furniture": [
-                    {"type": "pipeline", "x": 0.2, "y": 0.3, "label": "Syscheck Pipeline"},
-                    {"type": "chart", "x": 0.5, "y": 0.3, "label": "Health Trends"},
-                    {"type": "alert_board", "x": 0.8, "y": 0.3, "label": "Alert Board"},
-                    {"type": "cron_board", "x": 0.5, "y": 0.6, "label": "Cron Job Status"},
-                ]
-            },
-            "monitoring": {
-                "color": "#2980b9",
-                "furniture": [
-                    {"type": "dashboard", "x": 0.3, "y": 0.3, "label": "CPU/RAM Monitor"},
-                    {"type": "gauge", "x": 0.6, "y": 0.3, "label": "Disk Usage"},
-                    {"type": "log_stream", "x": 0.8, "y": 0.5, "label": "Live Logs"},
-                ]
-            },
-            "creative": {
-                "color": "#8e44ad",
-                "furniture": [
-                    {"type": "bookshelf", "x": 0.2, "y": 0.3, "label": "Story Corner"},
-                    {"type": "easel", "x": 0.5, "y": 0.3, "label": "Art Display"},
-                    {"type": "speaker", "x": 0.8, "y": 0.3, "label": "TTS Speaker"},
-                ]
-            },
-            "theming": {
-                "color": "#e67e22",
-                "furniture": [
-                    {"type": "palette", "x": 0.3, "y": 0.3, "label": "Theme Palette"},
-                    {"type": "preview", "x": 0.6, "y": 0.3, "label": "Theme Preview"},
-                ]
-            },
-            "reasoning": {
-                "color": "#7f8c8d",
-                "furniture": [
-                    {"type": "whiteboard", "x": 0.3, "y": 0.3, "label": "Decision Board"},
-                    {"type": "archive", "x": 0.7, "y": 0.3, "label": "Reasoning Logs"},
-                ]
-            },
-            "code_quality": {
-                "color": "#9b59b6",
-                "furniture": [
-                    {"type": "linter", "x": 0.2, "y": 0.3, "label": "Lint Results"},
-                    {"type": "coverage", "x": 0.5, "y": 0.3, "label": "Test Coverage"},
-                    {"type": "pr_board", "x": 0.8, "y": 0.3, "label": "PR Stats"},
-                ]
-            },
+        # Color defaults by plan type
+        TYPE_COLORS = {
+            "new_room": "#e74c3c", "automation": "#27ae60", "monitoring": "#2980b9",
+            "creative": "#8e44ad", "theming": "#e67e22", "reasoning": "#7f8c8d",
+            "code_quality": "#9b59b6",
+        }
+
+        # Fallback furniture if proposal doesn't include any
+        FALLBACK_FURNITURE = {
+            "new_room": [{"type": "desk", "x": 0.3, "y": 0.3, "label": "Workstation"},
+                         {"type": "lamp", "x": 0.7, "y": 0.3, "label": "Lamp"}],
+            "automation": [{"type": "pipeline", "x": 0.3, "y": 0.3, "label": "Pipeline"},
+                           {"type": "gear", "x": 0.7, "y": 0.3, "label": "Automation"}],
+            "monitoring": [{"type": "dashboard", "x": 0.3, "y": 0.3, "label": "Monitor"},
+                           {"type": "gauge", "x": 0.7, "y": 0.3, "label": "Gauge"}],
+            "creative": [{"type": "easel", "x": 0.3, "y": 0.3, "label": "Canvas"},
+                         {"type": "palette", "x": 0.7, "y": 0.3, "label": "Palette"}],
         }
 
         plan_type = plan.get("type", "new_room")
-        room_config = ROOM_CONFIGS.get(plan_type, ROOM_CONFIGS["new_room"])
+
+        # Use furniture from proposal if available, otherwise use fallback
+        plan_furniture = plan.get("furniture")
+        if plan_furniture:
+            room_config = {"color": TYPE_COLORS.get(plan_type, "#95a5a6"), "furniture": plan_furniture}
+        else:
+            fallback = FALLBACK_FURNITURE.get(plan_type, FALLBACK_FURNITURE["new_room"])
+            room_config = {"color": TYPE_COLORS.get(plan_type, "#95a5a6"), "furniture": fallback}
 
         # Ensure room exists in rooms.json
         existing_room = next((r for r in existing_rooms.get("rooms", []) if r.get("id") == room_name), None)
@@ -1050,23 +1086,28 @@ def list_decisions():
 def list_rooms():
     """
     List available rooms in the office.
-    Currently defined rooms map to zones in the frontend.
+    Merges base rooms with dynamic rooms from rooms.json (no duplicates).
     """
-    rooms = [
+    base_rooms = [
         {"id": "workspace", "name": "Work Zone", "color": "#4a90d9", "states": ["writing", "researching", "executing", "syncing"]},
         {"id": "breakroom", "name": "Break Room", "color": "#2ecc71", "states": ["idle"]},
         {"id": "bugarea", "name": "Bug Isolation", "color": "#e74c3c", "states": ["error"]},
     ]
 
-    # Check for additional room configs in assets
-    # Could load from a rooms.json if it exists
+    # Load dynamic rooms from rooms.json
     extra_rooms_file = Path(cfg.FRONTEND_DIR) / "rooms.json"
     if extra_rooms_file.exists():
         try:
             extra = json.loads(extra_rooms_file.read_text())
-            rooms.extend(extra.get("rooms", []))
+            extra_list = extra.get("rooms", [])
+            # Dynamic rooms override base rooms with same id (they have more data)
+            extra_ids = {r["id"] for r in extra_list}
+            rooms = [r for r in base_rooms if r["id"] not in extra_ids]
+            rooms.extend(extra_list)
         except Exception:
-            pass
+            rooms = base_rooms
+    else:
+        rooms = base_rooms
 
     return jsonify({"rooms": rooms})
 

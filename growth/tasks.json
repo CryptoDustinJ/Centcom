@@ -629,7 +629,70 @@
       ],
       "dependencies": [],
       "progress": 0
+    },
+    {
+      "id": "task_0029",
+      "title": "Create reasoning logs wall",
+      "description": "Display recent deep analysis threads and architectural decisions.",
+      "room": "archive",
+      "type": "reasoning",
+      "status": "open",
+      "points": 25,
+      "assignee": "Claude",
+      "assignee_id": "18833b31a29d",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-12T22:10:27.940262",
+      "assigned_at": "2026-03-12T22:10:27.940266",
+      "completed_at": null,
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0030",
+      "title": "Create ops center with live service dashboards",
+      "description": "Centralized monitoring for all services: gateway, node, ollama.",
+      "room": "ops_center",
+      "type": "new_room",
+      "status": "open",
+      "points": 25,
+      "assignee": "Ralph",
+      "assignee_id": "bab1b40d2d7a",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-12T22:10:27.940274",
+      "assigned_at": "2026-03-12T22:10:27.940276",
+      "completed_at": null,
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0031",
+      "title": "Add code quality metrics dashboard",
+      "description": "Show test coverage, lint results, and recent PR stats.",
+      "room": "lab",
+      "type": "code_quality",
+      "status": "open",
+      "points": 25,
+      "assignee": "CodeMaster",
+      "assignee_id": "bfda1de238c8",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-12T22:10:27.940281",
+      "assigned_at": "2026-03-12T22:10:27.940283",
+      "completed_at": null,
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 0
     }
   ],
-  "next_id": 29
+  "next_id": 32
 }

@@ -20,6 +20,7 @@ AGENT_KEYS = {
     "Rook": "ocj_rook_001",
     "Ralph": "ocj_ralph_002",
     "Nova": "ocj_nova_003",
+    "Claude": "ocj_claude_004",
     "CodeMaster": "ocj_codemaster_005"
 }
 

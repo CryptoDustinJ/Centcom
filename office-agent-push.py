@@ -16,9 +16,10 @@ import sys
 from datetime import datetime
 
 # === 你需要填入的信息 ===
-JOIN_KEY = ""   # Required: your one-time join key
-AGENT_NAME = "" # Required: your name as displayed in the office
-OFFICE_URL = "https://office.hyacinth.im"  # Office URL (usually don't change)
+# 通过环境变量设置 (推荐) 或在此处硬编码
+JOIN_KEY = os.environ.get("JOIN_KEY", "")   # Required: your one-time join key
+AGENT_NAME = os.environ.get("AGENT_NAME", "") # Required: your name as displayed in the office
+OFFICE_URL = os.environ.get("OFFICE_URL", "http://127.0.0.1:19000")  # Office URL (default: local)
 
 # === 推送配置 ===
 PUSH_INTERVAL_SECONDS = 15  # 每隔多少秒推送一次（更实时）

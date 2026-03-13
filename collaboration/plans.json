@@ -1202,8 +1202,134 @@
       ],
       "completed": true,
       "completed_at": "2026-03-12T18:33:06.494940"
+    },
+    {
+      "id": "huddle_20260312_1954",
+      "timestamp": "2026-03-12T19:54:03.286064",
+      "agents": [],
+      "status": "planning",
+      "proposals": [],
+      "selected_plan": null,
+      "execution_log": [],
+      "completed": false
+    },
+    {
+      "id": "huddle_20260312_1954",
+      "timestamp": "2026-03-12T19:54:46.014510",
+      "agents": [],
+      "status": "planning",
+      "proposals": [],
+      "selected_plan": null,
+      "execution_log": [],
+      "completed": false
+    },
+    {
+      "id": "huddle_20260312_2210",
+      "timestamp": "2026-03-12T22:10:27.916589",
+      "agents": [
+        "Rook",
+        "Claude",
+        "Ralph",
+        "Nova",
+        "CodeMaster"
+      ],
+      "status": "approved",
+      "proposals": [
+        {
+          "agent": "Rook",
+          "type": "new_room",
+          "room": "garden",
+          "idea": "Create rooftop garden for agent relaxation",
+          "priority": 3,
+          "details": "A peaceful space with plants and ambient nature sounds.",
+          "reasoning": "As a architect with expertise in rooms, layout, integration, I analyzed: agents=6, tasks=28, rooms=5, disk=901.7 GB. Suggested new_room.\n\n[Context snapshot]: agents=6, tasks=28, rooms=5, disk=901.7 GB, top_agent=CodeMaster",
+          "agentId": "8c0ca478e96b",
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending"
+        },
+        {
+          "agent": "Claude",
+          "type": "reasoning",
+          "room": "archive",
+          "idea": "Create reasoning logs wall",
+          "priority": 2,
+          "details": "Display recent deep analysis threads and architectural decisions.",
+          "reasoning": "As a analyst with expertise in reasoning, architecture, code_review, I analyzed: agents=6, tasks=28, rooms=5, disk=901.7 GB. Suggested reasoning.\n\n[Context snapshot]: agents=6, tasks=28, rooms=5, disk=901.7 GB, top_agent=CodeMaster",
+          "agentId": "18833b31a29d",
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending"
+        },
+        {
+          "agent": "Ralph",
+          "type": "new_room",
+          "room": "ops_center",
+          "idea": "Create ops center with live service dashboards",
+          "priority": 2,
+          "details": "Centralized monitoring for all services: gateway, node, ollama.",
+          "reasoning": "As a devops with expertise in monitoring, maintenance, syscheck, I analyzed: agents=6, tasks=28, rooms=5, disk=901.7 GB. Suggested new_room.\n\n[Context snapshot]: agents=6, tasks=28, rooms=5, disk=901.7 GB, top_agent=CodeMaster",
+          "agentId": "bab1b40d2d7a",
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending"
+        },
+        {
+          "agent": "Nova",
+          "type": "new_room",
+          "room": "lounge",
+          "idea": "Create cozy lounge with coffee bar",
+          "priority": 3,
+          "details": "A relaxation space with sofas and beverages.",
+          "reasoning": "As a artist with expertise in creative_content, visuals, theming, I analyzed: agents=6, tasks=28, rooms=5, disk=901.7 GB. Suggested new_room.\n\n[Context snapshot]: agents=6, tasks=28, rooms=5, disk=901.7 GB, top_agent=CodeMaster",
+          "agentId": "a7baa8243532",
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending"
+        },
+        {
+          "agent": "CodeMaster",
+          "type": "code_quality",
+          "room": "lab",
+          "idea": "Add code quality metrics dashboard",
+          "priority": 1,
+          "details": "Show test coverage, lint results, and recent PR stats.",
+          "reasoning": "As a engineer with expertise in code_quality, testing, optimization, I analyzed: agents=6, tasks=28, rooms=5, disk=901.7 GB. Suggested code_quality.\n\n[Context snapshot]: agents=6, tasks=28, rooms=5, disk=901.7 GB, top_agent=CodeMaster",
+          "agentId": "bfda1de238c8",
+          "requires": [
+            "exec",
+            "git"
+          ],
+          "status": "pending"
+        }
+      ],
+      "selected_plan": {
+        "agent": "CodeMaster",
+        "type": "code_quality",
+        "room": "lab",
+        "idea": "Add code quality metrics dashboard",
+        "priority": 1,
+        "details": "Show test coverage, lint results, and recent PR stats.",
+        "reasoning": "As a engineer with expertise in code_quality, testing, optimization, I analyzed: agents=6, tasks=28, rooms=5, disk=901.7 GB. Suggested code_quality.\n\n[Context snapshot]: agents=6, tasks=28, rooms=5, disk=901.7 GB, top_agent=CodeMaster",
+        "agentId": "bfda1de238c8",
+        "requires": [
+          "exec",
+          "git"
+        ],
+        "status": "pending"
+      },
+      "execution_log": [],
+      "completed": false
     }
   ],
-  "last_huddle": "2026-03-12T18:16:24.873405",
+  "last_huddle": "2026-03-12T22:10:27.916589",
   "version": 1
 }
