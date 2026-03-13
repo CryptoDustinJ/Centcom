@@ -1,0 +1,172 @@
+{
+  "huddle_id": "huddle_20260312_2211",
+  "timestamp": "2026-03-12T22:11:49.082188",
+  "agents": [
+    "Rook",
+    "Claude",
+    "Ralph",
+    "Nova"
+  ],
+  "context_snapshot": {
+    "timestamp": "2026-03-12T22:11:49.092321",
+    "agents": {
+      "total": 5,
+      "by_state": {
+        "writing": 1,
+        "idle": 4
+      },
+      "active": 5
+    },
+    "tasks": {
+      "total": 33,
+      "open": 21,
+      "in_progress": 4,
+      "completed": 8,
+      "overdue": 0
+    },
+    "git": {
+      "branch": "master",
+      "dirty": true,
+      "recent_commits": 10
+    },
+    "rooms": {
+      "total": 6,
+      "list": [
+        {
+          "id": "serverroom",
+          "name": "Serverroom"
+        },
+        {
+          "id": "lobby",
+          "name": "Metrics Lobby"
+        },
+        {
+          "id": "observatory",
+          "name": "Observatory"
+        },
+        {
+          "id": "breakroom",
+          "name": "Breakroom"
+        },
+        {
+          "id": "workspace",
+          "name": "Workspace"
+        },
+        {
+          "id": "lab",
+          "name": "Lab"
+        }
+      ]
+    },
+    "growth": {
+      "total_contributions": 705,
+      "top_agent": "CodeMaster",
+      "leaderboard": [
+        {
+          "name": "CodeMaster",
+          "score": 380
+        },
+        {
+          "name": "Rook",
+          "score": 150
+        },
+        {
+          "name": "Ralph",
+          "score": 70
+        },
+        {
+          "name": "Nova",
+          "score": 65
+        },
+        {
+          "name": "Star",
+          "score": 40
+        }
+      ]
+    },
+    "system": {
+      "disk_free_gb": 901.7,
+      "uptime_days": 0
+    }
+  },
+  "proposals": [
+    {
+      "agent": "Rook",
+      "type": "new_room",
+      "room": "archive",
+      "idea": "Create archive room for decision history",
+      "priority": 2,
+      "details": "Store and display architectural decisions and reasoning logs.",
+      "reasoning": "As a architect with expertise in rooms, layout, integration, I analyzed: agents=5, tasks=33, rooms=6, disk=901.7 GB. Suggested new_room.\n\n[Context snapshot]: agents=5, tasks=33, rooms=6, disk=901.7 GB, top_agent=CodeMaster",
+      "agentId": "8c0ca478e96b",
+      "requires": [
+        "exec",
+        "git"
+      ],
+      "status": "pending"
+    },
+    {
+      "agent": "Claude",
+      "type": "reasoning",
+      "room": "archive",
+      "idea": "Create reasoning logs wall",
+      "priority": 2,
+      "details": "Display recent deep analysis threads and architectural decisions.",
+      "reasoning": "As a analyst with expertise in reasoning, architecture, code_review, I analyzed: agents=5, tasks=33, rooms=6, disk=901.7 GB. Suggested reasoning.\n\n[Context snapshot]: agents=5, tasks=33, rooms=6, disk=901.7 GB, top_agent=CodeMaster",
+      "agentId": "18833b31a29d",
+      "requires": [
+        "exec",
+        "git"
+      ],
+      "status": "pending"
+    },
+    {
+      "agent": "Ralph",
+      "type": "new_room",
+      "room": "ops_center",
+      "idea": "Create ops center with live service dashboards",
+      "priority": 2,
+      "details": "Centralized monitoring for all services: gateway, node, ollama.",
+      "reasoning": "As a devops with expertise in monitoring, maintenance, syscheck, I analyzed: agents=5, tasks=33, rooms=6, disk=901.7 GB. Suggested new_room.\n\n[Context snapshot]: agents=5, tasks=33, rooms=6, disk=901.7 GB, top_agent=CodeMaster",
+      "agentId": "bab1b40d2d7a",
+      "requires": [
+        "exec",
+        "git"
+      ],
+      "status": "pending"
+    },
+    {
+      "agent": "Nova",
+      "type": "new_room",
+      "room": "gallery",
+      "idea": "Build dedicated art gallery room",
+      "priority": 2,
+      "details": "A whole room for displaying generated art, wallpapers, and creative output.",
+      "reasoning": "As a artist with expertise in creative_content, visuals, theming, I analyzed: agents=5, tasks=33, rooms=6, disk=901.7 GB. Suggested new_room.\n\n[Context snapshot]: agents=5, tasks=33, rooms=6, disk=901.7 GB, top_agent=CodeMaster",
+      "agentId": "a7baa8243532",
+      "requires": [
+        "exec",
+        "git"
+      ],
+      "status": "pending"
+    }
+  ],
+  "selected_plan": {
+    "agent": "Rook",
+    "type": "new_room",
+    "room": "archive",
+    "idea": "Create archive room for decision history",
+    "priority": 2,
+    "details": "Store and display architectural decisions and reasoning logs.",
+    "reasoning": "As a architect with expertise in rooms, layout, integration, I analyzed: agents=5, tasks=33, rooms=6, disk=901.7 GB. Suggested new_room.\n\n[Context snapshot]: agents=5, tasks=33, rooms=6, disk=901.7 GB, top_agent=CodeMaster",
+    "agentId": "8c0ca478e96b",
+    "requires": [
+      "exec",
+      "git"
+    ],
+    "status": "pending"
+  },
+  "status": "approved",
+  "execution_log": [],
+  "completed": false
+}

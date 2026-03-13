@@ -692,7 +692,91 @@
       ],
       "dependencies": [],
       "progress": 0
+    },
+    {
+      "id": "task_0032",
+      "title": "Build knowledge library room",
+      "description": "Central repository for documentation, guides, and learned patterns.",
+      "room": "library",
+      "type": "new_room",
+      "status": "open",
+      "points": 25,
+      "assignee": "Claude",
+      "assignee_id": "18833b31a29d",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-12T22:10:42.696546",
+      "assigned_at": "2026-03-12T22:10:42.696551",
+      "completed_at": null,
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0033",
+      "title": "Build code forge for build artifacts",
+      "description": "Where code gets compiled, packaged, and deployed.",
+      "room": "forge",
+      "type": "new_room",
+      "status": "open",
+      "points": 25,
+      "assignee": "CodeMaster",
+      "assignee_id": "bfda1de238c8",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-12T22:10:42.696563",
+      "assigned_at": "2026-03-12T22:10:42.696564",
+      "completed_at": null,
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0034",
+      "title": "Create archive room for decision history",
+      "description": "Store and display architectural decisions and reasoning logs.",
+      "room": "archive",
+      "type": "new_room",
+      "status": "open",
+      "points": 25,
+      "assignee": "Rook",
+      "assignee_id": "8c0ca478e96b",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-12T22:11:49.101848",
+      "assigned_at": "2026-03-12T22:11:49.101851",
+      "completed_at": null,
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0035",
+      "title": "Build dedicated art gallery room",
+      "description": "A whole room for displaying generated art, wallpapers, and creative output.",
+      "room": "gallery",
+      "type": "new_room",
+      "status": "open",
+      "points": 25,
+      "assignee": "Nova",
+      "assignee_id": "a7baa8243532",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-12T22:11:49.101864",
+      "assigned_at": "2026-03-12T22:11:49.101866",
+      "completed_at": null,
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 0
     }
   ],
-  "next_id": 32
+  "next_id": 36
 }
