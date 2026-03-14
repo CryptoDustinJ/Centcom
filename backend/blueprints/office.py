@@ -889,6 +889,12 @@ def huddle_active():
         huddle_state_file = Path(cfg.ROOT_DIR) / "huddle-active.json"
         if huddle_state_file.exists():
             data = json.loads(huddle_state_file.read_text())
+            # Auto-expire stale huddles (>5 minutes old)
+            if data.get("active") and data.get("started_at"):
+                started = datetime.fromisoformat(data["started_at"])
+                if (datetime.now() - started).total_seconds() > 300:
+                    data["active"] = False
+                    huddle_state_file.write_text(json.dumps(data, indent=2))
             return jsonify(data)
     except Exception:
         pass

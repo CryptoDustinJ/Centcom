@@ -484,7 +484,7 @@ def agent_push():
 def agent_messages():
     """Get recent chat messages from OpenClaw agent sessions for the live chat feed."""
     try:
-        limit = min(int(request.args.get("limit", 25)), 50)
+        limit = min(int(request.args.get("limit", 75)), 150)
         messages = _read_recent_agent_messages(limit)
         return jsonify({"ok": True, "messages": messages})
     except Exception as e:
@@ -746,53 +746,115 @@ def list_dispatch_commands():
         {"id": "wallpaper", "label": "New Wallpaper", "icon": "🎨", "category": "fun"},
     ]
     return jsonify({"ok": True, "commands": commands})
+_DUSTIN_DISCORD_USER_ID = "313414798312210433"
+
+# Each agent sends DMs from their own Discord bot account to Dustin
+# dm_channel is the DM channel ID between each bot and Dustin
 _OPENCLAW_AGENT_MAP = {
-    "rook": {"discord_account": "rook", "target": "dustin"},
-    "ralph": {"discord_account": "ralph", "target": "dustin"},
-    "nova": {"discord_account": "nova", "target": "dustin"},
+    "rook":       {"discord_account": "default",    "dm_channel": "1475971933462859978"},
+    "ralph":      {"discord_account": "worker",     "dm_channel": "1478993205914636359"},
+    "nova":       {"discord_account": "nova",       "dm_channel": "1481054894495371274"},
+    "codemaster": {"discord_account": "codemaster", "dm_channel": "1481459844061073490"},
 }
 
 
-def _dispatch_to_openclaw(agent_name: str, message: str) -> tuple[bool, str]:
-    """Send a message to an OpenClaw agent via the openclaw CLI.
+_OPENCLAW_AGENT_IDS = {
+    "rook": "main",
+    "ralph": "ralph",
+    "nova": "nova",
+    "codemaster": "codemaster",
+}
 
-    Returns (success, result_message).
+
+_DISCORD_CHANNEL_ID = "483749214568972290"
+
+# Agents whose models don't support `openclaw agent` (e.g. custom Ollama GGUF)
+# These fall back to Discord channel mention and async reply via DM polling.
+_CHANNEL_ONLY_AGENTS = {"ralph"}
+
+
+def _dispatch_to_openclaw(agent_name: str, message: str) -> tuple[bool, str]:
+    """Send a message to an OpenClaw agent and get the reply.
+
+    For most agents, uses `openclaw agent` for a direct turn with immediate reply,
+    delivered to Dustin's Discord DM.
+
+    For agents with custom models that don't support native tools (e.g. Ralph),
+    falls back to posting in the Discord channel with @mention so the patched
+    node host can process it via text-based tool parsing.
+
+    Returns (success, reply_text_or_error).
     """
     import subprocess
+    import json as _json
 
     agent_key = agent_name.lower()
     mapping = _OPENCLAW_AGENT_MAP.get(agent_key)
-    if not mapping:
+    agent_id = _OPENCLAW_AGENT_IDS.get(agent_key)
+    if not mapping or not agent_id:
         return False, f"Unknown agent: {agent_name}"
 
-    discord_account = mapping["discord_account"]
-    target = mapping["target"]
-
-    # Use Homebrew node (system node 18.x is too old for OpenClaw)
     env = os.environ.copy()
     env["PATH"] = "/home/linuxbrew/.linuxbrew/bin:" + env.get("PATH", "")
 
+    # DM-only agents: send DM from their bot account to Dustin (async, no immediate reply)
+    # These agents use custom models that don't support `openclaw agent` CLI tool calls.
+    # The agent will see the DM and respond via the node host's patched text-based parsing.
+    if agent_key in _CHANNEL_ONLY_AGENTS:
+        try:
+            result = subprocess.run(
+                [
+                    "openclaw", "message", "send",
+                    "--channel", "discord",
+                    "--account", mapping["discord_account"],
+                    "--target", f"user:{_DUSTIN_DISCORD_USER_ID}",
+                    "--message", message,
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=15,
+                env=env,
+            )
+            if result.returncode == 0:
+                return True, ""  # empty reply = async, frontend will show "waiting"
+            else:
+                return False, f"CLI error: {result.stderr[:200]}"
+        except subprocess.TimeoutExpired:
+            return False, "Dispatch timed out"
+        except Exception as e:
+            return False, str(e)
+
+    # Direct agent turn with immediate reply
     try:
         result = subprocess.run(
             [
-                "openclaw", "message", "send",
-                "--channel", "discord",
-                "--account", discord_account,
-                "--target", target,
+                "openclaw", "agent",
+                "--agent", agent_id,
                 "--message", message,
+                "--deliver",
+                "--reply-channel", "discord",
+                "--reply-account", mapping["discord_account"],
+                "--reply-to", f"user:{_DUSTIN_DISCORD_USER_ID}",
                 "--json",
             ],
             capture_output=True,
             text=True,
-            timeout=15,
+            timeout=120,
             env=env,
         )
         if result.returncode == 0:
-            return True, "Dispatched successfully"
+            try:
+                data = _json.loads(result.stdout)
+                payloads = data.get("result", {}).get("payloads", [])
+                reply_text = payloads[0].get("text", "") if payloads else ""
+                return True, reply_text
+            except Exception:
+                return True, "(reply received but could not parse)"
         else:
             return False, f"CLI error: {result.stderr[:200]}"
     except subprocess.TimeoutExpired:
-        return False, "Dispatch timed out"
+        return False, "Agent timed out (120s)"
     except FileNotFoundError:
         return False, "openclaw CLI not found"
     except Exception as e:
@@ -976,17 +1038,93 @@ def send_message(agent_id):
             ip=request.remote_addr,
         )
 
-        # Dispatch message to OpenClaw agent
+        # Dispatch message to OpenClaw agent and get reply
         agent_name = agent.get("name", "")
         if agent_name:
             ok, result = _dispatch_to_openclaw(agent_name, message)
             if not ok:
                 current_app.logger.warning(f"OpenClaw dispatch failed for {agent_name}: {result}")
-                return jsonify({"ok": True, "msg": f"Message logged (dispatch failed: {result})"})
+                return jsonify({"ok": True, "msg": f"Message logged (dispatch failed: {result})", "reply": None})
+            return jsonify({"ok": True, "msg": "Message sent", "reply": result})
 
-        return jsonify({"ok": True, "msg": "Message sent"})
+        return jsonify({"ok": True, "msg": "Message sent", "reply": None})
     except Exception as e:
         current_app.logger.error(f"Send message error: {e}", exc_info=True)
+        return jsonify({"ok": False, "msg": str(e)}), 500
+
+
+@bp.route("/agents/<agent_id>/dm-replies", methods=["GET"])
+@rate_limit(30, 60)
+def dm_replies(agent_id):
+    """Read recent DM replies from an agent to Dustin."""
+    import subprocess as _sp
+
+    agents = load_agents_state()
+    agent = next((a for a in agents if a.get("agentId") == agent_id), None)
+    if not agent:
+        return jsonify({"ok": False, "msg": "Agent not found"}), 404
+
+    agent_name = (agent.get("name") or "").lower()
+    mapping = _OPENCLAW_AGENT_MAP.get(agent_name)
+    if not mapping:
+        return jsonify({"ok": False, "msg": "No Discord account for agent"}), 400
+
+    since = request.args.get("since", "")  # ISO timestamp to filter
+
+    env = os.environ.copy()
+    env["PATH"] = "/home/linuxbrew/.linuxbrew/bin:" + env.get("PATH", "")
+
+    dm_channel = mapping.get("dm_channel")
+    if not dm_channel:
+        return jsonify({"ok": False, "msg": "No DM channel configured"}), 400
+
+    try:
+        result = _sp.run(
+            [
+                "openclaw", "message", "read",
+                "--channel", "discord",
+                "--account", mapping["discord_account"],
+                "--target", f"channel:{dm_channel}",
+                "--limit", "5",
+                "--json",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+            env=env,
+        )
+        if result.returncode != 0:
+            return jsonify({"ok": False, "msg": "Failed to read DMs"}), 500
+
+        import json as _json
+        data = _json.loads(result.stdout)
+        raw_msgs = data.get("payload", {}).get("messages", data.get("messages", []))
+
+        replies = []
+        for m in raw_msgs:
+            author = m.get("author", {})
+            # Only include messages FROM the bot (not from Dustin)
+            if author.get("id") == _DUSTIN_DISCORD_USER_ID:
+                continue
+            content = m.get("content", "").strip()
+            if not content:
+                continue
+            ts = m.get("timestamp", "")
+            # Filter by since if provided
+            if since and ts and ts < since:
+                continue
+            replies.append({
+                "text": content[:500],
+                "timestamp": ts,
+                "messageId": m.get("id", ""),
+            })
+
+        # Newest first (Discord default), take last 10
+        return jsonify({"ok": True, "replies": replies[:10]})
+
+    except _sp.TimeoutExpired:
+        return jsonify({"ok": False, "msg": "Timeout reading DMs"}), 504
+    except Exception as e:
         return jsonify({"ok": False, "msg": str(e)}), 500
 
 

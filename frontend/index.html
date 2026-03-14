@@ -974,7 +974,7 @@
         #chat-feed-panel {
             position: relative;
             width: 460px;
-            height: 300px;
+            height: 480px;
             background: #111827;
             border: 4px solid #0e1119;
             padding: 10px 10px 8px;
@@ -1877,9 +1877,305 @@
         #task-list::-webkit-scrollbar-track, .memory-list::-webkit-scrollbar-track, .console-output::-webkit-scrollbar-track, #command-results::-webkit-scrollbar-track, #activity-log::-webkit-scrollbar-track {
             background: #0b1220;
         }
+        /* In-game browser window */
+        .ig-browser {
+            display: none;
+            position: fixed;
+            z-index: 100000;
+            background: #1a1a2e;
+            border: 3px solid #3ec6e0;
+            border-radius: 6px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            min-width: 320px;
+            min-height: 240px;
+            resize: both;
+            overflow: hidden;
+        }
+        .ig-browser-titlebar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0e1119;
+            padding: 4px 8px;
+            cursor: move;
+            user-select: none;
+            border-bottom: 2px solid #3ec6e0;
+        }
+        .ig-browser-title {
+            color: #3ec6e0;
+            font-family: 'ArkPixel', monospace;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+        .ig-browser-close {
+            background: #e94560;
+            border: none;
+            color: #fff;
+            font-family: 'ArkPixel', monospace;
+            font-size: 14px;
+            width: 22px;
+            height: 22px;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .ig-browser-close:hover { background: #ff2244; }
+        .ig-browser-content {
+            width: 100%;
+            height: calc(100% - 30px);
+            overflow: auto;
+            padding: 10px;
+            font-family: 'ArkPixel', 'Courier New', monospace;
+            font-size: 11px;
+            color: #d4d4d4;
+            background: #111827;
+        }
+        .ig-browser-content::-webkit-scrollbar { width: 6px; }
+        .ig-browser-content::-webkit-scrollbar-track { background: #111827; }
+        .ig-browser-content::-webkit-scrollbar-thumb { background: #3ec6e0; border-radius: 3px; }
+
+        /* Agent direct chat box */
+        .agent-chatbox {
+            display: none;
+            position: fixed;
+            z-index: 100001;
+            width: 340px;
+            background: #1a1a2e;
+            border: 2px solid #3ec6e0;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            font-family: 'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+            overflow: hidden;
+        }
+        .agent-chatbox-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0e1119;
+            padding: 8px 12px;
+            cursor: move;
+            user-select: none;
+            border-bottom: 2px solid #3ec6e0;
+        }
+        .agent-chatbox-name {
+            color: #3ec6e0;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .agent-chatbox-close {
+            background: #e94560;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .agent-chatbox-close:hover { background: #ff2244; }
+        .agent-chatbox-messages {
+            height: 260px;
+            overflow-y: auto;
+            padding: 10px 12px;
+            background: #111827;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .agent-chatbox-messages::-webkit-scrollbar { width: 5px; }
+        .agent-chatbox-messages::-webkit-scrollbar-track { background: #111827; }
+        .agent-chatbox-messages::-webkit-scrollbar-thumb { background: #3ec6e0; border-radius: 3px; }
+        .agent-chatbox-msg {
+            max-width: 85%;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.45;
+            word-wrap: break-word;
+        }
+        .agent-chatbox-msg.sent {
+            align-self: flex-end;
+            background: #2563eb;
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+        .agent-chatbox-msg.received {
+            align-self: flex-start;
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            border-bottom-left-radius: 4px;
+        }
+        .agent-chatbox-msg .msg-time {
+            font-size: 10px;
+            opacity: 0.5;
+            margin-top: 4px;
+            display: block;
+        }
+        .agent-chatbox-typing {
+            padding: 4px 12px;
+            font-size: 11px;
+            color: #6b7280;
+            background: #111827;
+            display: none;
+        }
+        .agent-chatbox-input {
+            display: flex;
+            border-top: 1px solid #1e293b;
+            background: #0e1119;
+        }
+        .agent-chatbox-input input {
+            flex: 1;
+            background: #111827;
+            border: none;
+            color: #e2e8f0;
+            padding: 10px 12px;
+            font-size: 13px;
+            font-family: 'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+            outline: none;
+        }
+        .agent-chatbox-input input::placeholder { color: #4b5563; }
+        .agent-chatbox-input button {
+            background: #3ec6e0;
+            border: none;
+            color: #0e1119;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+        }
+        .agent-chatbox-input button:hover { background: #5dd8f0; }
+
+        /* Dashboard styles inside browser */
+        .ig-browser-content .dash-title { color: #3ec6e0; font-size: 14px; margin: 0 0 8px; }
+        .ig-browser-content .dash-subtitle { color: #6b7280; font-size: 10px; margin-bottom: 10px; }
+        .ig-browser-content .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .ig-browser-content .dash-card {
+            background: #1a1a2e;
+            border: 1px solid #2a2a45;
+            border-radius: 4px;
+            padding: 8px;
+            border-left: 3px solid #3ec6e0;
+        }
+        .ig-browser-content .dash-card.warn { border-left-color: #dcdcaa; }
+        .ig-browser-content .dash-card.err { border-left-color: #f48771; }
+        .ig-browser-content .dash-card .label { color: #9ca3af; font-size: 9px; }
+        .ig-browser-content .dash-card .value { color: #3ec6e0; font-size: 16px; font-weight: bold; }
+        .ig-browser-content .dash-card .sub { color: #6b7280; font-size: 9px; }
+        .ig-browser-content .dash-section { color: #dcdcaa; font-size: 11px; margin: 10px 0 4px; }
     </style>
 </head>
 <body>
+    <!-- Agent direct chat box -->
+    <div id="agent-chatbox" class="agent-chatbox">
+        <div class="agent-chatbox-header" id="agent-chatbox-header">
+            <span class="agent-chatbox-name" id="agent-chatbox-name">Agent</span>
+            <button class="agent-chatbox-close" onclick="closeAgentChat()">x</button>
+        </div>
+        <div class="agent-chatbox-messages" id="agent-chatbox-messages"></div>
+        <div class="agent-chatbox-typing" id="agent-chatbox-typing">typing...</div>
+        <div class="agent-chatbox-input">
+            <input type="text" id="agent-chatbox-input" placeholder="Type a message..." autocomplete="off">
+            <button onclick="sendAgentChatMessage()">Send</button>
+        </div>
+    </div>
+
+    <!-- In-game browser: Syscheck Pipeline Dashboard -->
+    <div id="ig-browser-syscheck" class="ig-browser" style="width:400px;height:460px;">
+        <div class="ig-browser-titlebar" id="ig-browser-syscheck-titlebar">
+            <span class="ig-browser-title">Syscheck // Pipeline</span>
+            <button class="ig-browser-close" onclick="document.getElementById('ig-browser-syscheck').style.display='none'">x</button>
+        </div>
+        <div class="ig-browser-content">
+            <div class="dash-title">📊 Syscheck Pipeline</div>
+            <div class="dash-subtitle">Real-time system health from Ralph's pipeline</div>
+            <div class="dash-grid">
+                <div class="dash-card"><div class="label">Pipeline</div><div class="value" style="color:#2ecc71;">HEALTHY</div><div class="sub">Runs every 2 hours</div></div>
+                <div class="dash-card"><div class="label">Disk Free</div><div class="value">925 GB</div><div class="sub">94% free on /</div></div>
+            </div>
+            <div class="dash-section">Services</div>
+            <div style="font-size:10px;line-height:1.8;color:#ccc;">
+                openclaw-gateway: <span style="color:#2ecc71;">● running</span><br>
+                openclaw-node: <span style="color:#2ecc71;">● running</span><br>
+                Ollama: <span style="color:#2ecc71;">● running</span>
+            </div>
+            <div class="dash-section">Recent Alerts</div>
+            <div style="color:#ccc;font-size:10px;line-height:1.6;">
+                [2026-03-12 15:00] INFO: Syscheck completed<br>
+                [2026-03-12 13:00] INFO: Disk usage OK<br>
+                [2026-03-12 11:00] INFO: All services healthy
+            </div>
+            <div style="color:#666;font-size:9px;text-align:center;margin-top:8px;">Generated by ralph-syscheck-pipeline.sh</div>
+        </div>
+    </div>
+
+    <!-- In-game browser: Server Room Metrics -->
+    <div id="ig-browser-serverroom" class="ig-browser" style="width:400px;height:480px;">
+        <div class="ig-browser-titlebar" id="ig-browser-serverroom-titlebar">
+            <span class="ig-browser-title">Server Room // Metrics</span>
+            <button class="ig-browser-close" onclick="document.getElementById('ig-browser-serverroom').style.display='none'">x</button>
+        </div>
+        <div class="ig-browser-content">
+            <div class="dash-title">🖥️ Server Room Metrics</div>
+            <div class="dash-subtitle">Live system metrics from the NOC</div>
+            <div class="dash-grid">
+                <div class="dash-card"><div class="label">Gateway</div><div class="value" style="color:#2ecc71;">● RUNNING</div><div class="sub">Port 18789 | 103 sessions</div></div>
+                <div class="dash-card"><div class="label">Node</div><div class="value" style="color:#2ecc71;">● RUNNING</div><div class="sub">Uptime 1h 22m | 5 agents</div></div>
+                <div class="dash-card"><div class="label">GPU VRAM</div><div class="value">0.8 / 4 GB</div><div class="sub">52°C | 12% util</div></div>
+                <div class="dash-card"><div class="label">Disk</div><div class="value" style="color:#2ecc71;">925 GB free</div><div class="sub">6% usage | 84% inodes</div></div>
+            </div>
+            <div class="dash-section">Recent Events</div>
+            <div style="color:#ccc;font-size:10px;line-height:1.6;">
+                [15:52] Huddle completed: serverroom metrics<br>
+                [15:45] New agent joined: CodeMaster<br>
+                [15:30] Task board created: 11 tasks<br>
+                [15:15] Room created: serverroom
+            </div>
+            <div style="color:#666;font-size:9px;text-align:center;margin-top:8px;">Metrics auto-refresh every 15s via office-agent-push</div>
+        </div>
+    </div>
+
+    <!-- In-game browser: Code Quality Dashboard -->
+    <div id="ig-browser-codemaster" class="ig-browser" style="width:420px;height:520px;">
+        <div class="ig-browser-titlebar" id="ig-browser-codemaster-titlebar">
+            <span class="ig-browser-title">CodeMaster // Code Quality</span>
+            <button class="ig-browser-close" onclick="document.getElementById('ig-browser-codemaster').style.display='none'">x</button>
+        </div>
+        <div class="ig-browser-content">
+            <div class="dash-title">Code Quality Dashboard</div>
+            <div class="dash-subtitle">Generated: 2026-03-12 15:41 | by CodeMaster</div>
+            <div class="dash-grid">
+                <div class="dash-card"><div class="label">Files</div><div class="value">1,259</div><div class="sub">Python files analyzed</div></div>
+                <div class="dash-card"><div class="label">Lines of Code</div><div class="value">309,264</div><div class="sub">Total: 398,079</div></div>
+                <div class="dash-card"><div class="label">Functions</div><div class="value">17,588</div><div class="sub">In codebase</div></div>
+                <div class="dash-card"><div class="label">Classes</div><div class="value">3,063</div><div class="sub">OOP structures</div></div>
+                <div class="dash-card warn"><div class="label">Imports</div><div class="value">11,170</div><div class="sub">Dependencies</div></div>
+                <div class="dash-card err"><div class="label">TODOs / FIXMEs</div><div class="value">217</div><div class="sub">Needs attention</div></div>
+            </div>
+            <div class="dash-section">Git Activity (7 Days)</div>
+            <div class="dash-grid">
+                <div class="dash-card"><div class="label">Commits</div><div class="value">38</div><div class="sub">Recent activity</div></div>
+                <div class="dash-card"><div class="label">Lines Added</div><div class="value" style="color:#4ec9b0;">+54,966</div><div class="sub">Growth</div></div>
+                <div class="dash-card"><div class="label">Lines Deleted</div><div class="value" style="color:#f48771;">-9,323</div><div class="sub">Refactoring</div></div>
+            </div>
+            <div class="dash-section">GitHub (OpenClaw Office)</div>
+            <div class="dash-grid">
+                <div class="dash-card"><div class="label">Open PRs</div><div class="value">0</div><div class="sub">Pending review</div></div>
+                <div class="dash-card"><div class="label">Open Issues</div><div class="value">0</div><div class="sub">Bugs & features</div></div>
+                <div class="dash-card"><div class="label">Review Coverage</div><div class="value">0%</div><div class="sub">PRs with reviews</div></div>
+            </div>
+        </div>
+    </div>
+
     <!-- 加载遮罩 -->
     <div id="loading-overlay">
         <div id="loading-text">Loading Star’s pixel office...</div>
@@ -2372,7 +2668,7 @@
 
         async function fetchLiveChat() {
             try {
-                const res = await fetch('/agent-messages?limit=25&t=' + Date.now(), { cache: 'no-store' });
+                const res = await fetch('/agent-messages?limit=75&t=' + Date.now(), { cache: 'no-store' });
                 const data = await res.json();
                 if (data.ok && data.messages) {
                     _liveChatMessages = data.messages;
@@ -4604,6 +4900,81 @@ function toggleBrokerPanel() {
             }, 3200);
         }
 
+        // === Named agent bubbles (for agentHomeSprites) ===
+        let _agentHomeBubbles = {}; // agentName -> container
+        let _lastAgentHomeBubbleAt = 0;
+        // Map internal names to display names matching Discord sender format
+        const AGENT_DISPLAY_NAMES = {
+            rook: 'Rook', ralph: 'Ralph', nova: 'Nova', codemaster: 'CodeMaster'
+        };
+
+        function maybeShowAgentHomeBubble(time) {
+            if (!window.agentHomeSprites) return;
+            if (time - _lastAgentHomeBubbleAt < 4500) return;
+            _lastAgentHomeBubbleAt = time;
+
+            const names = Object.keys(window.agentHomeSprites);
+            if (names.length === 0) return;
+            const name = names[Math.floor(Math.random() * names.length)];
+            const info = window.agentHomeSprites[name];
+            if (!info || !info.sprite) return;
+
+            // Get real last Discord message for this agent
+            const displayName = AGENT_DISPLAY_NAMES[name] || name;
+            const realMsg = getLastMessageForAgent(displayName);
+            // Only show bubble if there's a real message — no generic fallback
+            if (!realMsg) return;
+            const text = realMsg.length > 55 ? realMsg.slice(0, 52) + '...' : realMsg;
+
+            // Destroy old bubble for this agent
+            if (_agentHomeBubbles[name]) {
+                _agentHomeBubbles[name].destroy();
+                delete _agentHomeBubbles[name];
+            }
+
+            const bx = info.sprite.x;
+            const by = info.sprite.y - 70;
+            const truncated = text.length > 80 ? text.slice(0, 77) + '...' : text;
+
+            // Word wrap: ~30 chars per line
+            const blines = [];
+            const bwords = truncated.split(' ');
+            let bline = '';
+            for (const w of bwords) {
+                if ((bline + ' ' + w).trim().length > 30) { blines.push(bline.trim()); bline = w; }
+                else { bline = bline ? bline + ' ' + w : w; }
+            }
+            if (bline) blines.push(bline.trim());
+            const bwrapped = blines.join('\n');
+
+            const bPadX = 14, bPadY = 8;
+            const bLineH = 16;
+            const bMaxLen = Math.max(...blines.map(l => l.length));
+            const bBoxW = Math.max(bMaxLen * 7.5 + bPadX * 2, 80);
+            const bBoxH = blines.length * bLineH + bPadY * 2;
+
+            const bg = game.add.rectangle(bx, by, bBoxW, bBoxH, 0x1e293b, 0.95).setOrigin(0.5);
+            bg.setStrokeStyle(2, 0x3ec6e0);
+            const txt = game.add.text(bx, by, bwrapped, {
+                fontFamily: "'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif",
+                fontSize: '12px',
+                fill: '#e2e8f0',
+                align: 'center',
+                lineSpacing: 3,
+                wordWrap: { width: bBoxW - bPadX * 2 }
+            }).setOrigin(0.5);
+            const bubble = game.add.container(0, 0, [bg, txt]);
+            bubble.setDepth(2700);
+            _agentHomeBubbles[name] = bubble;
+
+            setTimeout(() => {
+                if (_agentHomeBubbles[name]) {
+                    _agentHomeBubbles[name].destroy();
+                    delete _agentHomeBubbles[name];
+                }
+            }, 6000);
+        }
+
         function maybeRandomizeDemoVisitors() {
             if (!DEMO_MODE) return;
             ensureDemoVisitors();
@@ -5031,6 +5402,8 @@ function toggleBrokerPanel() {
                 sprite.setScale(1.6);
                 sprite.setDepth(2500);
                 sprite.anims.play(animKey, true);
+                sprite.setInteractive({ useHandCursor: true, pixelPerfect: false });
+                sprite.on('pointerdown', () => { openAgentChat(agentName); });
                 // Name label below sprite
                 const label = game.add.text(pos.x, pos.y + 55, agentName.charAt(0).toUpperCase() + agentName.slice(1), {
                     fontFamily: 'ArkPixel, monospace', fontSize: '12px',
@@ -5063,6 +5436,86 @@ function toggleBrokerPanel() {
                 }
             }
 
+            // === Points of interest agents can visit ===
+            // Each agent has their own work area POIs + shared/teammate POIs
+            const SHARED_POIS = [
+                { x: 659, y: 397, label: 'coffee table' },
+                { x: 565, y: 178, label: 'plant' },
+                { x: 967, y: 80,  label: 'server rack' },
+            ];
+            const AGENT_POIS = {
+                rook: [
+                    { x: 700, y: 220, label: 'rook desk right' },
+                    { x: 600, y: 200, label: 'rook desk left' },
+                    { x: 651, y: 300, label: 'rook area south' },
+                    { x: 750, y: 250, label: 'rook window' },
+                ],
+                nova: [
+                    { x: 1108, y: 393, label: 'nova computer' },
+                    { x: 980, y: 360, label: 'nova desk left' },
+                    { x: 1060, y: 440, label: 'nova area south' },
+                    { x: 1029, y: 330, label: 'nova shelf' },
+                ],
+                ralph: [
+                    { x: 645, y: 619, label: 'ralph computer' },
+                    { x: 700, y: 500, label: 'ralph desk right' },
+                    { x: 580, y: 550, label: 'ralph area left' },
+                    { x: 651, y: 470, label: 'ralph shelf' },
+                ],
+                codemaster: [
+                    { x: 195, y: 383, label: 'codemaster computer' },
+                    { x: 330, y: 350, label: 'codemaster desk right' },
+                    { x: 250, y: 430, label: 'codemaster area south' },
+                    { x: 220, y: 330, label: 'codemaster shelf' },
+                ],
+            };
+            // Teammate visit POIs — walk near another agent's home station
+            const TEAMMATE_VISIT_POIS = {
+                rook:       [AGENT_HOME_POSITIONS.nova, AGENT_HOME_POSITIONS.ralph, AGENT_HOME_POSITIONS.codemaster],
+                nova:       [AGENT_HOME_POSITIONS.rook, AGENT_HOME_POSITIONS.ralph, AGENT_HOME_POSITIONS.codemaster],
+                ralph:      [AGENT_HOME_POSITIONS.rook, AGENT_HOME_POSITIONS.nova, AGENT_HOME_POSITIONS.codemaster],
+                codemaster: [AGENT_HOME_POSITIONS.rook, AGENT_HOME_POSITIONS.nova, AGENT_HOME_POSITIONS.ralph],
+            };
+
+            // === Agent roaming state ===
+            // Each agent independently decides when to roam.
+            // States: 'idle' (at station), 'walking' (moving to target), 'looking' (paused at POI)
+            window._agentRoamState = {};
+            for (const name of Object.keys(AGENT_HOME_POSITIONS)) {
+                window._agentRoamState[name] = {
+                    state: 'idle',
+                    nextActionAt: Date.now() + 5000 + Math.random() * 15000, // stagger initial timing
+                    lookUntil: 0,
+                };
+            }
+
+            function _pickRoamTarget(agentName) {
+                const roll = Math.random();
+                if (roll < 0.35) {
+                    // Go home / stay at station
+                    const home = AGENT_HOME_POSITIONS[agentName];
+                    return { x: home.x, y: home.y, type: 'home' };
+                } else if (roll < 0.65) {
+                    // Visit own work area POI
+                    const pois = AGENT_POIS[agentName] || [];
+                    const poi = pois[Math.floor(Math.random() * pois.length)];
+                    return poi ? { x: poi.x, y: poi.y, type: 'work' } : null;
+                } else if (roll < 0.85) {
+                    // Visit shared POI
+                    const poi = SHARED_POIS[Math.floor(Math.random() * SHARED_POIS.length)];
+                    return { x: poi.x, y: poi.y, type: 'shared' };
+                } else {
+                    // Visit a teammate's station
+                    const teammates = TEAMMATE_VISIT_POIS[agentName] || [];
+                    const t = teammates[Math.floor(Math.random() * teammates.length)];
+                    if (!t) return null;
+                    // Stand near them, not exactly on top
+                    const offsetX = (Math.random() - 0.5) * 40;
+                    const offsetY = 20 + Math.random() * 20;
+                    return { x: t.x + offsetX, y: t.y + offsetY, type: 'visit' };
+                }
+            }
+
             // Poll huddle state every 10 seconds
             function checkHuddleState() {
                 fetch('/office/huddle/active?t=' + Date.now(), { cache: 'no-store' })
@@ -5071,21 +5524,22 @@ function toggleBrokerPanel() {
                         const wasActive = window._huddleActive;
                         window._huddleActive = !!data.active;
                         if (data.active && !wasActive) {
-                            // Huddle just started — agents walk to coffee table
-                            window._huddleMoving = true;
+                            // Huddle overrides roaming — all agents walk to coffee table
                             for (const [name, info] of Object.entries(window.agentHomeSprites)) {
                                 const target = HUDDLE_POSITIONS[name];
                                 if (target) {
                                     info.targetX = target.x;
                                     info.targetY = target.y;
+                                    window._agentRoamState[name].state = 'walking';
                                 }
                             }
                         } else if (!data.active && wasActive) {
                             // Huddle ended — agents walk back home
-                            window._huddleMoving = true;
                             for (const [name, info] of Object.entries(window.agentHomeSprites)) {
                                 info.targetX = info.homeX;
                                 info.targetY = info.homeY;
+                                window._agentRoamState[name].state = 'walking';
+                                window._agentRoamState[name].nextActionAt = Date.now() + 8000 + Math.random() * 12000;
                             }
                         }
                     })
@@ -5093,44 +5547,170 @@ function toggleBrokerPanel() {
             }
             setInterval(checkHuddleState, 10000);
 
-            // Agent movement update (called from game update loop)
+            // Agent movement + roaming update (called from game update loop)
             window._updateAgentMovement = function() {
-                if (!window._huddleMoving) return;
-                let allArrived = true;
+                const now = Date.now();
+
                 for (const [name, info] of Object.entries(window.agentHomeSprites)) {
-                    if (info.targetX === undefined) continue;
-                    const dx = info.targetX - info.sprite.x;
-                    const dy = info.targetY - info.sprite.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist > 3) {
-                        allArrived = false;
-                        const speed = 1.5;
-                        info.sprite.x += (dx / dist) * speed;
-                        info.sprite.y += (dy / dist) * speed;
-                        info.label.x = info.sprite.x;
-                        info.label.y = info.sprite.y + 55;
-                        // Play walk animation in movement direction
-                        const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
-                        const walkAnim = `${name}_walk_${dir}`;
-                        if (game.anims.exists(walkAnim) && (!info.sprite.anims.isPlaying || info.sprite.anims.currentAnim?.key !== walkAnim)) {
-                            info.sprite.anims.play(walkAnim);
+                    const roam = window._agentRoamState[name];
+                    if (!roam) continue;
+
+                    // Skip roaming decisions during huddle
+                    if (window._huddleActive) {
+                        // Just handle movement toward huddle target
+                        if (info.targetX !== undefined) {
+                            _moveAgentToward(name, info);
                         }
-                    } else {
-                        // Arrived — snap to target and switch to idle
-                        info.sprite.x = info.targetX;
-                        info.sprite.y = info.targetY;
-                        info.label.x = info.targetX;
-                        info.label.y = info.targetY + 55;
-                        const idleAnim = `${name}_home_idle`;
-                        if (game.anims.exists(idleAnim) && (!info.sprite.anims.isPlaying || info.sprite.anims.currentAnim?.key !== idleAnim)) {
-                            info.sprite.anims.play(idleAnim);
+                        continue;
+                    }
+
+                    // State machine
+                    if (roam.state === 'idle') {
+                        // Standing at current position — check if it's time to do something
+                        if (now >= roam.nextActionAt) {
+                            const target = _pickRoamTarget(name);
+                            if (target) {
+                                info.targetX = target.x;
+                                info.targetY = target.y;
+                                roam.state = 'walking';
+                            } else {
+                                // Stay idle a bit longer
+                                roam.nextActionAt = now + 8000 + Math.random() * 15000;
+                            }
                         }
-                        delete info.targetX;
-                        delete info.targetY;
+                    } else if (roam.state === 'walking') {
+                        if (info.targetX !== undefined) {
+                            const arrived = _moveAgentToward(name, info);
+                            if (arrived) {
+                                // Arrived at destination — look around for a bit
+                                roam.state = 'looking';
+                                roam.lookUntil = now + 3000 + Math.random() * 6000;
+                            }
+                        } else {
+                            roam.state = 'idle';
+                            roam.nextActionAt = now + 5000 + Math.random() * 15000;
+                        }
+                    } else if (roam.state === 'looking') {
+                        // Paused at a POI, looking around
+                        if (now >= roam.lookUntil) {
+                            roam.state = 'idle';
+                            // Decide next action: sometimes go home, sometimes keep exploring
+                            roam.nextActionAt = now + 6000 + Math.random() * 20000;
+                        }
                     }
                 }
-                if (allArrived) window._huddleMoving = false;
             };
+
+            // Move agent sprite toward its target, return true if arrived
+            function _moveAgentToward(name, info) {
+                const dx = info.targetX - info.sprite.x;
+                const dy = info.targetY - info.sprite.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist > 3) {
+                    const speed = 1.2;
+                    info.sprite.x += (dx / dist) * speed;
+                    info.sprite.y += (dy / dist) * speed;
+                    info.label.x = info.sprite.x;
+                    info.label.y = info.sprite.y + 55;
+                    // Play walk animation in movement direction
+                    const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+                    const walkAnim = `${name}_walk_${dir}`;
+                    if (game.anims.exists(walkAnim) && (!info.sprite.anims.isPlaying || info.sprite.anims.currentAnim?.key !== walkAnim)) {
+                        info.sprite.anims.play(walkAnim);
+                    }
+                    return false;
+                } else {
+                    // Arrived — snap to target and switch to idle anim
+                    info.sprite.x = info.targetX;
+                    info.sprite.y = info.targetY;
+                    info.label.x = info.targetX;
+                    info.label.y = info.targetY + 55;
+                    const idleAnim = `${name}_home_idle`;
+                    if (game.anims.exists(idleAnim) && (!info.sprite.anims.isPlaying || info.sprite.anims.currentAnim?.key !== idleAnim)) {
+                        info.sprite.anims.play(idleAnim);
+                    }
+                    delete info.targetX;
+                    delete info.targetY;
+                    return true;
+                }
+            }
+
+            // === Clickable computer at (1108, 393) -> CodeMaster dashboard ===
+            const computerZone = game.add.zone(1108, 393, 40, 40).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            computerZone.setDepth(3000);
+            computerZone.on('pointerdown', () => {
+                const browser = document.getElementById('ig-browser-codemaster');
+                if (browser) {
+                    browser.style.display = 'block';
+                    // Center on screen if not already positioned
+                    if (!browser.dataset.positioned) {
+                        browser.style.left = Math.max(50, (window.innerWidth - 420) / 2) + 'px';
+                        browser.style.top = Math.max(50, (window.innerHeight - 520) / 2) + 'px';
+                        browser.dataset.positioned = '1';
+                    }
+                }
+            });
+            // Subtle glow indicator so player knows it's clickable
+            const computerGlow = game.add.rectangle(1108, 393, 36, 36, 0x3ec6e0, 0.0).setOrigin(0.5);
+            computerGlow.setDepth(2999);
+            computerGlow.setStrokeStyle(1, 0x3ec6e0, 0.4);
+            game.tweens.add({
+                targets: computerGlow,
+                alpha: { from: 0.15, to: 0.0 },
+                duration: 1500,
+                yoyo: true,
+                repeat: -1
+            });
+
+            // === Clickable computer at (645, 619) -> Server Room metrics ===
+            const serverroomZone = game.add.zone(645, 619, 40, 40).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            serverroomZone.setDepth(3000);
+            serverroomZone.on('pointerdown', () => {
+                const browser = document.getElementById('ig-browser-serverroom');
+                if (browser) {
+                    browser.style.display = 'block';
+                    if (!browser.dataset.positioned) {
+                        browser.style.left = Math.max(50, (window.innerWidth - 400) / 2) + 'px';
+                        browser.style.top = Math.max(50, (window.innerHeight - 480) / 2) + 'px';
+                        browser.dataset.positioned = '1';
+                    }
+                }
+            });
+            const serverroomGlow = game.add.rectangle(645, 619, 36, 36, 0x3ec6e0, 0.0).setOrigin(0.5);
+            serverroomGlow.setDepth(2999);
+            serverroomGlow.setStrokeStyle(1, 0x3ec6e0, 0.4);
+            game.tweens.add({
+                targets: serverroomGlow,
+                alpha: { from: 0.15, to: 0.0 },
+                duration: 1500,
+                yoyo: true,
+                repeat: -1
+            });
+
+            // === Clickable computer at (195, 383) -> Syscheck Pipeline ===
+            const syscheckZone = game.add.zone(195, 383, 40, 40).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            syscheckZone.setDepth(3000);
+            syscheckZone.on('pointerdown', () => {
+                const browser = document.getElementById('ig-browser-syscheck');
+                if (browser) {
+                    browser.style.display = 'block';
+                    if (!browser.dataset.positioned) {
+                        browser.style.left = Math.max(50, (window.innerWidth - 400) / 2) + 'px';
+                        browser.style.top = Math.max(50, (window.innerHeight - 460) / 2) + 'px';
+                        browser.dataset.positioned = '1';
+                    }
+                }
+            });
+            const syscheckGlow = game.add.rectangle(195, 383, 36, 36, 0x3ec6e0, 0.0).setOrigin(0.5);
+            syscheckGlow.setDepth(2999);
+            syscheckGlow.setStrokeStyle(1, 0x3ec6e0, 0.4);
+            game.tweens.add({
+                targets: syscheckGlow,
+                alpha: { from: 0.15, to: 0.0 },
+                duration: 1500,
+                yoyo: true,
+                repeat: -1
+            });
 
             // Random plant at (565,178) (frame 0-15, 160x160 each)
             const plantFrameCount = 16;
@@ -5228,7 +5808,7 @@ function toggleBrokerPanel() {
                 frameRate: 6,
                 repeat: -1
             });
-            serverroom = this.add.sprite(1021, 142, 'serverroom', 0).setOrigin(0.5);
+            serverroom = this.add.sprite(967, 80, 'serverroom', 0).setOrigin(0.5);
             serverroom.setDepth(2);
             // 默认 idle: 静止第0帧
             serverroom.anims.stop();
@@ -5734,6 +6314,8 @@ function toggleBrokerPanel() {
 
             // guest 随机想法泡泡
             maybeShowGuestBubble(time);
+            // Named agent bubbles (Rook, Ralph, Nova, CodeMaster)
+            maybeShowAgentHomeBubble(time);
 
             // demo 平滑移动时：让气泡每帧跟随角色锚点（避免 tween 时气泡滞留在旧位置）
             try {
@@ -6698,6 +7280,185 @@ function toggleBrokerPanel() {
             }).then(() => { addActivity(`${selectedAgentId} set to idle`, 'info'); closeAgentPanel(); });
         }
 
+        // === Agent Direct Chat ===
+        let _agentChatTarget = null; // { name, agentId }
+        let _agentChatHistory = {}; // name -> [{text, from:'user'|'agent', time}]
+        let _agentChatPollTimer = null;
+
+        function openAgentChat(agentName) {
+            const displayName = (typeof AGENT_DISPLAY_NAMES !== 'undefined' && AGENT_DISPLAY_NAMES[agentName]) || agentName;
+            // Find agentId from agents state
+            const agentId = _findAgentId(agentName);
+            _agentChatTarget = { name: agentName, displayName, agentId };
+
+            const box = document.getElementById('agent-chatbox');
+            const nameEl = document.getElementById('agent-chatbox-name');
+            nameEl.textContent = displayName;
+            box.style.display = 'block';
+            if (!box.dataset.positioned) {
+                box.style.left = Math.max(50, (window.innerWidth - 340) / 2) + 'px';
+                box.style.top = Math.max(50, (window.innerHeight - 400) / 2) + 'px';
+                box.dataset.positioned = '1';
+            }
+            // Render existing history
+            _renderAgentChatMessages(agentName);
+            document.getElementById('agent-chatbox-input').focus();
+        }
+
+        function closeAgentChat() {
+            document.getElementById('agent-chatbox').style.display = 'none';
+            if (_agentChatPollTimer) { clearInterval(_agentChatPollTimer); _agentChatPollTimer = null; }
+            document.getElementById('agent-chatbox-typing').style.display = 'none';
+            _agentChatTarget = null;
+        }
+
+        function _findAgentId(agentName) {
+            // Lookup from cached state or live chat data
+            const map = {
+                rook: '8c0ca478e96b',
+                ralph: 'agent_1773274630238_8duq',
+                nova: 'agent_1773274638510_bld6',
+                codemaster: 'agent_1773274638699_p6ki'
+            };
+            return map[agentName] || agentName;
+        }
+
+        function _renderAgentChatMessages(agentName) {
+            const container = document.getElementById('agent-chatbox-messages');
+            const history = _agentChatHistory[agentName] || [];
+            if (history.length === 0) {
+                container.innerHTML = '<div style="color:#4b5563;font-size:12px;text-align:center;padding:40px 0;">Click to start chatting</div>';
+                return;
+            }
+            let html = '';
+            for (const msg of history) {
+                const cls = msg.from === 'user' ? 'sent' : 'received';
+                const timeStr = msg.time || '';
+                html += '<div class="agent-chatbox-msg ' + cls + '">' +
+                    escapeHtml(msg.text) +
+                    '<span class="msg-time">' + timeStr + '</span>' +
+                    '</div>';
+            }
+            container.innerHTML = html;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendAgentChatMessage() {
+            if (!_agentChatTarget) return;
+            const input = document.getElementById('agent-chatbox-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+            input.value = '';
+
+            const agentName = _agentChatTarget.name;
+            const agentId = _agentChatTarget.agentId;
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+            // Add to history
+            if (!_agentChatHistory[agentName]) _agentChatHistory[agentName] = [];
+            _agentChatHistory[agentName].push({ text: msg, from: 'user', time: timeStr });
+            _renderAgentChatMessages(agentName);
+
+            // Show typing indicator
+            const typingEl = document.getElementById('agent-chatbox-typing');
+            typingEl.style.display = 'block';
+            typingEl.textContent = agentName + ' is thinking...';
+
+            // Send to backend — response includes the agent's reply directly
+            fetch('/agents/' + agentId + '/send-message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            }).then(r => r.json()).then(data => {
+                typingEl.style.display = 'none';
+                const replyTime = new Date();
+                const replyTimeStr = replyTime.getHours().toString().padStart(2, '0') + ':' + replyTime.getMinutes().toString().padStart(2, '0');
+
+                if (!data.ok) {
+                    _agentChatHistory[agentName].push({ text: '(Failed: ' + (data.msg || 'unknown') + ')', from: 'agent', time: replyTimeStr });
+                    _renderAgentChatMessages(agentName);
+                    return;
+                }
+
+                if (data.reply) {
+                    _agentChatHistory[agentName].push({ text: data.reply, from: 'agent', time: replyTimeStr });
+                    _renderAgentChatMessages(agentName);
+                    // Show in bubble above sprite
+                    _showAgentChatBubble(agentName, data.reply);
+                } else {
+                    _agentChatHistory[agentName].push({ text: '(Message sent, waiting for reply in DM)', from: 'agent', time: replyTimeStr });
+                    _renderAgentChatMessages(agentName);
+                }
+            }).catch(() => {
+                typingEl.style.display = 'none';
+                _agentChatHistory[agentName].push({ text: '(Error sending message)', from: 'agent', time: timeStr });
+                _renderAgentChatMessages(agentName);
+            });
+        }
+
+        function _showAgentChatBubble(agentName, text) {
+            if (!window.agentHomeSprites || !window.agentHomeSprites[agentName]) return;
+            const info = window.agentHomeSprites[agentName];
+            const truncated = text.length > 80 ? text.slice(0, 77) + '...' : text;
+
+            // Destroy existing bubble
+            if (_agentHomeBubbles[agentName]) {
+                _agentHomeBubbles[agentName].destroy();
+                delete _agentHomeBubbles[agentName];
+            }
+
+            const bx = info.sprite.x;
+            const by = info.sprite.y - 70;
+
+            // Word wrap: ~30 chars per line
+            const lines = [];
+            const words = truncated.split(' ');
+            let line = '';
+            for (const w of words) {
+                if ((line + ' ' + w).trim().length > 30) { lines.push(line.trim()); line = w; }
+                else { line = line ? line + ' ' + w : w; }
+            }
+            if (line) lines.push(line.trim());
+            const wrapped = lines.join('\n');
+
+            const padX = 14, padY = 8;
+            const lineH = 16;
+            const maxLineLen = Math.max(...lines.map(l => l.length));
+            const boxW = Math.max(maxLineLen * 7.5 + padX * 2, 80);
+            const boxH = lines.length * lineH + padY * 2;
+
+            const bg = game.add.rectangle(bx, by, boxW, boxH, 0x1e293b, 0.95).setOrigin(0.5);
+            bg.setStrokeStyle(2, 0x3ec6e0);
+
+            const txt = game.add.text(bx, by, wrapped, {
+                fontFamily: "'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif",
+                fontSize: '12px',
+                fill: '#e2e8f0',
+                align: 'center',
+                lineSpacing: 3,
+                wordWrap: { width: boxW - padX * 2 }
+            }).setOrigin(0.5);
+
+            const container = game.add.container(0, 0, [bg, txt]);
+            container.setDepth(2700);
+            _agentHomeBubbles[agentName] = container;
+
+            setTimeout(() => {
+                if (_agentHomeBubbles[agentName]) {
+                    _agentHomeBubbles[agentName].destroy();
+                    delete _agentHomeBubbles[agentName];
+                }
+            }, 8000);
+        }
+
+        // Enter key sends in chatbox
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && document.activeElement === document.getElementById('agent-chatbox-input')) {
+                sendAgentChatMessage();
+            }
+        });
+
         // === Command Palette ===
         function toggleCommandPalette() {
             const overlay = document.getElementById('command-palette-overlay');
@@ -7061,4 +7822,28 @@ function toggleBrokerPanel() {
                 alert('Error removing skill');
             }
         };
+
+        // === In-game browser window + chatbox drag logic ===
+        (function() {
+            const draggableHeaders = document.querySelectorAll('.ig-browser-titlebar, .agent-chatbox-header');
+            draggableHeaders.forEach(titlebar => {
+                const panel = titlebar.parentElement;
+                let isDragging = false, startX, startY, origLeft, origTop;
+                titlebar.addEventListener('mousedown', (e) => {
+                    if (e.target.classList.contains('ig-browser-close') || e.target.classList.contains('agent-chatbox-close')) return;
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    origLeft = panel.offsetLeft;
+                    origTop = panel.offsetTop;
+                    e.preventDefault();
+                });
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    panel.style.left = (origLeft + e.clientX - startX) + 'px';
+                    panel.style.top = (origTop + e.clientY - startY) + 'px';
+                });
+                document.addEventListener('mouseup', () => { isDragging = false; });
+            });
+        })();
     </script>
