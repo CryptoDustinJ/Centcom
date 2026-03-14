@@ -26,6 +26,12 @@
           "x": 0.8,
           "y": 0.3,
           "label": "Live Logs"
+        },
+        {
+          "type": "terminal",
+          "x": 0.5,
+          "y": 0.5,
+          "label": "Model Status"
         }
       ],
       "created_by": "Rook",
@@ -33,7 +39,9 @@
       "description": "Add a server room with live system metrics dashboard",
       "connections": [
         "lobby"
-      ]
+      ],
+      "last_updated_by": "Ralph",
+      "last_updated_at": "2026-03-13T19:00:01.858927"
     },
     {
       "id": "lobby",

@@ -1,0 +1,206 @@
+{
+  "huddle_id": "huddle_20260313_1900",
+  "timestamp": "2026-03-13T19:00:01.800708",
+  "agents": [
+    "Rook",
+    "Ralph"
+  ],
+  "context_snapshot": {
+    "timestamp": "2026-03-13T19:00:01.847379",
+    "agents": {
+      "total": 3,
+      "by_state": {
+        "writing": 1,
+        "idle": 2
+      },
+      "active": 3
+    },
+    "tasks": {
+      "total": 36,
+      "open": 24,
+      "in_progress": 4,
+      "completed": 8,
+      "overdue": 0
+    },
+    "git": {
+      "branch": "master",
+      "dirty": true,
+      "recent_commits": 10
+    },
+    "rooms": {
+      "total": 12,
+      "list": [
+        {
+          "id": "serverroom",
+          "name": "Serverroom"
+        },
+        {
+          "id": "lobby",
+          "name": "Metrics Lobby"
+        },
+        {
+          "id": "observatory",
+          "name": "Observatory"
+        },
+        {
+          "id": "breakroom",
+          "name": "Breakroom"
+        },
+        {
+          "id": "workspace",
+          "name": "Workspace"
+        },
+        {
+          "id": "lab",
+          "name": "Lab"
+        },
+        {
+          "id": "archive",
+          "name": "Archive"
+        },
+        {
+          "id": "library",
+          "name": "Library"
+        },
+        {
+          "id": "ops_center",
+          "name": "Ops Center"
+        },
+        {
+          "id": "comms",
+          "name": "Comms"
+        },
+        {
+          "id": "gallery",
+          "name": "Gallery"
+        },
+        {
+          "id": "garden",
+          "name": "Garden"
+        }
+      ]
+    },
+    "growth": {
+      "total_contributions": 705,
+      "top_agent": "CodeMaster",
+      "leaderboard": [
+        {
+          "name": "CodeMaster",
+          "score": 380
+        },
+        {
+          "name": "Rook",
+          "score": 150
+        },
+        {
+          "name": "Ralph",
+          "score": 70
+        },
+        {
+          "name": "Nova",
+          "score": 65
+        },
+        {
+          "name": "Star",
+          "score": 40
+        }
+      ]
+    },
+    "system": {
+      "disk_free_gb": 900.5,
+      "uptime_days": 0
+    }
+  },
+  "proposals": [
+    {
+      "agent": "Rook",
+      "type": "new_room",
+      "room": "war_room",
+      "idea": "Create incident war room for emergencies",
+      "priority": 2,
+      "details": "Dedicated room for coordinating during outages and critical issues.",
+      "reasoning": "As a architect with expertise in rooms, layout, integration, I analyzed: agents=3, tasks=36, rooms=12, disk=900.5 GB. Suggested new_room.\n\n[Context snapshot]: agents=3, tasks=36, rooms=12, disk=900.5 GB, top_agent=CodeMaster",
+      "agentId": "8c0ca478e96b",
+      "requires": [
+        "exec",
+        "git"
+      ],
+      "status": "pending",
+      "furniture": [
+        {
+          "type": "alert_board",
+          "x": 0.2,
+          "y": 0.3,
+          "label": "Incident Board"
+        },
+        {
+          "type": "phone",
+          "x": 0.5,
+          "y": 0.3,
+          "label": "Hotline"
+        },
+        {
+          "type": "shield",
+          "x": 0.8,
+          "y": 0.3,
+          "label": "Defense Status"
+        },
+        {
+          "type": "clock",
+          "x": 0.5,
+          "y": 0.6,
+          "label": "Uptime Clock"
+        }
+      ]
+    },
+    {
+      "agent": "Ralph",
+      "type": "monitoring",
+      "room": "serverroom",
+      "idea": "Add Ollama model health panel",
+      "priority": 1,
+      "details": "Show loaded models, inference speed, and context window usage.",
+      "reasoning": "As a devops with expertise in monitoring, maintenance, syscheck, I analyzed: agents=3, tasks=36, rooms=12, disk=900.5 GB. Suggested monitoring.\n\n[Context snapshot]: agents=3, tasks=36, rooms=12, disk=900.5 GB, top_agent=CodeMaster",
+      "agentId": "ralph",
+      "requires": [
+        "exec",
+        "git"
+      ],
+      "status": "pending",
+      "furniture": [
+        {
+          "type": "terminal",
+          "x": 0.5,
+          "y": 0.5,
+          "label": "Model Status"
+        }
+      ]
+    }
+  ],
+  "selected_plan": {
+    "agent": "Ralph",
+    "type": "monitoring",
+    "room": "serverroom",
+    "idea": "Add Ollama model health panel",
+    "priority": 1,
+    "details": "Show loaded models, inference speed, and context window usage.",
+    "reasoning": "As a devops with expertise in monitoring, maintenance, syscheck, I analyzed: agents=3, tasks=36, rooms=12, disk=900.5 GB. Suggested monitoring.\n\n[Context snapshot]: agents=3, tasks=36, rooms=12, disk=900.5 GB, top_agent=CodeMaster",
+    "agentId": "ralph",
+    "requires": [
+      "exec",
+      "git"
+    ],
+    "status": "pending",
+    "furniture": [
+      {
+        "type": "terminal",
+        "x": 0.5,
+        "y": 0.5,
+        "label": "Model Status"
+      }
+    ]
+  },
+  "status": "approved",
+  "execution_log": [],
+  "completed": false
+}

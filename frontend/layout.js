@@ -1,121 +1,79 @@
-// Star Office UI - 布局与层级配置
-// 所有坐标、depth、资源路径统一管理在这里
-// 避免 magic numbers，降低改错风险
-
-// 核心规则：
-// - 透明资源（如办公桌）强制 .png，不透明优先 .webp
-// - 层级：低 → sofa(10) → starWorking(900) → desk(1000) → flower(1100)
+// OpenClaw Office UI - Layout & Depth Configuration
+// All coordinates, depths, and asset paths managed here
 
 const LAYOUT = {
-  // === 游戏画布 ===
+  // === Game canvas ===
   game: {
     width: 1280,
     height: 720
   },
 
-  // === 各区域坐标 ===
+  // === Room areas (mapped to new futuristic office background) ===
   areas: {
-    door:        { x: 640, y: 550 },
-    writing:     { x: 320, y: 360 },
-    researching: { x: 320, y: 360 },
-    error:       { x: 1066, y: 180 },
-    breakroom:   { x: 640, y: 360 }
+    // Top-left: server/ops room
+    serverroom:  { x: 240, y: 130 },
+    error:       { x: 240, y: 130 },
+    // Top-right: lounge/break area
+    breakroom:   { x: 1000, y: 150 },
+    idle:        { x: 1000, y: 150 },
+    // Middle-left: coding area
+    writing:     { x: 280, y: 370 },
+    executing:   { x: 280, y: 370 },
+    coding:      { x: 280, y: 370 },
+    // Middle-right: research area
+    researching: { x: 850, y: 370 },
+    // Bottom-left: command center
+    command:     { x: 240, y: 570 },
+    syncing:     { x: 240, y: 570 },
+    // Bottom-right: boardroom / meeting
+    boardroom:   { x: 850, y: 570 },
+    team_meeting:{ x: 850, y: 570 },
+    // Center corridor
+    door:        { x: 530, y: 360 },
+    talking:     { x: 530, y: 360 },
+    // Sleeping (dim area, top-right corner)
+    sleeping:    { x: 1150, y: 100 }
   },
 
-  // === 装饰与家具：坐标 + 原点 + depth ===
+  // === Furniture positions on new background ===
   furniture: {
-    // 沙发
-    sofa: {
-      x: 670,
-      y: 144,
-      origin: { x: 0, y: 0 },
-      depth: 10
-    },
-
-    // 新办公桌（透明 PNG 强制）
-    desk: {
-      x: 218,
-      y: 417,
-      origin: { x: 0.5, y: 0.5 },
-      depth: 1000
-    },
-
-    // 桌上花盆
-    flower: {
-      x: 310,
-      y: 390,
-      origin: { x: 0.5, y: 0.5 },
-      depth: 1100,
-      scale: 0.8
-    },
-
-    // Star 在桌前工作（在 desk 下面）
-    starWorking: {
-      x: 217,
-      y: 333,
-      origin: { x: 0.5, y: 0.5 },
-      depth: 900,
-      scale: 1.32
-    },
-
-    // 植物们
-    plants: [
-      { x: 565, y: 178, depth: 5 },
-      { x: 230, y: 185, depth: 5 },
-      { x: 977, y: 496, depth: 5 }
-    ],
-
-    // 海报
-    poster: {
-      x: 252,
-      y: 66,
-      depth: 4
-    },
-
-    // 咖啡机
-    coffeeMachine: {
-      x: 659,
-      y: 397,
-      origin: { x: 0.5, y: 0.5 },
-      depth: 99
-    },
-
-    // 服务器区
-    serverroom: {
-      x: 1021,
-      y: 142,
-      origin: { x: 0.5, y: 0.5 },
-      depth: 2
-    },
-
-    // 错误 bug
-    errorBug: {
-      x: 1007,
-      y: 221,
-      origin: { x: 0.5, y: 0.5 },
-      depth: 50,
-      scale: 0.9,
-      pingPong: { leftX: 1007, rightX: 1111, speed: 0.6 }
-    },
-
-    // 同步动画
-    syncAnim: {
-      x: 1157,
-      y: 592,
-      origin: { x: 0.5, y: 0.5 },
-      depth: 40
-    },
-
-    // 小猫
+    // Cat (bottom corridor)
     cat: {
-      x: 94,
-      y: 557,
+      x: 530,
+      y: 620,
       origin: { x: 0.5, y: 0.5 },
       depth: 2000
     }
   },
 
-  // === 牌匾 ===
+  // === Agent sprite config ===
+  agentSprite: {
+    frameWidth: 64,
+    frameHeight: 64,
+    scale: 1.6,         // scale up pixel art sprites
+    walkSpeed: 1.8,     // pixels per frame
+    idleFrameRate: 4,
+    walkFrameRate: 8
+  },
+
+  // === Chat bubble config ===
+  bubble: {
+    maxWidth: 200,
+    padding: 8,
+    depth: 3000,
+    duration: 4000,
+    typewriterDelay: 40
+  },
+
+  // === Talking portrait config ===
+  portrait: {
+    size: 64,           // display size for 96px source
+    depth: 3001,
+    offsetX: -110,      // offset from bubble center
+    offsetY: 0
+  },
+
+  // === Plaque ===
   plaque: {
     x: 640,
     y: 720 - 36,
@@ -123,11 +81,64 @@ const LAYOUT = {
     height: 44
   },
 
-  // === 资源加载规则：哪些强制用 PNG（透明资源） ===
-  forcePng: {
-    desk_v2: true // 新办公桌必须透明，强制 PNG
-  },
+  // === Total asset count for loading bar ===
+  totalAssets: 14
+};
 
-  // === 总资源数量（用于加载进度条） ===
-  totalAssets: 15
+// === Area positions for multi-agent spread ===
+const AREA_POSITIONS = {
+  breakroom: [
+    { x: 960, y: 140 },
+    { x: 1040, y: 160 },
+    { x: 1100, y: 130 },
+    { x: 980, y: 180 },
+    { x: 1060, y: 190 },
+    { x: 920, y: 170 }
+  ],
+  writing: [
+    { x: 250, y: 350 },
+    { x: 330, y: 380 },
+    { x: 200, y: 390 },
+    { x: 380, y: 350 },
+    { x: 280, y: 410 },
+    { x: 160, y: 370 }
+  ],
+  researching: [
+    { x: 820, y: 350 },
+    { x: 900, y: 380 },
+    { x: 780, y: 390 },
+    { x: 950, y: 360 },
+    { x: 860, y: 410 }
+  ],
+  error: [
+    { x: 200, y: 120 },
+    { x: 280, y: 140 },
+    { x: 160, y: 150 },
+    { x: 320, y: 120 },
+    { x: 240, y: 160 }
+  ],
+  serverroom: [
+    { x: 200, y: 120 },
+    { x: 280, y: 140 }
+  ],
+  command: [
+    { x: 200, y: 560 },
+    { x: 280, y: 580 },
+    { x: 160, y: 580 }
+  ],
+  boardroom: [
+    { x: 820, y: 560 },
+    { x: 900, y: 580 },
+    { x: 780, y: 570 },
+    { x: 950, y: 560 }
+  ],
+  workspace: [
+    { x: 250, y: 350 }
+  ],
+  lobby: [
+    { x: 530, y: 360 }
+  ],
+  observatory: [
+    { x: 1100, y: 130 }
+  ]
 };

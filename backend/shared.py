@@ -36,10 +36,11 @@ WORKING_STATES = frozenset({"writing", "researching", "executing"})  # subset us
 STATE_TO_AREA_MAP = {
     "idle": "breakroom",
     "writing": "writing",
-    "researching": "writing",
+    "researching": "researching",
     "executing": "writing",
-    "syncing": "writing",
+    "syncing": "command",
     "error": "error",
+    "sleeping": "breakroom",
 }
 
 DEFAULT_STATE = {

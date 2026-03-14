@@ -797,7 +797,49 @@
       ],
       "dependencies": [],
       "progress": 0
+    },
+    {
+      "id": "task_0037",
+      "title": "Create incident war room for emergencies",
+      "description": "Dedicated room for coordinating during outages and critical issues.",
+      "room": "war_room",
+      "type": "new_room",
+      "status": "open",
+      "points": 25,
+      "assignee": "Rook",
+      "assignee_id": "8c0ca478e96b",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-13T19:00:01.857291",
+      "assigned_at": "2026-03-13T19:00:01.857296",
+      "completed_at": null,
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 0
+    },
+    {
+      "id": "task_0038",
+      "title": "Add Ollama model health panel",
+      "description": "Show loaded models, inference speed, and context window usage.",
+      "room": "serverroom",
+      "type": "monitoring",
+      "status": "open",
+      "points": 25,
+      "assignee": "Ralph",
+      "assignee_id": "ralph",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-13T19:00:01.857309",
+      "assigned_at": "2026-03-13T19:00:01.857311",
+      "completed_at": null,
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 0
     }
   ],
-  "next_id": 37
+  "next_id": 39
 }
