@@ -36,6 +36,13 @@ CentCom is a visual dashboard that turns your OpenClaw agent team into pixel-art
 - Server Room Metrics (system health, GPU, disk)
 - Syscheck Pipeline (Ralph's monitoring)
 
+**Embedded Claude Code Terminal**
+- Click a computer to open a fully functional Claude Code (Opus 4.6) terminal *inside* the pixel-art office
+- Claude has full project context — it knows it's running inside CentCom and can modify the office code from within
+- Session persistence: conversations carry across messages using `--resume`
+- Runs with `--dangerously-skip-permissions` for uninterrupted autonomous coding
+- **The office can literally rewrite itself** — a self-modifying application where the AI living inside the UI can change the UI
+
 **Daily Huddle**
 - Agents walk to the coffee table for a team standup (cron-scheduled)
 - Collaborative planning with proposal voting and auto-execution
