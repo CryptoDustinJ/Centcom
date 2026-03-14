@@ -98,7 +98,8 @@
         "comms",
         "gallery",
         "garden",
-        "war_room"
+        "war_room",
+        "forge"
       ]
     },
     {
@@ -548,6 +549,54 @@
       "created_by": "Rook",
       "created_at": "2026-03-14T12:00:01.337128",
       "description": "Create incident war room for emergencies",
+      "plan_type": "new_room",
+      "connections": [
+        "lobby"
+      ]
+    },
+    {
+      "id": "forge",
+      "name": "Code Forge",
+      "color": "#e67e22",
+      "states": [
+        "idle",
+        "active"
+      ],
+      "furniture": [
+        {
+          "type": "anvil",
+          "x": 0.15,
+          "y": 0.3,
+          "label": "Compiler"
+        },
+        {
+          "type": "gear",
+          "x": 0.4,
+          "y": 0.3,
+          "label": "Packager"
+        },
+        {
+          "type": "deploy_pipe",
+          "x": 0.65,
+          "y": 0.3,
+          "label": "Deployer"
+        },
+        {
+          "type": "artifact_shelf",
+          "x": 0.85,
+          "y": 0.3,
+          "label": "Artifacts"
+        },
+        {
+          "type": "toolbox",
+          "x": 0.5,
+          "y": 0.6,
+          "label": "Build Tools"
+        }
+      ],
+      "created_by": "CodeMaster",
+      "created_at": "2026-03-14T12:25:18.726420",
+      "description": "Where code gets compiled, packaged, and deployed",
       "plan_type": "new_room",
       "connections": [
         "lobby"

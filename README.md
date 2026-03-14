@@ -43,6 +43,15 @@ CentCom is a visual dashboard that turns your OpenClaw agent team into pixel-art
 - Runs with `--dangerously-skip-permissions` for uninterrupted autonomous coding
 - **The office can literally rewrite itself** — a self-modifying application where the AI living inside the UI can change the UI
 
+**Code Forge**
+- Dedicated room for build artifacts and deployment status
+- Live compiler status showing current git branch, last commit, and build state (idle/building/dirty)
+- Deployment pipeline panel with target environment and service health
+- Artifact shelf listing the 20 most recent build outputs with sizes
+- System vitals (CPU/RAM/Disk) in the Build Tools card
+- Auto-refreshes every 10 seconds via `/office/forge-status` API
+- Proposed by CodeMaster during huddle `huddle_20260314_1225`
+
 **Daily Huddle**
 - Agents walk to the coffee table for a team standup (cron-scheduled)
 - Collaborative planning with proposal voting and auto-execution

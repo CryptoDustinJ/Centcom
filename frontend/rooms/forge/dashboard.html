@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Code Forge - Star Office</title>
+<style>
+  body { font-family: 'ArkPixel', monospace; background: #1a1a2e; color: #eee; margin: 0; padding: 20px; }
+  .room-header { background: #e67e2222; border: 2px solid #e67e22; border-radius: 12px; padding: 16px 24px; margin-bottom: 20px; }
+  .room-header h1 { margin: 0; color: #e67e22; font-size: 24px; }
+  .room-header .meta { color: #999; font-size: 12px; margin-top: 4px; }
+  .furniture-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .furniture-card { background: #16213e; border: 1px solid #e67e2244; border-radius: 8px; padding: 16px; }
+  .furniture-card h3 { margin: 0 0 8px 0; color: #e67e22; }
+  .furniture-card .icon { font-size: 32px; margin-bottom: 8px; }
+  .data-panel { background: #0f3460; border-radius: 6px; padding: 12px; margin-top: 8px; font-size: 13px; line-height: 1.8; }
+  .status-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+  .status-idle { background: #2c3e5033; color: #95a5a6; }
+  .status-building { background: #e67e2233; color: #f39c12; animation: pulse 1.5s infinite; }
+  .status-dirty { background: #e74c3c33; color: #e74c3c; }
+  .status-stable, .status-running { background: #27ae6033; color: #2ecc71; }
+  .status-stopped { background: #e74c3c33; color: #e74c3c; }
+  .status-unknown { background: #7f8c8d33; color: #95a5a6; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+  .back-link { color: #e67e22; text-decoration: none; font-size: 14px; }
+  .back-link:hover { text-decoration: underline; }
+  .artifact-list { list-style: none; padding: 0; margin: 8px 0 0 0; max-height: 200px; overflow-y: auto; }
+  .artifact-list li { padding: 4px 0; border-bottom: 1px solid #ffffff0a; font-size: 12px; display: flex; justify-content: space-between; }
+  .artifact-list li:last-child { border-bottom: none; }
+  .artifact-name { color: #e67e22; }
+  .artifact-meta { color: #666; }
+  .commit-hash { color: #e67e22; font-family: monospace; }
+  .commit-msg { color: #bbb; font-size: 12px; }
+  .label { color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+  <a href="/" class="back-link">&larr; Back to Office</a>
+  <div class="room-header">
+    <h1>&#x1F525; Code Forge</h1>
+    <div class="meta">Created by CodeMaster | Where code gets compiled, packaged, and deployed</div>
+  </div>
+  <div class="furniture-grid" id="furniture-grid">
+
+    <!-- Compiler -->
+    <div class="furniture-card">
+      <div class="icon">&#x1F528;</div>
+      <h3>Compiler</h3>
+      <div class="data-panel">
+        <div class="label">Build Status</div>
+        <span class="status-badge status-idle" id="build-status">idle</span>
+        <br>
+        <div class="label" style="margin-top:8px">Last Commit</div>
+        <span class="commit-hash" id="build-commit">--</span>
+        <div class="commit-msg" id="build-commit-msg">--</div>
+      </div>
+    </div>
+
+    <!-- Packager -->
+    <div class="furniture-card">
+      <div class="icon">&#x2699;&#xFE0F;</div>
+      <h3>Packager</h3>
+      <div class="data-panel">
+        <div class="label">Branch</div>
+        <span id="build-branch" style="color:#e67e22">--</span>
+        <br>
+        <div class="label" style="margin-top:8px">Commit Date</div>
+        <span id="build-duration" style="color:#bbb">--</span>
+      </div>
+    </div>
+
+    <!-- Deployer -->
+    <div class="furniture-card">
+      <div class="icon">&#x1F680;</div>
+      <h3>Deployer</h3>
+      <div class="data-panel">
+        <div class="label">Target</div>
+        <span id="deploy-target" style="color:#e67e22">--</span>
+        <br>
+        <div class="label" style="margin-top:8px">Status</div>
+        <span class="status-badge status-unknown" id="deploy-status">--</span>
+        <br>
+        <div class="label" style="margin-top:8px">Last Deploy</div>
+        <span id="deploy-time" style="color:#bbb">--</span>
+      </div>
+    </div>
+
+    <!-- Artifacts -->
+    <div class="furniture-card">
+      <div class="icon">&#x1F4E6;</div>
+      <h3>Artifacts</h3>
+      <div class="data-panel">
+        <div class="label">
+          <span id="artifact-count">--</span> files &middot;
+          <span id="artifact-size">--</span>
+        </div>
+        <ul class="artifact-list" id="artifact-list">
+          <li><span class="artifact-meta">Loading...</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Build Tools -->
+    <div class="furniture-card">
+      <div class="icon">&#x1F9F0;</div>
+      <h3>Build Tools</h3>
+      <div class="data-panel">
+        <span class="data-value-cpu">--</span> CPU |
+        <span class="data-value-ram">--</span> RAM |
+        <span class="data-value-disk">--</span> Disk
+      </div>
+    </div>
+
+  </div>
+  <script>
+    async function refreshForge() {
+      // Forge-specific data
+      try {
+        const resp = await fetch('/office/forge-status');
+        if (resp.ok) {
+          const data = await resp.json();
+          const f = data.forge || {};
+          const b = f.build || {};
+          const d = f.deploy || {};
+          const arts = f.artifacts || [];
+          const summary = f.artifact_summary || {};
+
+          // Build status
+          const statusEl = document.getElementById('build-status');
+          statusEl.textContent = b.status || 'idle';
+          statusEl.className = 'status-badge status-' + (b.status || 'idle');
+
+          document.getElementById('build-commit').textContent = b.last_commit || '--';
+          document.getElementById('build-commit-msg').textContent = b.last_commit_msg || '--';
+          document.getElementById('build-branch').textContent = b.branch || '--';
+          document.getElementById('build-duration').textContent = b.duration || '--';
+
+          // Deploy
+          document.getElementById('deploy-target').textContent = d.target || '--';
+          const deployStatusEl = document.getElementById('deploy-status');
+          deployStatusEl.textContent = d.status || 'unknown';
+          deployStatusEl.className = 'status-badge status-' + (d.status || 'unknown');
+          document.getElementById('deploy-time').textContent = d.last_deploy
+            ? new Date(d.last_deploy).toLocaleString() : 'Never';
+
+          // Artifacts
+          document.getElementById('artifact-count').textContent = summary.count || 0;
+          const totalKb = summary.total_size_kb || 0;
+          document.getElementById('artifact-size').textContent =
+            totalKb > 1024 ? (totalKb / 1024).toFixed(1) + ' MB' : totalKb.toFixed(0) + ' KB';
+
+          const listEl = document.getElementById('artifact-list');
+          if (arts.length === 0) {
+            listEl.innerHTML = '<li><span class="artifact-meta">No artifacts found</span></li>';
+          } else {
+            listEl.innerHTML = arts.map(function(a) {
+              var sizeStr = a.size_kb > 1024
+                ? (a.size_kb / 1024).toFixed(1) + ' MB'
+                : a.size_kb.toFixed(0) + ' KB';
+              return '<li><span class="artifact-name">' + a.name + '</span>'
+                + '<span class="artifact-meta">' + sizeStr + '</span></li>';
+            }).join('');
+          }
+        }
+      } catch(e) { console.warn('Forge refresh failed:', e); }
+
+      // System vitals for Build Tools card
+      try {
+        const resp = await fetch('/office/vitals');
+        if (resp.ok) {
+          const data = await resp.json();
+          const v = data.vitals || {};
+          document.querySelectorAll('.data-value-cpu').forEach(function(el) {
+            el.textContent = (v.cpu_percent || 0) + '%';
+          });
+          document.querySelectorAll('.data-value-ram').forEach(function(el) {
+            el.textContent = (v.ram_percent || 0) + '%';
+          });
+          document.querySelectorAll('.data-value-disk').forEach(function(el) {
+            el.textContent = (v.disk_free_gb || 0) + ' GB free';
+          });
+        }
+      } catch(e) { console.warn('Vitals refresh failed:', e); }
+    }
+    refreshForge();
+    setInterval(refreshForge, 10000);
+  </script>
+</body>
+</html>
