@@ -205,14 +205,20 @@
           "x": 0.5,
           "y": 0.6,
           "label": "Cron Job Status"
+        },
+        {
+          "type": "alert_board",
+          "x": 0.5,
+          "y": 0.3,
+          "label": "Escalations"
         }
       ],
       "created_by": "Ralph",
       "created_at": "2026-03-12T18:33:06.431052",
       "description": "Add cron job status board",
       "plan_type": "automation",
-      "last_updated_by": "Ralph (fixup)",
-      "last_updated_at": "2026-03-12T18:34:01.020150",
+      "last_updated_by": "Ralph",
+      "last_updated_at": "2026-03-14T12:25:18.726420",
       "connections": [
         "lobby"
       ]

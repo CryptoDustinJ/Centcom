@@ -839,7 +839,28 @@
       ],
       "dependencies": [],
       "progress": 0
+    },
+    {
+      "id": "task_0039",
+      "title": "Install alert escalation board",
+      "description": "Track alert severity, who's on call, and escalation chains.",
+      "room": "workspace",
+      "type": "automation",
+      "status": "open",
+      "points": 25,
+      "assignee": "Ralph",
+      "assignee_id": "agent_1773274630238_8duq",
+      "created_by": "huddle_auto",
+      "created_at": "2026-03-14T12:25:18.724875",
+      "assigned_at": "2026-03-14T12:25:18.724878",
+      "completed_at": null,
+      "tags": [
+        "auto",
+        "huddle"
+      ],
+      "dependencies": [],
+      "progress": 0
     }
   ],
-  "next_id": 39
+  "next_id": 40
 }
