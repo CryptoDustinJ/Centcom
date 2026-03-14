@@ -32,6 +32,18 @@
           "x": 0.5,
           "y": 0.5,
           "label": "Model Status"
+        },
+        {
+          "type": "dashboard",
+          "x": 0.3,
+          "y": 0.3,
+          "label": "CPU/RAM"
+        },
+        {
+          "type": "gauge",
+          "x": 0.7,
+          "y": 0.3,
+          "label": "Disk Usage"
         }
       ],
       "created_by": "Rook",
@@ -41,7 +53,7 @@
         "lobby"
       ],
       "last_updated_by": "Ralph",
-      "last_updated_at": "2026-03-13T19:00:01.858927"
+      "last_updated_at": "2026-03-13T21:03:42.360366"
     },
     {
       "id": "lobby",

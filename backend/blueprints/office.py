@@ -827,6 +827,18 @@ def start_huddle():
     except Exception as e:
         log.warning("Auto-task creation failed", extra={"_error": str(e)})
 
+    # Signal the frontend that a huddle is active (agents gather at coffee table)
+    try:
+        huddle_state_file = Path(cfg.ROOT_DIR) / "huddle-active.json"
+        huddle_state_file.write_text(json.dumps({
+            "active": True,
+            "huddle_id": huddle_id,
+            "started_at": datetime.now().isoformat(),
+            "agents": [a["name"] for a in collaborators]
+        }, indent=2))
+    except Exception as e:
+        log.warning("Failed to write huddle-active state", extra={"_error": str(e)})
+
     log.info("Office huddle started", extra={"_huddle_id": huddle_id, "_agents": len(collaborators)})
 
     response_data = {
@@ -854,7 +866,33 @@ def start_huddle():
             log.error("Auto-execution failed", extra={"_error": str(e)})
             response_data["execution"] = {"success": False, "log": [f"Auto-execution error: {e}"]}
 
+    # Clear huddle-active state after execution (agents return to positions)
+    # Keep it active for 3 minutes so frontend can show the gathering animation
+    def _clear_huddle_state():
+        import time as _time
+        _time.sleep(180)  # 3 minutes
+        try:
+            huddle_state_file = Path(cfg.ROOT_DIR) / "huddle-active.json"
+            huddle_state_file.write_text(json.dumps({"active": False}, indent=2))
+        except Exception:
+            pass
+    import threading
+    threading.Thread(target=_clear_huddle_state, daemon=True).start()
+
     return jsonify(response_data)
+
+
+@bp.route("/office/huddle/active", methods=["GET"])
+def huddle_active():
+    """Check if a huddle is currently active (agents gathering at coffee table)."""
+    try:
+        huddle_state_file = Path(cfg.ROOT_DIR) / "huddle-active.json"
+        if huddle_state_file.exists():
+            data = json.loads(huddle_state_file.read_text())
+            return jsonify(data)
+    except Exception:
+        pass
+    return jsonify({"active": False})
 
 
 @bp.route("/office/plans", methods=["GET"])

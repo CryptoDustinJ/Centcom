@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Star's Pixel Office</title>
+    <title>OpenClaw Office v2</title>
     <style>
         @font-face {
             font-family: 'ArkPixel';
@@ -2510,6 +2510,9 @@
         };
 
         let game, star, sofa, serverroom, officeBgSprite, coffeeMachine, areas = {}, currentState = 'idle', pendingDesiredState = null, statusText, lastFetch = 0, lastBlink = 0, lastBubble = 0, targetX = 660, targetY = 170, bubble = null, typewriterText = '', typewriterTarget = '', typewriterIndex = 0, lastTypewriter = 0, syncAnimSprite = null, syncAnimPlayable = false, catBubble = null, selectionBoxGraphics = null;
+        // Hide stock pixel-art assets (sofa/chair, desk/computer, star cat, cat beds)
+        // Set to false to restore them
+        const HIDE_STOCK_ASSETS = true;
         const IDLE_SOFA_ANCHOR = { x: 798, y: 272 }; // 统一中心锚点（原 sofa 左上 670,144 的中心）
         const IDLE_STAR_SCALE = 1.0; // star idle 改为256帧原生显示，不再放大
         // flowers 精灵表规格：固定单帧 128x128，4x4
@@ -4385,16 +4388,19 @@ function toggleBrokerPanel() {
         }
 
         // Agent IDs/names that use new pixel art sprites (skip old blob rendering for these)
-        const PIXEL_SPRITE_AGENTS = new Set(['rook', 'ralph', 'nova', 'codemaster', 'star']);
+        // Agents with dedicated sprites — skip from generic guest rendering entirely
+        const PIXEL_SPRITE_AGENT_NAMES = new Set(['rook', 'ralph', 'nova', 'codemaster', 'star']);
+        const PIXEL_SPRITE_AGENT_KEYS = new Set(['ocj_rook_001', 'ocj_ralph_002', 'ocj_nova_003', 'ocj_codemaster_005']);
+
+        function isPixelSpriteAgent(a) {
+            const name = (a.name || '').toLowerCase();
+            const joinKey = (a.joinKey || '').toLowerCase();
+            return PIXEL_SPRITE_AGENT_NAMES.has(name) || PIXEL_SPRITE_AGENT_KEYS.has(joinKey);
+        }
 
         function renderGuestAgentsInScene() {
             if (!game) return;
-            const visitors = getMergedVisitors().filter(a => {
-                // Skip agents that have new pixel art sprites
-                const id = (a.agentId || '').toLowerCase();
-                const name = (a.name || '').toLowerCase();
-                return !PIXEL_SPRITE_AGENTS.has(id) && !PIXEL_SPRITE_AGENTS.has(name);
-            });
+            const visitors = getMergedVisitors().filter(a => !isPixelSpriteAgent(a));
             const seenIds = new Set();
             let idxBreak = 0, idxWrite = 0, idxError = 0;
 
@@ -4918,6 +4924,7 @@ function toggleBrokerPanel() {
             sofaShadow.setDepth(9);
             sofa = this.add.sprite(IDLE_SOFA_ANCHOR.x, IDLE_SOFA_ANCHOR.y, 'sofa_idle').setOrigin(0.5);
             sofa.setDepth(10);
+            if (HIDE_STOCK_ASSETS) { sofaShadow.setVisible(false); sofa.setVisible(false); }
             areas = {
                 door: { x: 640, y: 550 }, // 墙的门（偏下 1/3 位置）
                 writing: { x: 320, y: 360 }, // 左 1/3 中间（办公桌）
@@ -4955,8 +4962,8 @@ function toggleBrokerPanel() {
             star.setAlpha(0.95);
             star.setDepth(20); // Put Star on top of everything
             // Default: idle shows Star idle animation
-            star.setVisible(true);
-            star.anims.play('star_idle', true);
+            star.setVisible(!HIDE_STOCK_ASSETS);
+            if (!HIDE_STOCK_ASSETS) star.anims.play('star_idle', true);
 
             // Make star clickable to open control panel
             star.setInteractive(new Phaser.Geom.Circle(0, 0, 25), Phaser.Geom.Circle.Contains);
@@ -4990,6 +4997,140 @@ function toggleBrokerPanel() {
             game.add.text(plaqueX - 190, plaqueY, '⭐', { fontFamily: 'ArkPixel, monospace', fontSize: '20px' }).setOrigin(0.5);
             game.add.text(plaqueX + 190, plaqueY, '⭐', { fontFamily: 'ArkPixel, monospace', fontSize: '20px' }).setOrigin(0.5);
             window.officePlaqueText = plaqueText;
+
+            // === Named agent sprites at fixed default positions ===
+            const AGENT_HOME_POSITIONS = {
+                rook:       { x: 651, y: 245 },
+                nova:       { x: 1029, y: 391 },
+                ralph:      { x: 651, y: 528 },
+                codemaster: { x: 280, y: 386 }
+            };
+            // Idle animation config per agent
+            // useWalk: true means use walk spritesheet (down-facing frames 0-2) as idle
+            const AGENT_IDLE_CONFIG = {
+                codemaster: { useWalk: false, frames: [0, 1] },
+                rook:       { useWalk: true,  frames: [0, 1, 2] },
+                nova:       { useWalk: true,  frames: [0, 1, 2] },
+                ralph:      { useWalk: false, frames: [0, 1] }
+            };
+            window.agentHomeSprites = {};
+            for (const [agentName, pos] of Object.entries(AGENT_HOME_POSITIONS)) {
+                const cfg = AGENT_IDLE_CONFIG[agentName] || { useWalk: false, frames: [0] };
+                const textureKey = cfg.useWalk ? `${agentName}_walk` : `${agentName}_idle`;
+                if (!game.textures.exists(textureKey)) continue;
+                const animKey = `${agentName}_home_idle`;
+                if (!game.anims.exists(animKey)) {
+                    game.anims.create({
+                        key: animKey,
+                        frames: cfg.frames.map(f => ({ key: textureKey, frame: f })),
+                        frameRate: cfg.useWalk ? 3 : 3,
+                        repeat: -1
+                    });
+                }
+                const sprite = game.add.sprite(pos.x, pos.y, textureKey, cfg.frames[0]).setOrigin(0.5);
+                sprite.setScale(1.6);
+                sprite.setDepth(2500);
+                sprite.anims.play(animKey, true);
+                // Name label below sprite
+                const label = game.add.text(pos.x, pos.y + 55, agentName.charAt(0).toUpperCase() + agentName.slice(1), {
+                    fontFamily: 'ArkPixel, monospace', fontSize: '12px',
+                    fill: '#ffffff', stroke: '#000', strokeThickness: 3
+                }).setOrigin(0.5).setDepth(2501);
+                window.agentHomeSprites[agentName] = { sprite, label, homeX: pos.x, homeY: pos.y, cfg };
+            }
+
+            // === Huddle gathering animation ===
+            // Coffee table center: (659, 397). Agents gather at corners.
+            const HUDDLE_POSITIONS = {
+                rook:       { x: 619, y: 357 },  // top-left (closest to rook's home)
+                nova:       { x: 699, y: 397 },  // right (closest to nova's home)
+                ralph:      { x: 619, y: 437 },  // bottom-left (closest to ralph's home)
+                codemaster: { x: 619, y: 397 }   // left (closest to codemaster's home)
+            };
+            window._huddleActive = false;
+            window._huddleMoving = false; // true while agents are walking
+
+            // Create walk animations for each agent (down/up/left/right)
+            for (const agentName of ['codemaster', 'rook', 'nova', 'ralph']) {
+                const walkKey = `${agentName}_walk`;
+                if (!game.textures.exists(walkKey)) continue;
+                const dirs = { down: [0,2], up: [3,5], left: [6,8], right: [9,11] };
+                for (const [dir, [start, end]] of Object.entries(dirs)) {
+                    const key = `${agentName}_walk_${dir}`;
+                    if (!game.anims.exists(key)) {
+                        game.anims.create({ key, frames: game.anims.generateFrameNumbers(walkKey, { start, end }), frameRate: 8, repeat: -1 });
+                    }
+                }
+            }
+
+            // Poll huddle state every 10 seconds
+            function checkHuddleState() {
+                fetch('/office/huddle/active?t=' + Date.now(), { cache: 'no-store' })
+                    .then(r => r.json())
+                    .then(data => {
+                        const wasActive = window._huddleActive;
+                        window._huddleActive = !!data.active;
+                        if (data.active && !wasActive) {
+                            // Huddle just started — agents walk to coffee table
+                            window._huddleMoving = true;
+                            for (const [name, info] of Object.entries(window.agentHomeSprites)) {
+                                const target = HUDDLE_POSITIONS[name];
+                                if (target) {
+                                    info.targetX = target.x;
+                                    info.targetY = target.y;
+                                }
+                            }
+                        } else if (!data.active && wasActive) {
+                            // Huddle ended — agents walk back home
+                            window._huddleMoving = true;
+                            for (const [name, info] of Object.entries(window.agentHomeSprites)) {
+                                info.targetX = info.homeX;
+                                info.targetY = info.homeY;
+                            }
+                        }
+                    })
+                    .catch(() => {});
+            }
+            setInterval(checkHuddleState, 10000);
+
+            // Agent movement update (called from game update loop)
+            window._updateAgentMovement = function() {
+                if (!window._huddleMoving) return;
+                let allArrived = true;
+                for (const [name, info] of Object.entries(window.agentHomeSprites)) {
+                    if (info.targetX === undefined) continue;
+                    const dx = info.targetX - info.sprite.x;
+                    const dy = info.targetY - info.sprite.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist > 3) {
+                        allArrived = false;
+                        const speed = 1.5;
+                        info.sprite.x += (dx / dist) * speed;
+                        info.sprite.y += (dy / dist) * speed;
+                        info.label.x = info.sprite.x;
+                        info.label.y = info.sprite.y + 55;
+                        // Play walk animation in movement direction
+                        const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+                        const walkAnim = `${name}_walk_${dir}`;
+                        if (game.anims.exists(walkAnim) && (!info.sprite.anims.isPlaying || info.sprite.anims.currentAnim?.key !== walkAnim)) {
+                            info.sprite.anims.play(walkAnim);
+                        }
+                    } else {
+                        // Arrived — snap to target and switch to idle
+                        info.sprite.x = info.targetX;
+                        info.sprite.y = info.targetY;
+                        info.label.x = info.targetX;
+                        info.label.y = info.targetY + 55;
+                        const idleAnim = `${name}_home_idle`;
+                        if (game.anims.exists(idleAnim) && (!info.sprite.anims.isPlaying || info.sprite.anims.currentAnim?.key !== idleAnim)) {
+                            info.sprite.anims.play(idleAnim);
+                        }
+                        delete info.targetX;
+                        delete info.targetY;
+                    }
+                }
+                if (allArrived) window._huddleMoving = false;
+            };
 
             // Random plant at (565,178) (frame 0-15, 160x160 each)
             const plantFrameCount = 16;
@@ -5052,6 +5193,7 @@ function toggleBrokerPanel() {
             const randomCatFrame = Math.floor(Math.random() * Math.max(1, catsFrameCount));
             const cat = game.add.sprite(94, 557, 'cats', randomCatFrame).setOrigin(0.5);
             cat.setDepth(2000); // top layer
+            if (HIDE_STOCK_ASSETS) cat.setVisible(false);
             cat.setInteractive({ useHandCursor: true });
             // Expose to global for click handler
             window.catSprite = cat;
@@ -5095,6 +5237,7 @@ function toggleBrokerPanel() {
             // Desk at (218,417) (v2)
             const desk = this.add.image(218, 417, 'desk_v2').setOrigin(0.5);
             desk.setDepth(1001);  // desk above starWorking
+            if (HIDE_STOCK_ASSETS) desk.setVisible(false);
 
             // Random flower pot at (310,390), default scale 0.8 (top layer)
             const flowerFrameCount = Math.max(1, FLOWERS_FRAME_COLS * FLOWERS_FRAME_ROWS); // 动态帧数
@@ -5102,6 +5245,7 @@ function toggleBrokerPanel() {
             const flower = this.add.sprite(310, 390, 'flowers', randomFlowerFrame).setOrigin(0.5);
             flower.setScale(0.8);
             flower.setDepth(1100); // highest among desk/starWorking
+            if (HIDE_STOCK_ASSETS) flower.setVisible(false);
             flower.setInteractive({ useHandCursor: true });
             window.flowerSprite = flower;
             window.flowerFrameCount = flowerFrameCount;
@@ -5370,7 +5514,8 @@ function toggleBrokerPanel() {
             fetchStatus();
             fetchGuestAgents();
 
-            // === OpenClaw Agent Sprites ===
+            // === OpenClaw Agent Sprites (DISABLED — using fixed agentHomeSprites instead) ===
+            if (false) {
             // Create walk/idle animations for each agent type
             for (const agentName of ['codemaster', 'rook', 'nova', 'ralph']) {
                 const walkKey = `${agentName}_walk`;
@@ -5509,11 +5654,14 @@ function toggleBrokerPanel() {
             // Start agent sprite polling
             window._fetchOpenClawAgents();
             setInterval(window._fetchOpenClawAgents, 2500);
+            } // end disabled OpenClaw Agent Sprites block
         }
 
         function update(time) {
             if (time - lastFetch > FETCH_INTERVAL) { fetchStatus(); lastFetch = time; }
             if (time - lastGuestAgentsFetch > GUEST_AGENTS_FETCH_INTERVAL) { fetchGuestAgents(); lastGuestAgentsFetch = time; }
+            // Huddle: move agents toward coffee table or back home
+            if (window._updateAgentMovement) window._updateAgentMovement();
 
             // 兜底：非 idle 时确保机房动画在播，idle 时静止
             const effectiveStateForServer = pendingDesiredState || currentState;
@@ -5676,6 +5824,8 @@ function toggleBrokerPanel() {
         }
 
         function applyVisualState(nextState) {
+            // When stock assets are hidden, skip all star/sofa visual state changes
+            if (!HIDE_STOCK_ASSETS) {
             // Idle: show Star idle animation (main character)
             if (nextState === 'idle') {
                 sofa.anims.stop();
@@ -5722,6 +5872,7 @@ function toggleBrokerPanel() {
                     window.starWorking.anims.play('star_working', true);
                 }
             }
+            } // end !HIDE_STOCK_ASSETS
 
             // Server room logic
             if (serverroom) {
@@ -5799,6 +5950,7 @@ function toggleBrokerPanel() {
         }
 
         function moveStar(time) {
+            if (HIDE_STOCK_ASSETS) return; // stock cat character hidden
             // Use pending state if available (for target area during transition)
             const effectiveState = pendingDesiredState || currentState;
             const stateInfo = STATES[effectiveState] || STATES.idle;
@@ -5916,6 +6068,7 @@ function toggleBrokerPanel() {
         }
 
         function showBubble() {
+            if (HIDE_STOCK_ASSETS) return; // star cat hidden, no bubbles
             if (bubble) { bubble.destroy(); bubble = null; }
             const texts = getBubbleTextsByState(currentState);
             if (currentState === 'idle') return; // idle 不显示气泡（可按需开启）
@@ -5954,6 +6107,7 @@ function toggleBrokerPanel() {
         }
 
         function showCatBubble() {
+            if (HIDE_STOCK_ASSETS) return; // cat hidden
             if (!window.catSprite) return;
             if (window.catBubble) { window.catBubble.destroy(); window.catBubble = null; }
             const texts = getBubbleTextsByState('cat');

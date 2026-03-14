@@ -26,17 +26,18 @@ def index():
     # Optional: auto-rotate home background on page load if configured
     _maybe_apply_random_home_favorite()
 
-    if '_INDEX_HTML_CACHE' not in current_app.config:
-        index_path = config.FRONTEND_INDEX_FILE
-        try:
-            with open(index_path, "r", encoding="utf-8") as f:
-                raw_html = f.read()
-            current_app.config['_INDEX_HTML_CACHE'] = raw_html.replace("{{VERSION_TIMESTAMP}}", current_app.config.get("VERSION_TIMESTAMP", ""))
-        except FileNotFoundError:
-            return jsonify({"status": "error", "msg": "index.html not found"}), 404
+    # Read fresh from disk each request (dev mode) so edits take effect without restart
+    index_path = config.FRONTEND_INDEX_FILE
+    try:
+        with open(index_path, "r", encoding="utf-8") as f:
+            raw_html = f.read()
+        html = raw_html.replace("{{VERSION_TIMESTAMP}}", current_app.config.get("VERSION_TIMESTAMP", ""))
+    except FileNotFoundError:
+        return jsonify({"status": "error", "msg": "index.html not found"}), 404
 
-    resp = make_response(current_app.config['_INDEX_HTML_CACHE'])
+    resp = make_response(html)
     resp.headers["Content-Type"] = "text/html; charset=utf-8"
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     return resp
 
 

@@ -61,20 +61,35 @@ AUTO_IDLE_TTL = cfg.AUTO_IDLE_TTL
 # === Background cleanup thread ===
 
 def _cleanup_stale_agents():
-    """Remove stale or long-rejected agents."""
+    """Remove stale or long-rejected agents.
+
+    Agents with reusable join keys are never removed — they are reset to
+    idle instead so they remain visible and can resume pushing state.
+    This prevents the recurring issue where Ralph, CodeMaster, and Nova
+    disappear from the office after periods of inactivity.
+    """
     with agents_cleanup_lock:
         try:
-            from shared import load_agents_state as _load, save_agents_state as _save
+            from shared import load_agents_state as _load, save_agents_state as _save, load_join_keys as _load_keys
             agents = _load()
             now = datetime.now()
             changed = False
             to_remove = []
 
+            # Build set of reusable join keys for fast lookup
+            try:
+                keys_data = _load_keys()
+                reusable_keys = {k.get("key") for k in keys_data.get("keys", []) if k.get("reusable")}
+            except Exception:
+                reusable_keys = set()
+
             for agent in agents:
                 if agent.get("isMain"):
                     continue
 
-                # Remove stale non-idle agents
+                has_reusable_key = agent.get("joinKey") in reusable_keys
+
+                # Stale non-idle agents: reset to idle if reusable key, remove otherwise
                 last_push = agent.get("lastPushAt") or agent.get("updated_at")
                 if last_push:
                     try:
@@ -82,15 +97,22 @@ def _cleanup_stale_agents():
                         age_seconds = (now - dt).total_seconds()
                         state = agent.get("state", "idle")
                         if state != "idle" and age_seconds > STALE_STATE_TTL_SECONDS:
-                            to_remove.append(agent)
-                            changed = True
+                            if has_reusable_key:
+                                # Preserve agent, just reset to idle
+                                agent["state"] = "idle"
+                                agent["detail"] = "Idle (auto-reset)"
+                                agent["updated_at"] = now.isoformat()
+                                changed = True
+                            else:
+                                to_remove.append(agent)
+                                changed = True
                             continue
                     except Exception:
                         pass
 
-                # Remove old rejected/expired agents
+                # Remove old rejected/expired agents (but not if reusable key)
                 auth_status = agent.get("authStatus")
-                if auth_status in ("rejected", "expired"):
+                if auth_status in ("rejected", "expired") and not has_reusable_key:
                     left_at = agent.get("leftAt")
                     if left_at:
                         try:
