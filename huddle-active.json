@@ -1,3 +1,11 @@
 {
-  "active": false
+  "active": true,
+  "huddle_id": "huddle_20260314_1200",
+  "started_at": "2026-03-14T12:00:01.335103",
+  "agents": [
+    "Rook",
+    "Ralph",
+    "Nova",
+    "CodeMaster"
+  ]
 }

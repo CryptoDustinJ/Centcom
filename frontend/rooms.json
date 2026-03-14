@@ -97,7 +97,8 @@
         "ops_center",
         "comms",
         "gallery",
-        "garden"
+        "garden",
+        "war_room"
       ]
     },
     {
@@ -499,6 +500,48 @@
       "created_by": "Rook",
       "created_at": "2026-03-13T13:00:02.161173",
       "description": "Create rooftop garden for agent relaxation",
+      "plan_type": "new_room",
+      "connections": [
+        "lobby"
+      ]
+    },
+    {
+      "id": "war_room",
+      "name": "War Room",
+      "color": "#e74c3c",
+      "states": [
+        "idle",
+        "active"
+      ],
+      "furniture": [
+        {
+          "type": "alert_board",
+          "x": 0.2,
+          "y": 0.3,
+          "label": "Incident Board"
+        },
+        {
+          "type": "phone",
+          "x": 0.5,
+          "y": 0.3,
+          "label": "Hotline"
+        },
+        {
+          "type": "shield",
+          "x": 0.8,
+          "y": 0.3,
+          "label": "Defense Status"
+        },
+        {
+          "type": "clock",
+          "x": 0.5,
+          "y": 0.6,
+          "label": "Uptime Clock"
+        }
+      ],
+      "created_by": "Rook",
+      "created_at": "2026-03-14T12:00:01.337128",
+      "description": "Create incident war room for emergencies",
       "plan_type": "new_room",
       "connections": [
         "lobby"

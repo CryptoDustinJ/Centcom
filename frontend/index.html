@@ -2320,6 +2320,15 @@
         </div>
     </div>
 
+    <!-- In-game browser: OpenClaw News -->
+    <div id="ig-browser-news" class="ig-browser" style="width:520px;height:600px;">
+        <div class="ig-browser-titlebar" id="ig-browser-news-titlebar">
+            <span class="ig-browser-title">OpenClaw News</span>
+            <button class="ig-browser-close" onclick="document.getElementById('ig-browser-news').style.display='none'">x</button>
+        </div>
+        <iframe src="/office/newssite/" style="width:100%;height:calc(100% - 28px);border:none;background:#f8fafc;"></iframe>
+    </div>
+
     <!-- 加载遮罩 -->
     <div id="loading-overlay">
         <div id="loading-text">Loading Star’s pixel office...</div>
@@ -5850,6 +5859,31 @@ function toggleBrokerPanel() {
             syscheckGlow.setStrokeStyle(1, 0x3ec6e0, 0.4);
             game.tweens.add({
                 targets: syscheckGlow,
+                alpha: { from: 0.15, to: 0.0 },
+                duration: 1500,
+                yoyo: true,
+                repeat: -1
+            });
+
+            // === Clickable computer at (91, 385) -> OpenClaw News ===
+            const newsZone = game.add.zone(91, 385, 40, 40).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            newsZone.setDepth(3000);
+            newsZone.on('pointerdown', () => {
+                const browser = document.getElementById('ig-browser-news');
+                if (browser) {
+                    browser.style.display = 'block';
+                    if (!browser.dataset.positioned) {
+                        browser.style.left = Math.max(50, (window.innerWidth - 520) / 2) + 'px';
+                        browser.style.top = Math.max(50, (window.innerHeight - 600) / 2) + 'px';
+                        browser.dataset.positioned = '1';
+                    }
+                }
+            });
+            const newsGlow = game.add.rectangle(91, 385, 36, 36, 0x3ec6e0, 0.0).setOrigin(0.5);
+            newsGlow.setDepth(2999);
+            newsGlow.setStrokeStyle(1, 0x3ec6e0, 0.4);
+            game.tweens.add({
+                targets: newsGlow,
                 alpha: { from: 0.15, to: 0.0 },
                 duration: 1500,
                 yoyo: true,

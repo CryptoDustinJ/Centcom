@@ -6,7 +6,7 @@ import os
 import re
 import subprocess
 from datetime import datetime
-from flask import Blueprint, request, jsonify, session, current_app
+from flask import Blueprint, request, jsonify, session, current_app, send_from_directory
 from pathlib import Path
 
 from config import config as cfg
@@ -1900,4 +1900,15 @@ def claude_code_reset():
     global _CLAUDE_SESSION_ID
     _CLAUDE_SESSION_ID = None
     return jsonify({"ok": True, "msg": "Session reset"})
+
+
+# === News site proxy ===
+
+_NEWSSITE_DIR = os.path.expanduser("~/.openclaw/newssite")
+
+@bp.route("/office/newssite/")
+@bp.route("/office/newssite/<path:filename>")
+def newssite(filename="index.html"):
+    """Serve the OpenClaw News site files."""
+    return send_from_directory(_NEWSSITE_DIR, filename)
 
