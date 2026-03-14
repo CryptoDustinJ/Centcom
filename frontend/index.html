@@ -2055,6 +2055,131 @@
         }
         .agent-chatbox-input button:hover { background: #5dd8f0; }
 
+        /* Claude Code terminal window */
+        .claude-terminal {
+            display: none;
+            position: fixed;
+            z-index: 100002;
+            width: 620px;
+            height: 520px;
+            background: #0d1117;
+            border: 2px solid #a855f7;
+            border-radius: 8px;
+            box-shadow: 0 12px 48px rgba(168,85,247,0.3);
+            font-family: 'Segoe UI', 'Inter', 'Helvetica Neue', Arial, sans-serif;
+            overflow: hidden;
+            resize: both;
+            min-width: 400px;
+            min-height: 350px;
+        }
+        .claude-terminal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #161b22;
+            padding: 8px 12px;
+            cursor: move;
+            user-select: none;
+            border-bottom: 2px solid #a855f7;
+        }
+        .claude-terminal-title {
+            color: #a855f7;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .claude-terminal-title span { color: #6b7280; font-weight: 400; font-size: 11px; margin-left: 8px; }
+        .claude-terminal-close {
+            background: #e94560;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .claude-terminal-close:hover { background: #ff2244; }
+        .claude-terminal-output {
+            height: calc(100% - 82px);
+            overflow-y: auto;
+            padding: 12px 14px;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+            font-size: 12.5px;
+            line-height: 1.55;
+            color: #c9d1d9;
+            background: #0d1117;
+        }
+        .claude-terminal-output::-webkit-scrollbar { width: 6px; }
+        .claude-terminal-output::-webkit-scrollbar-track { background: #0d1117; }
+        .claude-terminal-output::-webkit-scrollbar-thumb { background: #a855f7; border-radius: 3px; }
+        .claude-terminal-output .claude-msg {
+            margin-bottom: 12px;
+            padding: 8px 10px;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .claude-msg.user {
+            background: #1c2333;
+            border-left: 3px solid #3b82f6;
+        }
+        .claude-msg.user::before {
+            content: '> ';
+            color: #3b82f6;
+            font-weight: 700;
+        }
+        .claude-msg.assistant {
+            background: #1a1028;
+            border-left: 3px solid #a855f7;
+        }
+        .claude-msg.assistant::before {
+            content: 'claude ';
+            color: #a855f7;
+            font-weight: 700;
+        }
+        .claude-msg.system {
+            color: #6b7280;
+            font-style: italic;
+            font-size: 11px;
+        }
+        .claude-msg.error {
+            color: #f87171;
+            border-left: 3px solid #ef4444;
+            background: #1f1215;
+        }
+        .claude-terminal-input {
+            display: flex;
+            border-top: 1px solid #21262d;
+            background: #161b22;
+        }
+        .claude-terminal-input input {
+            flex: 1;
+            background: #0d1117;
+            border: none;
+            color: #c9d1d9;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+            outline: none;
+        }
+        .claude-terminal-input input::placeholder { color: #484f58; }
+        .claude-terminal-input button {
+            background: #a855f7;
+            border: none;
+            color: #fff;
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Segoe UI', 'Inter', sans-serif;
+        }
+        .claude-terminal-input button:hover { background: #c084fc; }
+        .claude-terminal-input button:disabled { background: #4b3970; cursor: wait; }
+
         /* Dashboard styles inside browser */
         .ig-browser-content .dash-title { color: #3ec6e0; font-size: 14px; margin: 0 0 8px; }
         .ig-browser-content .dash-subtitle { color: #6b7280; font-size: 10px; margin-bottom: 10px; }
@@ -2075,6 +2200,25 @@
     </style>
 </head>
 <body>
+    <!-- Claude Code Terminal -->
+    <div id="claude-terminal" class="claude-terminal">
+        <div class="claude-terminal-header" id="claude-terminal-header">
+            <div class="claude-terminal-title">Claude Code <span>opus 4.6 // openclaw-office</span></div>
+            <div style="display:flex;gap:6px;align-items:center;">
+                <button onclick="resetClaudeSession()" style="background:#21262d;border:1px solid #30363d;color:#8b949e;font-size:10px;padding:3px 8px;border-radius:3px;cursor:pointer;" title="New session">New</button>
+                <button class="claude-terminal-close" onclick="document.getElementById('claude-terminal').style.display='none'">x</button>
+            </div>
+        </div>
+        <div class="claude-terminal-output" id="claude-terminal-output">
+            <div class="claude-msg system">Claude Code (Opus 4.6) — working in ~/openclaw-office</div>
+            <div class="claude-msg system">Type a message to start coding. Claude can read, edit, and create files in this project.</div>
+        </div>
+        <div class="claude-terminal-input">
+            <input type="text" id="claude-terminal-input" placeholder="Ask Claude to build something..." autocomplete="off">
+            <button id="claude-terminal-send" onclick="sendClaudeMessage()">Run</button>
+        </div>
+    </div>
+
     <!-- Agent direct chat box -->
     <div id="agent-chatbox" class="agent-chatbox">
         <div class="agent-chatbox-header" id="agent-chatbox-header">
@@ -5712,6 +5856,32 @@ function toggleBrokerPanel() {
                 repeat: -1
             });
 
+            // === Clickable computer at (645, 177) -> Claude Code terminal ===
+            const claudeZone = game.add.zone(645, 177, 40, 40).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            claudeZone.setDepth(3000);
+            claudeZone.on('pointerdown', () => {
+                const term = document.getElementById('claude-terminal');
+                if (term) {
+                    term.style.display = 'block';
+                    if (!term.dataset.positioned) {
+                        term.style.left = Math.max(20, (window.innerWidth - 620) / 2) + 'px';
+                        term.style.top = Math.max(20, (window.innerHeight - 520) / 2) + 'px';
+                        term.dataset.positioned = '1';
+                    }
+                    document.getElementById('claude-terminal-input').focus();
+                }
+            });
+            const claudeGlow = game.add.rectangle(645, 177, 36, 36, 0xa855f7, 0.0).setOrigin(0.5);
+            claudeGlow.setDepth(2999);
+            claudeGlow.setStrokeStyle(1, 0xa855f7, 0.5);
+            game.tweens.add({
+                targets: claudeGlow,
+                alpha: { from: 0.2, to: 0.0 },
+                duration: 1500,
+                yoyo: true,
+                repeat: -1
+            });
+
             // Random plant at (565,178) (frame 0-15, 160x160 each)
             const plantFrameCount = 16;
             const randomPlantFrame = Math.floor(Math.random() * plantFrameCount);
@@ -7280,6 +7450,103 @@ function toggleBrokerPanel() {
             }).then(() => { addActivity(`${selectedAgentId} set to idle`, 'info'); closeAgentPanel(); });
         }
 
+        // === Claude Code Terminal ===
+        let _claudeSending = false;
+
+        function sendClaudeMessage() {
+            if (_claudeSending) return;
+            const input = document.getElementById('claude-terminal-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+            input.value = '';
+
+            const output = document.getElementById('claude-terminal-output');
+            const sendBtn = document.getElementById('claude-terminal-send');
+
+            // Show user message
+            const userDiv = document.createElement('div');
+            userDiv.className = 'claude-msg user';
+            userDiv.textContent = msg;
+            output.appendChild(userDiv);
+
+            // Show thinking indicator
+            const thinkDiv = document.createElement('div');
+            thinkDiv.className = 'claude-msg system';
+            thinkDiv.textContent = 'thinking...';
+            thinkDiv.id = 'claude-thinking';
+            output.appendChild(thinkDiv);
+            output.scrollTop = output.scrollHeight;
+
+            _claudeSending = true;
+            sendBtn.disabled = true;
+            sendBtn.textContent = '...';
+
+            fetch('/office/claude-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            }).then(r => r.json()).then(data => {
+                // Remove thinking indicator
+                const thinking = document.getElementById('claude-thinking');
+                if (thinking) thinking.remove();
+
+                if (data.ok && data.reply) {
+                    const replyDiv = document.createElement('div');
+                    replyDiv.className = 'claude-msg assistant';
+                    replyDiv.textContent = data.reply;
+                    output.appendChild(replyDiv);
+
+                    // Show cost/duration info
+                    if (data.cost_usd || data.duration_ms) {
+                        const metaDiv = document.createElement('div');
+                        metaDiv.className = 'claude-msg system';
+                        const parts = [];
+                        if (data.duration_ms) parts.push((data.duration_ms / 1000).toFixed(1) + 's');
+                        if (data.cost_usd) parts.push('$' + data.cost_usd.toFixed(4));
+                        metaDiv.textContent = parts.join(' | ');
+                        output.appendChild(metaDiv);
+                    }
+                } else {
+                    const errDiv = document.createElement('div');
+                    errDiv.className = 'claude-msg error';
+                    errDiv.textContent = data.msg || 'Unknown error';
+                    output.appendChild(errDiv);
+                }
+
+                output.scrollTop = output.scrollHeight;
+                _claudeSending = false;
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Run';
+            }).catch(err => {
+                const thinking = document.getElementById('claude-thinking');
+                if (thinking) thinking.remove();
+
+                const errDiv = document.createElement('div');
+                errDiv.className = 'claude-msg error';
+                errDiv.textContent = 'Connection error: ' + err.message;
+                output.appendChild(errDiv);
+                output.scrollTop = output.scrollHeight;
+
+                _claudeSending = false;
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Run';
+            });
+        }
+
+        function resetClaudeSession() {
+            fetch('/office/claude-code/reset', { method: 'POST' }).then(() => {
+                const output = document.getElementById('claude-terminal-output');
+                output.innerHTML = '<div class="claude-msg system">Session reset. Claude Code (Opus 4.6) — fresh context.</div>';
+            });
+        }
+
+        // Enter key sends in claude terminal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && document.activeElement === document.getElementById('claude-terminal-input')) {
+                sendClaudeMessage();
+            }
+        });
+
         // === Agent Direct Chat ===
         let _agentChatTarget = null; // { name, agentId }
         let _agentChatHistory = {}; // name -> [{text, from:'user'|'agent', time}]
@@ -7825,12 +8092,12 @@ function toggleBrokerPanel() {
 
         // === In-game browser window + chatbox drag logic ===
         (function() {
-            const draggableHeaders = document.querySelectorAll('.ig-browser-titlebar, .agent-chatbox-header');
+            const draggableHeaders = document.querySelectorAll('.ig-browser-titlebar, .agent-chatbox-header, .claude-terminal-header');
             draggableHeaders.forEach(titlebar => {
                 const panel = titlebar.parentElement;
                 let isDragging = false, startX, startY, origLeft, origTop;
                 titlebar.addEventListener('mousedown', (e) => {
-                    if (e.target.classList.contains('ig-browser-close') || e.target.classList.contains('agent-chatbox-close')) return;
+                    if (e.target.classList.contains('ig-browser-close') || e.target.classList.contains('agent-chatbox-close') || e.target.classList.contains('claude-terminal-close')) return;
                     isDragging = true;
                     startX = e.clientX;
                     startY = e.clientY;

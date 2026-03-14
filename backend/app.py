@@ -11,6 +11,16 @@ import threading
 import time
 from flask import Flask, g, request, session, jsonify
 
+# Load .env file if present (keeps secrets out of git)
+_env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+if os.path.exists(_env_path):
+    with open(_env_path) as _ef:
+        for _line in _ef:
+            _line = _line.strip()
+            if _line and not _line.startswith("#") and "=" in _line:
+                _k, _, _v = _line.partition("=")
+                os.environ.setdefault(_k.strip(), _v.strip())
+
 # === Configuration & Logging ===
 from config import config as cfg
 from logger import setup_logging, get_logger, log_request

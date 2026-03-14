@@ -1788,3 +1788,116 @@ def replay_session_data(agent_id, filename):
         log.error("Failed to read session", extra={"_error": str(e)})
         return jsonify({"ok": False, "msg": str(e)}), 500
 
+
+# ── Claude Code terminal ──────────────────────────────────────────────
+# Runs the real `claude` CLI (Claude Code) with Opus 4.6 in the project dir.
+# Each request runs a single turn via `claude -p` and returns the response.
+# Uses --continue to maintain conversation history across turns.
+
+_CLAUDE_SESSION_ID = None  # Persistent session for conversation continuity
+_CLAUDE_PROJECT_DIR = str(cfg.ROOT_DIR)
+
+
+@bp.route("/office/claude-code", methods=["POST"])
+def claude_code_endpoint():
+    """Run a Claude Code turn with Opus 4.6 in the project directory."""
+    global _CLAUDE_SESSION_ID
+
+    data = request.get_json()
+    if not isinstance(data, dict):
+        return jsonify({"ok": False, "msg": "invalid json"}), 400
+
+    message = (data.get("message") or "").strip()
+    if not message:
+        return jsonify({"ok": False, "msg": "message required"}), 400
+
+    env = os.environ.copy()
+    env["PATH"] = "/home/linuxbrew/.linuxbrew/bin:/home/dustin/.local/bin:" + env.get("PATH", "")
+    # Ensure Anthropic API key is available
+    if "ANTHROPIC_API_KEY" not in env:
+        # Check common locations
+        for keyfile in [
+            os.path.expanduser("~/.anthropic/api_key"),
+            os.path.expanduser("~/.config/anthropic/api_key"),
+        ]:
+            if os.path.exists(keyfile):
+                with open(keyfile) as f:
+                    env["ANTHROPIC_API_KEY"] = f.read().strip()
+                break
+
+    system_context = (
+        "You are Claude Code running inside the OpenClaw Office (CentCom) project. "
+        "The project is at ~/openclaw-office. It is a Phaser 3 pixel-art dashboard for AI agents. "
+        "Frontend: frontend/index.html (single-page inline Phaser game, ~8000 lines). "
+        "Backend: Flask server in backend/ with blueprints (core.py, agents.py, office.py). "
+        "Agent sprites in frontend/sprites/. Dashboards in frontend/rooms/. "
+        "You can freely read, edit, and create files. The server runs on port 19000. "
+        "Keep changes focused and test-aware. This is a live production app."
+    )
+
+    cmd = [
+        "claude",
+        "-p", message,
+        "--model", "claude-opus-4-6",
+        "--output-format", "json",
+        "--dangerously-skip-permissions",
+        "--append-system-prompt", system_context,
+    ]
+
+    # Continue existing session if we have one
+    if _CLAUDE_SESSION_ID:
+        cmd.extend(["--resume", _CLAUDE_SESSION_ID])
+
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=300,
+            cwd=_CLAUDE_PROJECT_DIR,
+            env=env,
+        )
+
+        if result.returncode != 0:
+            stderr = result.stderr[:500] if result.stderr else ""
+            log.warning("Claude Code error", extra={"_stderr": stderr})
+            return jsonify({"ok": False, "msg": f"Claude Code error: {stderr}"})
+
+        try:
+            output = json.loads(result.stdout)
+            reply = output.get("result", "")
+            session_id = output.get("session_id", "")
+            cost = output.get("total_cost_usd", 0)
+            duration = output.get("duration_ms", 0)
+
+            # Save session ID for conversation continuity
+            if session_id:
+                _CLAUDE_SESSION_ID = session_id
+
+            return jsonify({
+                "ok": True,
+                "reply": reply,
+                "session_id": session_id,
+                "cost_usd": round(cost, 4) if cost else 0,
+                "duration_ms": duration,
+            })
+        except json.JSONDecodeError:
+            # If JSON parse fails, return raw stdout
+            return jsonify({"ok": True, "reply": result.stdout[:2000]})
+
+    except subprocess.TimeoutExpired:
+        return jsonify({"ok": False, "msg": "Claude Code timed out (5 min limit)"}), 504
+    except FileNotFoundError:
+        return jsonify({"ok": False, "msg": "claude CLI not found — install Claude Code first"}), 500
+    except Exception as e:
+        log.error("Claude Code error", extra={"_error": str(e)})
+        return jsonify({"ok": False, "msg": str(e)}), 500
+
+
+@bp.route("/office/claude-code/reset", methods=["POST"])
+def claude_code_reset():
+    """Reset the Claude Code session (start fresh conversation)."""
+    global _CLAUDE_SESSION_ID
+    _CLAUDE_SESSION_ID = None
+    return jsonify({"ok": True, "msg": "Session reset"})
+

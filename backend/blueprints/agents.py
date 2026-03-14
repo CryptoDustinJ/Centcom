@@ -746,15 +746,15 @@ def list_dispatch_commands():
         {"id": "wallpaper", "label": "New Wallpaper", "icon": "🎨", "category": "fun"},
     ]
     return jsonify({"ok": True, "commands": commands})
-_DUSTIN_DISCORD_USER_ID = "313414798312210433"
+_DUSTIN_DISCORD_USER_ID = os.environ.get("DISCORD_USER_ID", "")
 
 # Each agent sends DMs from their own Discord bot account to Dustin
-# dm_channel is the DM channel ID between each bot and Dustin
+# dm_channel is the DM channel ID between each bot and Dustin (from .env)
 _OPENCLAW_AGENT_MAP = {
-    "rook":       {"discord_account": "default",    "dm_channel": "1475971933462859978"},
-    "ralph":      {"discord_account": "worker",     "dm_channel": "1478993205914636359"},
-    "nova":       {"discord_account": "nova",       "dm_channel": "1481054894495371274"},
-    "codemaster": {"discord_account": "codemaster", "dm_channel": "1481459844061073490"},
+    "rook":       {"discord_account": "default",    "dm_channel": os.environ.get("DM_CHANNEL_ROOK", "")},
+    "ralph":      {"discord_account": "worker",     "dm_channel": os.environ.get("DM_CHANNEL_RALPH", "")},
+    "nova":       {"discord_account": "nova",       "dm_channel": os.environ.get("DM_CHANNEL_NOVA", "")},
+    "codemaster": {"discord_account": "codemaster", "dm_channel": os.environ.get("DM_CHANNEL_CODEMASTER", "")},
 }
 
 
@@ -766,7 +766,7 @@ _OPENCLAW_AGENT_IDS = {
 }
 
 
-_DISCORD_CHANNEL_ID = "483749214568972290"
+_DISCORD_CHANNEL_ID = os.environ.get("DISCORD_CHANNEL_ID", "")
 
 # Agents whose models don't support `openclaw agent` (e.g. custom Ollama GGUF)
 # These fall back to Discord channel mention and async reply via DM polling.
