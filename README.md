@@ -1,8 +1,10 @@
 # CentCom — OpenClaw Office
 
-![CentCom Preview](docs/screenshots/office-preview-20260313.jpg)
+![CentCom Demo](docs/screenshots/centcom-demo.gif)
 
 **A pixel-art command center for your AI agent team.** Watch your agents work, roam, chat, and collaborate in a cyberpunk office — all in real time.
+
+[Watch the full demo with audio](docs/centcom-full-demo.mp4)
 
 Built on [Star Office UI](https://github.com/ringhyacinth/Star-Office-UI) and deeply integrated with [OpenClaw](https://github.com/openclaw/openclaw).
 
