@@ -156,6 +156,100 @@ _cleanup_thread = threading.Thread(target=_cleanup_thread_loop, daemon=True)
 _cleanup_thread.start()
 
 
+# === Swarm domain-agent dispatcher loop ===
+
+import subprocess
+import json
+
+SWARM_DIR = os.path.join(cfg.ROOT_DIR, "swarm", "domain_agents")
+SWARM_STATUS_FILE = os.path.join(cfg.ROOT_DIR, "swarm", "swarm-status.json")
+SWARM_CHECK_INTERVAL = 900  # 15 minutes — matches dispatcher sleep cycles
+
+DOMAIN_AGENTS = {
+    "rook":       {"agent_id": "main",       "model": "google/gemini-3.1-flash-lite-preview", "description": "Team lead & strategy"},
+    "ralph":      {"agent_id": "ralph",      "model": "google/gemini-2.5-flash-lite",         "description": "System monitoring & ops"},
+    "nova":       {"agent_id": "nova",       "model": "openrouter/healer-alpha", "description": "Research & analysis"},
+    "codemaster": {"agent_id": "codemaster", "model": "openrouter/hunter-alpha",              "description": "Coding & audits"},
+}
+
+
+def _run_domain_check(domain: str) -> dict:
+    """Check an OpenClaw agent's status and log to Hive-Mind ledger."""
+    agent_cfg = DOMAIN_AGENTS[domain]
+    agent_id = agent_cfg["agent_id"]
+    try:
+        result = subprocess.run(
+            ["openclaw", "sessions", "--agent", agent_id, "--active", "30", "--json"],
+            timeout=15,
+            capture_output=True,
+            text=True,
+        )
+        sessions = []
+        if result.returncode == 0 and result.stdout.strip():
+            data = json.loads(result.stdout)
+            if isinstance(data, dict):
+                sessions = data.get("sessions", [])
+            elif isinstance(data, list):
+                sessions = data
+
+        if sessions:
+            latest = sessions[0]
+            tokens = latest.get("totalTokens") or 0
+            model = latest.get("model", agent_cfg["model"])
+            age_ms = latest.get("ageMs", 0)
+            age_min = int(age_ms / 60000) if age_ms else 0
+            return {
+                "domain": domain,
+                "status": "online",
+                "detail": f"Active {age_min}m ago, {tokens} tokens, model: {model}",
+                "model": model,
+            }
+        else:
+            return {
+                "domain": domain,
+                "status": "idle",
+                "detail": "No active sessions in last 30 minutes",
+                "model": agent_cfg["model"],
+            }
+    except subprocess.TimeoutExpired:
+        return {"domain": domain, "status": "timeout", "detail": "Session check timed out"}
+    except Exception as e:
+        return {"domain": domain, "status": "error", "detail": str(e)[:200]}
+
+
+def _swarm_dispatcher_loop():
+    """Background loop that runs all domain agent dispatchers on a schedule."""
+    # Initial delay to let the server finish starting
+    time.sleep(10)
+    while True:
+        results = {}
+        for domain in DOMAIN_AGENTS:
+            try:
+                results[domain] = _run_domain_check(domain)
+            except Exception:
+                results[domain] = {"domain": domain, "status": "error", "detail": "uncaught exception"}
+
+        # Persist status snapshot
+        try:
+            status = {
+                "updated_at": datetime.now().isoformat(),
+                "interval_seconds": SWARM_CHECK_INTERVAL,
+                "agents": results,
+            }
+            os.makedirs(os.path.dirname(SWARM_STATUS_FILE), exist_ok=True)
+            with open(SWARM_STATUS_FILE, "w") as f:
+                json.dump(status, f, indent=2)
+        except Exception:
+            pass
+
+        time.sleep(SWARM_CHECK_INTERVAL)
+
+
+# Start swarm dispatcher daemon
+_swarm_thread = threading.Thread(target=_swarm_dispatcher_loop, daemon=True, name="swarm-dispatcher")
+_swarm_thread.start()
+
+
 # === Application factory ===
 
 def create_app():

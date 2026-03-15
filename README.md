@@ -14,7 +14,7 @@ CentCom is a visual dashboard that turns your OpenClaw agent team into pixel-art
 
 **The Team:**
 - **Rook** — Lead agent (Google Gemini). Coordinates the team, handles complex tasks.
-- **Ralph** — Operator (Ollama/qwen, local GPU). Runs system checks, dispatches tasks, executes scripts.
+- **Ralph** — Operator (Google Gemini). Runs system checks, dispatches tasks, executes scripts.
 - **Nova** — Research specialist (OpenRouter). Continuous improvement, knowledge base research.
 - **CodeMaster** — Code quality expert. Analyzes codebases, generates dashboards.
 
@@ -60,10 +60,65 @@ CentCom is a visual dashboard that turns your OpenClaw agent team into pixel-art
 - Scrollable panel showing all agent Discord messages
 - Color-coded by agent with timestamps
 
+**Hive-Mind Swarm Dashboard**
+- Clickable in-game computer opens a live swarm status panel
+- Shows all agent statuses (online/idle/error) with model info
+- Displays recent Hive-Mind ledger events — syschecks, alerts, deploys, auto-heals
+- Auto-refreshes every 15 seconds
+
+**Swarm Domain-Agent Dispatcher**
+- Background thread checks all agent sessions every 15 minutes
+- Writes status snapshots to `swarm/swarm-status.json`
+- Powers the Hive-Mind dashboard and swarm status API (`/office/swarm-status`)
+
+**Hive-Mind Shared Memory Ledger**
+- All agents log events (syschecks, alerts, fixes, research, deploys) to a shared ledger
+- Events auto-archive after 24 hours
+- API endpoints: `GET /office/get-hive-mind-context`, `POST /office/log-memory-packet`
+- Agents use this for cross-team awareness without flooding Discord
+
+**Task Queue System**
+- Structured task queue with dependencies and chains
+- Agents pick up, execute, and complete tasks autonomously
+- Wake-dispatcher sends task context when waking idle agents
+- Nightly consolidation auto-generates research tasks from a rotating backlog
+
+**Auto-Heal System**
+- Error interceptor service tails gateway/node logs and posts errors to the Hive-Mind ledger
+- CodeMaster dispatches for known playbook matches with fallback to direct script fixes
+- Escalates to Rook after repeated failures
+- Regression detection within 30 minutes of a fix
+
+**Windows Guardian Watchdog**
+- PowerShell script runs silently on Windows, checks health every 2 minutes
+- File-based architecture: WSL cron writes health status, Guardian reads it and writes repair requests
+- Auto-recovers: WSL crashes, service failures, port issues, cron death, disk full
+- Directly restarts WSL cron when it dies (no circular dependency)
+- Escalates via Windows toast notifications after repeated failures
+- Auto-launches from Windows Startup folder
+
+**Wake-on-Demand**
+- Agents sleep until needed — 5-minute dispatcher poll replaces constant heartbeats
+- Heartbeats reduced to 6-hour safety nets
+- Saves tokens and API costs while keeping agents responsive
+
 **Command Center**
 - Dispatch tasks: syscheck, fullcheck, self-heal, weather, wallpaper
 - Knowledge base search and research triggers
 - Storybook scraping and browsing
+
+**Rooms**
+- **Main Office** — Agent desks, coffee table for huddles, interactive computers
+- **Server Room** — Live system metrics (CPU, RAM, disk, GPU, services)
+- **Code Forge** — Build artifacts, deployment pipeline, compiler status
+- **War Room** — Incident response and emergency coordination
+- **Observatory** — API monitoring
+- **Library** — Knowledge base browser
+- **Archive** — Decision history and past huddles
+- **Ops Center** — Live service dashboards
+- **Comms Center** — Cross-agent messaging hub
+- **Gallery** — Art gallery
+- **Rooftop Garden** — Agent relaxation area
 
 ## Setup
 
@@ -96,19 +151,29 @@ frontend/           Phaser 3 game + HTML overlays (single-page)
   rooms/            Dashboard HTML files per room
 
 backend/            Flask server (port 19000)
+  app.py            Application factory, swarm dispatcher, cleanup threads
+  config.py         Configuration with environment validation
   blueprints/
     core.py         Page serving, health checks, metrics
     agents.py       Agent state, messaging, dispatch to OpenClaw
-    office.py       Huddle system, collaboration, plans
+    office/         Huddle system, collaboration, plans, Hive-Mind ledger
+
+swarm/              Swarm status snapshots and domain agent dispatchers
+collaboration/      Huddle decisions, plans, and team proposals
 ```
 
 ## Agent Configuration
 
 Agents connect via reusable join keys defined in `join-keys.json`. The backend preserves agents with reusable keys across restarts — they reset to idle instead of being removed.
 
-Agent messages dispatch through OpenClaw:
-- **Rook, Nova, CodeMaster** — `openclaw agent` (direct turn, immediate reply to DM)
-- **Ralph** — `openclaw message send` (DM, async reply via patched Ollama tool parsing)
+All agents dispatch through OpenClaw and communicate via Discord + agent-to-agent backchannel (`sessions_send`).
+
+| Agent | Model | Role |
+|---|---|---|
+| Rook | `google/gemini-3.1-flash-lite-preview` | Team lead, strategy, coordination |
+| Ralph | `google/gemini-2.5-flash-lite` | System monitoring, ops, dispatch |
+| Nova | `openrouter/healer-alpha` | Research, knowledge base, analysis |
+| CodeMaster | `openrouter/hunter-alpha` | Code audits, quality dashboards |
 
 ## Credits
 

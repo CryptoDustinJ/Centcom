@@ -125,6 +125,45 @@ class Config:
     # === Runtime computed paths ===
     MEMORY_DIR: Final[str] = os.path.join(os.path.dirname(ROOT_DIR), "memory")
 
+
+    @classmethod
+    def validate_env(cls, strict: bool = False) -> list[str]:
+        """Validate environment variables. Returns list of warnings.
+        
+        In strict/production mode, raises on critical missing vars.
+        """
+        from security_utils import is_production_mode
+        
+        warnings = []
+        errors = []
+        
+        # FLASK_SECRET_KEY - critical in production
+        secret = os.getenv("FLASK_SECRET_KEY") or os.getenv("STAR_OFFICE_SECRET")
+        if not secret:
+            if is_production_mode():
+                errors.append("FLASK_SECRET_KEY or STAR_OFFICE_SECRET must be set in production")
+            else:
+                warnings.append("FLASK_SECRET_KEY not set (using dev default)")
+        elif secret in ("dev-secret", "star-office-dev-secret-change-me", "change-me"):
+            if is_production_mode():
+                errors.append("FLASK_SECRET_KEY is using a well-known default — change it")
+            else:
+                warnings.append("FLASK_SECRET_KEY is using default dev value")
+        
+        # ASSET_DRAWER_PASS - warn if default
+        drawer_pass = os.getenv("ASSET_DRAWER_PASS", "1234")
+        if drawer_pass == "1234":
+            warnings.append("ASSET_DRAWER_PASS is default (1234) — consider changing")
+        
+        # Optional but recommended
+        if not os.getenv("GEMINI_API_KEY"):
+            warnings.append("GEMINI_API_KEY not set — image generation features disabled")
+        
+        if errors:
+            raise RuntimeError("Environment validation failed:\n  - " + "\n  - ".join(errors))
+        
+        return warnings
+
     @classmethod
     def validate_paths(cls) -> None:
         """Validate that critical directories exist and are writable."""
@@ -149,6 +188,7 @@ class Config:
     def validate(cls) -> None:
         """Run all validations. Call at application startup."""
         cls.validate_paths()
+        cls.validate_env()
         # Additional validation specific to production mode can be done separately
 
 
