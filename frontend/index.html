@@ -6033,8 +6033,8 @@ function toggleBrokerPanel() {
                 repeat: -1
             });
 
-            // === Clickable computer at (195, 94) -> Activity Feed ===
-            const activityZone = game.add.zone(195, 94, 40, 40).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            // === Clickable computer at (565, 75) -> Activity Feed ===
+            const activityZone = game.add.zone(565, 75, 40, 40).setOrigin(0.5).setInteractive({ useHandCursor: true });
             activityZone.setDepth(3000);
             activityZone.on('pointerdown', () => {
                 const browser = document.getElementById('ig-browser-activity');
@@ -6047,7 +6047,7 @@ function toggleBrokerPanel() {
                     }
                 }
             });
-            const activityGlow = game.add.rectangle(195, 94, 36, 36, 0xef4444, 0.0).setOrigin(0.5);
+            const activityGlow = game.add.rectangle(565, 75, 36, 36, 0xef4444, 0.0).setOrigin(0.5);
             activityGlow.setDepth(2999);
             activityGlow.setStrokeStyle(1, 0xef4444, 0.5);
             game.tweens.add({
