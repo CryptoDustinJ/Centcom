@@ -2329,6 +2329,131 @@
         <iframe src="/office/newssite/" style="width:100%;height:calc(100% - 28px);border:none;background:#f8fafc;"></iframe>
     </div>
 
+    <!-- In-game browser: Activity Feed (live terminal) -->
+    <div id="ig-browser-activity" class="ig-browser" style="width:500px;height:560px;">
+        <div class="ig-browser-titlebar" id="ig-browser-activity-titlebar">
+            <span class="ig-browser-title">Activity Feed // Live</span>
+            <button class="ig-browser-close" onclick="document.getElementById('ig-browser-activity').style.display='none'">x</button>
+        </div>
+        <div class="ig-browser-content" style="padding:8px;">
+            <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+                <button class="feed-filter active" data-filter="all" onclick="feedFilter('all',this)">All</button>
+                <button class="feed-filter" data-filter="rook" onclick="feedFilter('rook',this)">Rook</button>
+                <button class="feed-filter" data-filter="ralph" onclick="feedFilter('ralph',this)">Ralph</button>
+                <button class="feed-filter" data-filter="nova" onclick="feedFilter('nova',this)">Nova</button>
+                <button class="feed-filter" data-filter="codemaster" onclick="feedFilter('codemaster',this)">CodeMaster</button>
+                <button class="feed-filter" data-filter="system" onclick="feedFilter('system',this)">System</button>
+                <input id="feed-search" type="text" placeholder="Search..." style="flex:1;min-width:80px;background:#1a1a2e;border:1px solid #333;color:#ccc;padding:2px 6px;font-size:10px;border-radius:3px;" oninput="feedSearch(this.value)">
+            </div>
+            <div id="activity-feed-list" style="font-family:'Courier New',monospace;font-size:10px;line-height:1.7;color:#ccc;height:440px;overflow-y:auto;background:#0a0a1a;border-radius:4px;padding:6px 8px;">
+                <span style="color:#555;">Connecting to activity feed...</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:4px;">
+                <span style="color:#555;font-size:9px;" id="feed-count">0 events</span>
+                <span style="color:#555;font-size:9px;">Auto-refreshes 5s</span>
+            </div>
+        </div>
+    </div>
+    <style>
+        .feed-filter { background:#1a1a2e;border:1px solid #333;color:#888;padding:2px 8px;font-size:9px;border-radius:3px;cursor:pointer; }
+        .feed-filter.active { background:#2d1b69;border-color:#a855f7;color:#d8b4fe; }
+        .feed-evt { padding:2px 0;border-bottom:1px solid #111; }
+        .feed-evt:hover { background:#111; }
+        .feed-ts { color:#555; }
+        .feed-agent-rook { color:#f59e0b; }
+        .feed-agent-ralph { color:#3b82f6; }
+        .feed-agent-nova { color:#a855f7; }
+        .feed-agent-codemaster { color:#10b981; }
+        .feed-agent-system { color:#6b7280; }
+        .feed-agent-claude-code { color:#ef4444; }
+        .feed-agent-auto-heal { color:#f97316; }
+        .feed-agent-archivist { color:#6b7280; }
+        .feed-type { color:#888;font-style:italic; }
+        .feed-data { color:#d4d4d4; }
+        .feed-highlight { background:#854d0e33;border-radius:2px; }
+    </style>
+    <script>
+    (function activityFeedInit() {
+        const AGENT_COLORS = {rook:'#f59e0b',ralph:'#3b82f6',nova:'#a855f7',codemaster:'#10b981',system:'#6b7280','claude-code':'#ef4444','auto-heal':'#f97316',archivist:'#6b7280'};
+        const TYPE_ICONS = {fix:'🔧',error:'❌',alert:'⚠️',deploy:'🚀','code-swarm':'🐝',syscheck:'🔍',heartbeat:'💓',config:'⚙️',audit:'📋','auto-heal':'🩹','agent_cycle':'🔄',task:'📌',status:'📡'};
+        let currentFilter = 'all';
+        let currentSearch = '';
+        let allEvents = [];
+
+        function formatAge(ts) {
+            try {
+                const diff = (Date.now() - new Date(ts).getTime()) / 1000;
+                if (diff < 60) return Math.floor(diff) + 's ago';
+                if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+                if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+                return Math.floor(diff/86400) + 'd ago';
+            } catch { return ''; }
+        }
+
+        function renderEvents() {
+            const el = document.getElementById('activity-feed-list');
+            const countEl = document.getElementById('feed-count');
+            if (!el) return;
+
+            let filtered = allEvents;
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(e => (e.agent || '').toLowerCase() === currentFilter);
+            }
+            if (currentSearch) {
+                const q = currentSearch.toLowerCase();
+                filtered = filtered.filter(e =>
+                    (e.data || '').toLowerCase().includes(q) ||
+                    (e.type || '').toLowerCase().includes(q) ||
+                    (e.agent || '').toLowerCase().includes(q)
+                );
+            }
+
+            if (countEl) countEl.textContent = filtered.length + ' events';
+
+            if (!filtered.length) {
+                el.innerHTML = '<span style="color:#555;">No matching events.</span>';
+                return;
+            }
+
+            el.innerHTML = filtered.slice().reverse().map(e => {
+                const ts = e.timestamp ? e.timestamp.substring(11, 19) : '??:??:??';
+                const age = formatAge(e.timestamp);
+                const agent = e.agent || 'unknown';
+                const agentClass = 'feed-agent-' + agent.replace(/[^a-z-]/g, '');
+                const icon = TYPE_ICONS[e.type] || '●';
+                const data = typeof e.data === 'string' ? e.data : JSON.stringify(e.data);
+                const truncData = data.length > 200 ? data.substring(0, 200) + '...' : data;
+                return `<div class="feed-evt"><span class="feed-ts">${ts}</span> <span class="${agentClass}">[${agent}]</span> <span class="feed-type">${icon} ${e.type||'?'}</span> <span class="feed-data">${truncData}</span> <span class="feed-ts">${age}</span></div>`;
+            }).join('');
+        }
+
+        async function refresh() {
+            try {
+                const res = await fetch('/office/get-hive-mind-context');
+                const data = await res.json();
+                if (data.events) {
+                    allEvents = data.events;
+                    renderEvents();
+                }
+            } catch { /* silent */ }
+        }
+
+        window.feedFilter = function(filter, btn) {
+            currentFilter = filter;
+            document.querySelectorAll('.feed-filter').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderEvents();
+        };
+        window.feedSearch = function(q) {
+            currentSearch = q;
+            renderEvents();
+        };
+
+        refresh();
+        setInterval(refresh, 5000);
+    })();
+    </script>
+
     <!-- In-game browser: Swarm / Hive-Mind Dashboard -->
     <div id="ig-browser-swarm" class="ig-browser" style="width:440px;height:520px;">
         <div class="ig-browser-titlebar" id="ig-browser-swarm-titlebar">
@@ -5904,6 +6029,31 @@ function toggleBrokerPanel() {
                 targets: swarmGlow,
                 alpha: { from: 0.2, to: 0.0 },
                 duration: 1500,
+                yoyo: true,
+                repeat: -1
+            });
+
+            // === Clickable computer at (195, 94) -> Activity Feed ===
+            const activityZone = game.add.zone(195, 94, 40, 40).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            activityZone.setDepth(3000);
+            activityZone.on('pointerdown', () => {
+                const browser = document.getElementById('ig-browser-activity');
+                if (browser) {
+                    browser.style.display = 'block';
+                    if (!browser.dataset.positioned) {
+                        browser.style.left = Math.max(50, (window.innerWidth - 500) / 2) + 'px';
+                        browser.style.top = Math.max(30, (window.innerHeight - 560) / 2) + 'px';
+                        browser.dataset.positioned = '1';
+                    }
+                }
+            });
+            const activityGlow = game.add.rectangle(195, 94, 36, 36, 0xef4444, 0.0).setOrigin(0.5);
+            activityGlow.setDepth(2999);
+            activityGlow.setStrokeStyle(1, 0xef4444, 0.5);
+            game.tweens.add({
+                targets: activityGlow,
+                alpha: { from: 0.2, to: 0.0 },
+                duration: 1200,
                 yoyo: true,
                 repeat: -1
             });
