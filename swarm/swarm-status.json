@@ -1,29 +1,29 @@
 {
-  "updated_at": "2026-03-15T09:30:24.359545",
+  "updated_at": "2026-03-15T11:57:16.112580",
   "interval_seconds": 900,
   "agents": {
     "rook": {
       "domain": "rook",
-      "status": "online",
-      "detail": "Active 22m ago, 72241 tokens, model: gemini-3.1-flash-lite-preview",
-      "model": "gemini-3.1-flash-lite-preview"
+      "status": "idle",
+      "detail": "No active sessions in last 30 minutes",
+      "model": "google/gemini-3.1-flash-lite-preview"
     },
     "ralph": {
       "domain": "ralph",
-      "status": "online",
-      "detail": "Active 2m ago, 6082 tokens, model: gemini-2.5-flash-lite",
-      "model": "gemini-2.5-flash-lite"
+      "status": "idle",
+      "detail": "No active sessions in last 30 minutes",
+      "model": "google/gemini-2.5-flash-lite"
     },
     "nova": {
       "domain": "nova",
-      "status": "online",
-      "detail": "Active 22m ago, 18446 tokens, model: openrouter/healer-alpha",
+      "status": "idle",
+      "detail": "No active sessions in last 30 minutes",
       "model": "openrouter/healer-alpha"
     },
     "codemaster": {
       "domain": "codemaster",
-      "status": "online",
-      "detail": "Active 22m ago, 62642 tokens, model: openrouter/hunter-alpha",
+      "status": "idle",
+      "detail": "No active sessions in last 30 minutes",
       "model": "openrouter/hunter-alpha"
     }
   }

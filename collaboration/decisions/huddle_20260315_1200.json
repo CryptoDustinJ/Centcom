@@ -1,0 +1,292 @@
+{
+  "huddle_id": "huddle_20260315_1200",
+  "timestamp": "2026-03-15T12:00:01.355907",
+  "agents": [
+    "Rook",
+    "Ralph",
+    "Nova",
+    "CodeMaster"
+  ],
+  "context_snapshot": {
+    "timestamp": "2026-03-15T12:00:01.438415",
+    "agents": {
+      "total": 5,
+      "by_state": {
+        "writing": 1,
+        "idle": 4
+      },
+      "active": 5
+    },
+    "tasks": {
+      "total": 39,
+      "open": 27,
+      "in_progress": 4,
+      "completed": 8,
+      "overdue": 0
+    },
+    "git": {
+      "branch": "master",
+      "dirty": true,
+      "recent_commits": 10
+    },
+    "rooms": {
+      "total": 14,
+      "list": [
+        {
+          "id": "serverroom",
+          "name": "Serverroom"
+        },
+        {
+          "id": "lobby",
+          "name": "Metrics Lobby"
+        },
+        {
+          "id": "observatory",
+          "name": "Observatory"
+        },
+        {
+          "id": "breakroom",
+          "name": "Breakroom"
+        },
+        {
+          "id": "workspace",
+          "name": "Workspace"
+        },
+        {
+          "id": "lab",
+          "name": "Lab"
+        },
+        {
+          "id": "archive",
+          "name": "Archive"
+        },
+        {
+          "id": "library",
+          "name": "Library"
+        },
+        {
+          "id": "ops_center",
+          "name": "Ops Center"
+        },
+        {
+          "id": "comms",
+          "name": "Comms"
+        },
+        {
+          "id": "gallery",
+          "name": "Gallery"
+        },
+        {
+          "id": "garden",
+          "name": "Garden"
+        },
+        {
+          "id": "war_room",
+          "name": "War Room"
+        },
+        {
+          "id": "forge",
+          "name": "Code Forge"
+        }
+      ]
+    },
+    "growth": {
+      "total_contributions": 705,
+      "top_agent": "CodeMaster",
+      "leaderboard": [
+        {
+          "name": "CodeMaster",
+          "score": 380
+        },
+        {
+          "name": "Rook",
+          "score": 150
+        },
+        {
+          "name": "Ralph",
+          "score": 70
+        },
+        {
+          "name": "Nova",
+          "score": 65
+        },
+        {
+          "name": "Star",
+          "score": 40
+        }
+      ]
+    },
+    "system": {
+      "disk_free_gb": 904.34,
+      "uptime_days": 0
+    }
+  },
+  "proposals": [
+    {
+      "agent": "Rook",
+      "type": "monitoring",
+      "room": "serverroom",
+      "idea": "Expand server room with GPU monitoring",
+      "priority": 1,
+      "details": "Add GPU temp, VRAM usage, and Ollama model status.",
+      "reasoning": "As a architect with expertise in rooms, layout, integration, I analyzed: agents=5, tasks=39, rooms=14, disk=904.34 GB. Suggested monitoring.\n\n[Context snapshot]: agents=5, tasks=39, rooms=14, disk=904.34 GB, top_agent=CodeMaster",
+      "agentId": "8c0ca478e96b",
+      "requires": [
+        "exec",
+        "git"
+      ],
+      "status": "pending",
+      "furniture": [
+        {
+          "type": "gauge",
+          "x": 0.3,
+          "y": 0.5,
+          "label": "GPU Temps"
+        },
+        {
+          "type": "dashboard",
+          "x": 0.7,
+          "y": 0.5,
+          "label": "VRAM Usage"
+        }
+      ]
+    },
+    {
+      "agent": "Ralph",
+      "type": "monitoring",
+      "room": "serverroom",
+      "idea": "Create system health dashboard",
+      "priority": 1,
+      "details": "Monitor CPU, memory, disk across all services.",
+      "reasoning": "As a devops with expertise in monitoring, maintenance, syscheck, I analyzed: agents=5, tasks=39, rooms=14, disk=904.34 GB. Suggested monitoring.\n\n[Context snapshot]: agents=5, tasks=39, rooms=14, disk=904.34 GB, top_agent=CodeMaster",
+      "agentId": "agent_1773274630238_8duq",
+      "requires": [
+        "exec",
+        "git"
+      ],
+      "status": "pending",
+      "furniture": [
+        {
+          "type": "dashboard",
+          "x": 0.3,
+          "y": 0.3,
+          "label": "CPU/RAM"
+        },
+        {
+          "type": "gauge",
+          "x": 0.7,
+          "y": 0.3,
+          "label": "Disk Usage"
+        }
+      ]
+    },
+    {
+      "agent": "Nova",
+      "type": "new_room",
+      "room": "lounge",
+      "idea": "Create cozy lounge with coffee bar",
+      "priority": 3,
+      "details": "A relaxation space with sofas and beverages.",
+      "reasoning": "As a artist with expertise in creative_content, visuals, theming, I analyzed: agents=5, tasks=39, rooms=14, disk=904.34 GB. Suggested new_room.\n\n[Context snapshot]: agents=5, tasks=39, rooms=14, disk=904.34 GB, top_agent=CodeMaster",
+      "agentId": "agent_1773274638510_bld6",
+      "requires": [
+        "exec",
+        "git"
+      ],
+      "status": "pending",
+      "furniture": [
+        {
+          "type": "couch",
+          "x": 0.2,
+          "y": 0.3,
+          "label": "Sofa"
+        },
+        {
+          "type": "coffee",
+          "x": 0.5,
+          "y": 0.3,
+          "label": "Espresso Bar"
+        },
+        {
+          "type": "plant",
+          "x": 0.8,
+          "y": 0.3,
+          "label": "Ficus"
+        },
+        {
+          "type": "tv",
+          "x": 0.5,
+          "y": 0.6,
+          "label": "News Feed"
+        }
+      ]
+    },
+    {
+      "agent": "CodeMaster",
+      "type": "code_quality",
+      "room": "lab",
+      "idea": "Add code quality metrics dashboard",
+      "priority": 1,
+      "details": "Show test coverage, lint results, and recent PR stats.",
+      "reasoning": "As a engineer with expertise in code_quality, testing, optimization, I analyzed: agents=5, tasks=39, rooms=14, disk=904.34 GB. Suggested code_quality.\n\n[Context snapshot]: agents=5, tasks=39, rooms=14, disk=904.34 GB, top_agent=CodeMaster",
+      "agentId": "agent_1773274638699_p6ki",
+      "requires": [
+        "exec",
+        "git"
+      ],
+      "status": "pending",
+      "furniture": [
+        {
+          "type": "linter",
+          "x": 0.2,
+          "y": 0.3,
+          "label": "Lint Results"
+        },
+        {
+          "type": "coverage",
+          "x": 0.5,
+          "y": 0.3,
+          "label": "Test Coverage"
+        },
+        {
+          "type": "pr_board",
+          "x": 0.8,
+          "y": 0.3,
+          "label": "PR Stats"
+        }
+      ]
+    }
+  ],
+  "selected_plan": {
+    "agent": "Rook",
+    "type": "monitoring",
+    "room": "serverroom",
+    "idea": "Expand server room with GPU monitoring",
+    "priority": 1,
+    "details": "Add GPU temp, VRAM usage, and Ollama model status.",
+    "reasoning": "As a architect with expertise in rooms, layout, integration, I analyzed: agents=5, tasks=39, rooms=14, disk=904.34 GB. Suggested monitoring.\n\n[Context snapshot]: agents=5, tasks=39, rooms=14, disk=904.34 GB, top_agent=CodeMaster",
+    "agentId": "8c0ca478e96b",
+    "requires": [
+      "exec",
+      "git"
+    ],
+    "status": "pending",
+    "furniture": [
+      {
+        "type": "gauge",
+        "x": 0.3,
+        "y": 0.5,
+        "label": "GPU Temps"
+      },
+      {
+        "type": "dashboard",
+        "x": 0.7,
+        "y": 0.5,
+        "label": "VRAM Usage"
+      }
+    ]
+  },
+  "status": "approved",
+  "execution_log": [],
+  "completed": false
+}

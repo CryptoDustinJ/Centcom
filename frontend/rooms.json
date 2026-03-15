@@ -44,6 +44,18 @@
           "x": 0.7,
           "y": 0.3,
           "label": "Disk Usage"
+        },
+        {
+          "type": "gauge",
+          "x": 0.3,
+          "y": 0.5,
+          "label": "GPU Temps"
+        },
+        {
+          "type": "dashboard",
+          "x": 0.7,
+          "y": 0.5,
+          "label": "VRAM Usage"
         }
       ],
       "created_by": "Rook",
@@ -52,8 +64,8 @@
       "connections": [
         "lobby"
       ],
-      "last_updated_by": "Ralph",
-      "last_updated_at": "2026-03-13T21:03:42.360366"
+      "last_updated_by": "Rook",
+      "last_updated_at": "2026-03-15T12:00:01.457243"
     },
     {
       "id": "lobby",

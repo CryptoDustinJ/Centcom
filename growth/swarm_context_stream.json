@@ -1,0 +1,208 @@
+{
+  "events": [
+    {
+      "type": "test",
+      "data": "smoke test",
+      "timestamp": "2026-03-14T21:30:51.368304"
+    },
+    {
+      "type": "setup",
+      "agent": "system",
+      "data": "Hive-Mind ledger wired to all agents: Rook, Ralph, Nova, CodeMaster. SOUL.md files updated, syscheck pipeline and morning briefing now auto-log. ",
+      "timestamp": "2026-03-14T22:34:46.161477"
+    },
+    {
+      "type": "config",
+      "agent": "claude-code",
+      "data": "Ralph switched from ollama/ralph-qwen-tools to google/gemini-2.5-flash-lite. Nova exec settings fixed (sandbox off, ask off). Claude discord account disabled. Hive-Mind ledger wired to all agents and Claude Code. ",
+      "timestamp": "2026-03-14T22:38:29.750025"
+    },
+    {
+      "type": "token-summary",
+      "agent": "system",
+      "data": "Daily 2026-03-14: rook=504346tokens/5sessions ralph=8968tokens/2sessions nova=118003tokens/6sessions codemaster=130544tokens/3sessions  ",
+      "timestamp": "2026-03-14T22:43:33.754505"
+    },
+    {
+      "type": "deploy",
+      "agent": "claude-code",
+      "data": "Deployed 5 improvements: 1) cron scripts wired to ledger 2) error interceptor service 3) daily token summary cron 4) playbooks directory with 5 fix recipes 5) updated all SOUL.md and MEMORY.md files ",
+      "timestamp": "2026-03-14T22:45:42.535834"
+    },
+    {
+      "type": "consolidation",
+      "agent": "system",
+      "data": "Nightly synthesis complete for 2026-03-14. TEAM HEALTH: 7 — Intermittent TTS and sandbox issues, but core functions remain stable. ",
+      "timestamp": "2026-03-14T22:55:56.563307"
+    },
+    {
+      "type": "deploy",
+      "agent": "system",
+      "data": "Nightly Knowledge Consolidation system deployed. Cron at 2AM, Gemini synthesis, TEAM-INTEL.md injected to all agents. First test run: TEAM HEALTH 7/10. ",
+      "timestamp": "2026-03-14T22:56:09.004316"
+    },
+    {
+      "type": "error",
+      "agent": "system",
+      "data": "embedded run agent end: runId=ed8be537-5c6f-498f-98fe-d0597ec363ad isError=true model=arcee-ai/trinity-large-preview:free provider=openrouter error=Network connection lost. ",
+      "timestamp": "2026-03-14T23:11:07.277445"
+    },
+    {
+      "type": "error",
+      "agent": "system",
+      "data": "embedded run agent end: runId=5f8b1dd0-e7d3-4a5d-b3eb-4f578aa6892a isError=true model=openrouter/hunter-alpha provider=openrouter error=Provider returned error ",
+      "timestamp": "2026-03-14T23:46:28.866142"
+    },
+    {
+      "type": "error",
+      "agent": "system",
+      "data": "embedded run agent end: runId=6b58a400-e06a-49b7-9a6b-7cb85daa4976 isError=true model=openrouter/hunter-alpha provider=openrouter error=Provider returned error ",
+      "timestamp": "2026-03-14T23:54:33.609921"
+    },
+    {
+      "type": "token-summary",
+      "agent": "system",
+      "data": "Daily 2026-03-15: rook=0tokens/0sessions ralph=0tokens/0sessions nova=0tokens/0sessions codemaster=0tokens/0sessions  ",
+      "timestamp": "2026-03-15T00:00:02.456790"
+    },
+    {
+      "type": "error",
+      "agent": "system",
+      "data": "embedded run agent end: runId=eadff6c5-28c2-4b4e-b5fd-ae8e4ed58289 isError=true model=openrouter/hunter-alpha provider=openrouter error=Provider returned error ",
+      "timestamp": "2026-03-15T00:00:58.932423"
+    },
+    {
+      "type": "error",
+      "agent": "system",
+      "data": "embedded run agent end: runId=b1f2b138-f5f7-44f6-8a12-bef2827fa6c2 isError=true model=openrouter/hunter-alpha provider=openrouter error=Provider returned error ",
+      "timestamp": "2026-03-15T00:06:24.146803"
+    },
+    {
+      "type": "error",
+      "agent": "system",
+      "data": "embedded run agent end: runId=eadff6c5-28c2-4b4e-b5fd-ae8e4ed58289 isError=true model=openrouter/hunter-alpha provider=openrouter error=Provider returned error ",
+      "timestamp": "2026-03-15T00:06:56.673048"
+    },
+    {
+      "type": "error",
+      "agent": "system",
+      "data": "embedded run agent end: runId=b1f2b138-f5f7-44f6-8a12-bef2827fa6c2 isError=true model=openrouter/hunter-alpha provider=openrouter error=Provider returned error ",
+      "timestamp": "2026-03-15T00:06:56.707079"
+    },
+    {
+      "type": "error",
+      "agent": "system",
+      "data": "exec failed: pkill: killing pid 182 failed: Operation not permitted ",
+      "timestamp": "2026-03-15T00:07:23.690554"
+    },
+    {
+      "type": "error",
+      "agent": "system",
+      "data": "embedded run agent end: runId=b1f2b138-f5f7-44f6-8a12-bef2827fa6c2 isError=true model=openrouter/hunter-alpha provider=openrouter error=Provider returned error ",
+      "timestamp": "2026-03-15T00:09:16.543533"
+    },
+    {
+      "type": "error",
+      "agent": "system",
+      "data": "exec failed: pkill: killing pid 182 failed: Operation not permitted ",
+      "timestamp": "2026-03-15T00:09:16.579160"
+    },
+    {
+      "type": "deploy",
+      "agent": "system",
+      "data": "Auto-heal system deployed. Error interceptor now dispatches CodeMaster for known playbook matches. Fallback to direct script fix. Escalates to Rook after 3 failures. ",
+      "timestamp": "2026-03-15T00:09:35.185837"
+    },
+    {
+      "type": "auto-heal",
+      "agent": "codemaster",
+      "data": "Fixed openrouter-network-lost for nova: Transient OpenRouter connection drop on free-tier model. No restart command available for isolated sessions — next cron heartbeat (every 2h) will auto-retry. No config changes needed. ",
+      "timestamp": "2026-03-15T00:12:44.184883"
+    },
+    {
+      "type": "fix",
+      "agent": "auto-heal",
+      "data": "Direct fix: cleared sessions for nova (openrouter-network-lost) ",
+      "timestamp": "2026-03-15T00:12:57.285464"
+    },
+    {
+      "type": "config",
+      "agent": "claude-code",
+      "data": "All Ollama local models deleted. No local inference — all agents on cloud models. RTX 3050 VRAM freed. ",
+      "timestamp": "2026-03-15T00:14:12.781803"
+    },
+    {
+      "type": "deploy",
+      "agent": "system",
+      "data": "Wake-on-demand dispatcher deployed (5min poll). Nova heartbeat reduced 2h→6h. Rook SOUL.md compressed 315→191 lines. Nova SOUL.md compressed 307→106 lines. Removed stale Ollama refs, duplicate sections, fake multimodal capabilities. ",
+      "timestamp": "2026-03-15T00:28:19.354114"
+    },
+    {
+      "type": "config",
+      "agent": "claude-code",
+      "data": "Nova heartbeat reduced from 1h to 6h (was missed in previous crash). Services restarted. ",
+      "timestamp": "2026-03-15T00:41:49.226812"
+    },
+    {
+      "type": "deploy",
+      "agent": "claude-code",
+      "data": "Swarm v2 upgrade: (1) Task queue with dependencies and chains — agents pick up, execute, and complete structured tasks. (2) Wake-dispatcher now sends task context in wake messages. (3) Auto-heal verification — regression detection within 30 min. (4) Nightly consolidation auto-generates research tasks for Nova from rotating backlog. (5) Office badges/scores merged into TEAM-INTEL. (6) All heartbeats reduced to 6h safety nets (wake-on-demand handles real work). (7) Removed stale Ollama refs from syscheck/briefing. (8) All SOUL.md files updated with task queue instructions. ",
+      "timestamp": "2026-03-15T00:51:48.278385"
+    },
+    {
+      "type": "fix",
+      "agent": "system",
+      "data": "GUARDIAN auto-repaired: gateway-unknown, node-unknown, interceptor-unknown ",
+      "timestamp": "2026-03-15T01:21:24.684073"
+    },
+    {
+      "type": "fix",
+      "agent": "system",
+      "data": "GUARDIAN auto-repaired: gateway-unknown, node-unknown, interceptor-unknown ",
+      "timestamp": "2026-03-15T01:24:52.060409"
+    },
+    {
+      "type": "deploy",
+      "agent": "claude-code",
+      "data": "Windows Guardian v2 deployed. File-based architecture: WSL cron writes health status + picks up repair requests. No WSL calls from hidden PowerShell (they hang). Auto-recovers: WSL down, service failures, port issues, cron death, disk full. Escalates via Windows toast after 3 fails. Startup folder auto-launch. ",
+      "timestamp": "2026-03-15T01:33:15.784148"
+    },
+    {
+      "type": "agent_cycle",
+      "agent": "archivist",
+      "data": "Archivist dispatch: archived stale memory events",
+      "timestamp": "2026-03-15T01:36:46.360369"
+    },
+    {
+      "type": "error",
+      "agent": "system",
+      "data": "embedded run agent end: runId=aaaa6b32-8715-46b9-b537-e84aba251bc9 isError=true model=openrouter/healer-alpha provider=openrouter error=Provider returned error ",
+      "timestamp": "2026-03-15T08:54:03.756338"
+    },
+    {
+      "type": "deploy",
+      "agent": "system",
+      "data": "System started via Windows control panel ",
+      "timestamp": "2026-03-15T08:56:11.568206"
+    },
+    {
+      "type": "agent_cycle",
+      "agent": "archivist",
+      "data": "Archivist dispatch: archived stale memory events",
+      "timestamp": "2026-03-15T09:49:45.703016"
+    },
+    {
+      "type": "agent_cycle",
+      "agent": "archivist",
+      "data": "Archivist dispatch: archived stale memory events",
+      "timestamp": "2026-03-15T10:47:30.872207"
+    },
+    {
+      "type": "agent_cycle",
+      "agent": "archivist",
+      "data": "Archivist dispatch: archived stale memory events",
+      "timestamp": "2026-03-15T11:44:48.661222"
+    }
+  ],
+  "last_updated": "2026-03-15T11:44:48.661413"
+}
